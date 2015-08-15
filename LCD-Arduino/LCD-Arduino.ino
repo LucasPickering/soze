@@ -24,7 +24,7 @@ LiquidCrystal lcd(2, 4, 7, 8, 12, 13);
 String lcdText[LCD_HEIGHT];
 
 /*
- Serial Data is sent in packets of 6+ bytes
+ Serial casecontrol.Data is sent in packets of 6+ bytes
  0  - LED Red
  1  - LED Green
  2  - LED Blue
