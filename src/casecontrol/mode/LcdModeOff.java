@@ -2,7 +2,7 @@ package casecontrol.mode;
 
 import java.awt.*;
 
-public class LcdModeOff extends AbstractLcdMode {
+public final class LcdModeOff extends AbstractLcdMode {
 
   @Override
   public Color getColor() {

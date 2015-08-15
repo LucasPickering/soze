@@ -1,6 +1,6 @@
 package casecontrol.mode;
 
-public class LcdModeTemps extends AbstractLcdMode {
+public final class LcdModeTemps extends AbstractLcdMode {
 
   @Override
   public String[] getText() {

@@ -67,10 +67,13 @@ public final class CaseControl {
         break;
       }
     }
-    if (command != null && splits.length > command.getArgumentAmount()) {
+    if (command == null){
+      System.out.println(commandName + " is not a valid command");
+    } else if (splits.length <= command.getArgumentAmount()) {
+      System.out.println("Not enough arguments");
+    } else {
       return command.execute(Arrays.copyOfRange(splits, 1, splits.length));
     }
-    System.out.println(commandName + " is not a valid command");
     return true;
   }
 }

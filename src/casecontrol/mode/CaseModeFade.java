@@ -2,7 +2,7 @@ package casecontrol.mode;
 
 import java.awt.*;
 
-public class CaseModeFade implements CaseMode {
+public final class CaseModeFade implements CaseMode {
 
   @Override
   public Color getColor() {
