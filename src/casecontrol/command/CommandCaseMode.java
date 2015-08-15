@@ -23,7 +23,7 @@ public final class CommandCaseMode implements Command {
 
   @Override
   public String getDesc() {
-    return "Set the mode for the case LEDs";
+    return "Set the mode for the case LEDs. Valid modes are 'off', 'static', and 'fade'";
   }
 
   @Override
@@ -31,13 +31,18 @@ public final class CommandCaseMode implements Command {
     switch (args[0]) {
       case "off":
         Data.caseMode = new CaseModeOff();
+        System.out.println("Case LED mode set to off");
         break;
       case "static":
         Data.caseMode = new CaseModeStatic();
+        System.out.println("Case LED mode set to static");
         break;
       case "fade":
         Data.caseMode = new CaseModeFade();
+        System.out.println("Case LED mode set to fade");
         break;
+      default:
+        System.out.println("That was not a valid case LED mode");
     }
     return true;
   }

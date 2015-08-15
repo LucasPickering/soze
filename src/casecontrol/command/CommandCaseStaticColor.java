@@ -23,7 +23,7 @@ public final class CommandCaseStaticColor implements Command {
 
   @Override
   public String getDesc(){
-    return "Set the LED static color to the given RGB color";
+    return "Set the LED static color to the given RGB color.";
   }
 
   @Override

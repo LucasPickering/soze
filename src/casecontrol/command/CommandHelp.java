@@ -20,7 +20,7 @@ public final class CommandHelp implements Command {
 
   @Override
   public String getDesc() {
-    return "Print the help dialog";
+    return "Print the help dialog.";
   }
 
   @Override

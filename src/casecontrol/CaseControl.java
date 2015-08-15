@@ -8,6 +8,7 @@ import casecontrol.command.CommandCaseMode;
 import casecontrol.command.CommandCaseStaticColor;
 import casecontrol.command.CommandExit;
 import casecontrol.command.CommandHelp;
+import casecontrol.command.CommandLcdMode;
 
 public final class CaseControl {
 
@@ -16,8 +17,13 @@ public final class CaseControl {
       new CommandExit(),
       new CommandHelp(),
       new CommandCaseStaticColor(),
-      new CommandCaseMode()
+      new CommandCaseMode(),
+      new CommandLcdMode()
   };
+
+  static{
+
+  }
 
   public static void main(String[] args) {
     main.inputLoop();

@@ -19,7 +19,7 @@ public final class CommandExit implements Command {
 
   @Override
   public String getDesc(){
-    return "Terminate the program";
+    return "Terminate the program.";
   }
 
   @Override
