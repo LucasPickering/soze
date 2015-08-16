@@ -24,7 +24,6 @@ public final class CommandExit implements Command {
 
   @Override
   public boolean execute(String args[]) {
-    System.out.println("Exiting...");
     return false;
   }
 }

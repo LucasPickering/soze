@@ -20,10 +20,7 @@ public final class CaseControl {
       new CommandCaseMode(),
       new CommandLcdMode()
   };
-
-  static{
-
-  }
+  private final LoopThread loopThread = new LoopThread();
 
   public static void main(String[] args) {
     main.inputLoop();
@@ -45,10 +42,13 @@ public final class CaseControl {
    * Constantly receives input from the user. Main loop of the program.
    */
   private void inputLoop() {
+   // loopThread.start();
     Scanner scanner = new Scanner(System.in);
     do {
       System.out.print(">");
     } while (runInput(scanner.nextLine().toLowerCase()));
+    loopThread.terminate();
+    System.out.println("Exiting...");
   }
 
   /**
@@ -67,7 +67,7 @@ public final class CaseControl {
         break;
       }
     }
-    if (command == null){
+    if (command == null) {
       System.out.println(commandName + " is not a valid command");
     } else if (splits.length <= command.getArgumentAmount()) {
       System.out.println("Not enough arguments");
