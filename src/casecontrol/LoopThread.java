@@ -1,19 +1,16 @@
 package casecontrol;
 
-import org.zu.ardulink.Link;
-
 import java.awt.*;
+
+import jssc.SerialPort;
+import jssc.SerialPortException;
 
 public final class LoopThread extends Thread {
 
-  private final Link link;
+  private final SerialPort serialPort = new SerialPort("COM3");
   private boolean runLoop;
 
   public LoopThread() {
-    link = Link.createInstance("arduino");
-    if (!link.connect("COM3", 115200)) {
-      System.err.println("Could not open serial connection");
-    }
   }
 
   @Override
@@ -28,20 +25,34 @@ public final class LoopThread extends Thread {
 
   @Override
   public void run() {
-    while (runLoop) {
-      Color caseColor = Data.caseMode.getColor();
-      Color lcdColor = Data.lcdMode.getColor();
-      String[] text = Data.lcdMode.getText();
-      int[] colorData = new int[]{caseColor.getRed(), caseColor.getGreen(), caseColor.getBlue(),
-          lcdColor.getRed(), lcdColor.getGreen(), lcdColor.getBlue()};
-      link.writeSerial(colorData.length, colorData);
-      try {
-        Thread.sleep(30);
-      } catch (InterruptedException e) {
-        System.err.println("Sleep was interrupted");
+    try {
+      while (runLoop) {
+        if (serialPort.isOpened()) {
+          Color caseColor = Data.caseMode.getColor();
+          Color lcdColor = Data.lcdMode.getColor();
+          String[] text = Data.lcdMode.getText();
+          byte[] colorData = new byte[]{(byte) caseColor.getRed(), (byte) caseColor.getGreen(),
+              (byte) caseColor.getBlue(), (byte) lcdColor.getRed(),
+              (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()};
+          serialPort.writeBytes(colorData);
+          try {
+            Thread.sleep(30);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        } else {
+          serialPort.openPort();
+          serialPort.setParams(115200, 8, 1, 0);
+          try {
+            Thread.sleep(3000);
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
       }
+      serialPort.closePort();
+    } catch (SerialPortException e) {
+      e.printStackTrace();
     }
-    link.disconnect();
-    System.out.println("Loop stopped");
   }
 }

@@ -42,7 +42,7 @@ public final class CaseControl {
    * Constantly receives input from the user. Main loop of the program.
    */
   private void inputLoop() {
-   // loopThread.start();
+    loopThread.start();
     Scanner scanner = new Scanner(System.in);
     do {
       System.out.print(">");
