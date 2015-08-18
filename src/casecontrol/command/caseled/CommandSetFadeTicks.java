@@ -4,7 +4,7 @@ import casecontrol.CaseControl;
 import casecontrol.Data;
 import casecontrol.command.Command;
 
-public class CommandSetFadeTicks implements Command {
+public final class CommandSetFadeTicks implements Command {
   @Override
   public String getName() {
     return "fadeticks";

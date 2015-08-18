@@ -33,11 +33,17 @@ public final class LoopThread extends Thread {
         if (serialPort.isOpened()) {
           Color caseColor = Data.caseMode.getColor();
           Color lcdColor = Data.lcdMode.getColor();
+          serialPort.writeBytes(new byte[]{
+              (byte) caseColor.getRed(), (byte) caseColor.getGreen(), (byte) caseColor.getBlue(),
+              (byte) lcdColor.getRed(), (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()});
+
           String[] text = Data.lcdMode.getText();
-          byte[] colorData = new byte[]{(byte) caseColor.getRed(), (byte) caseColor.getGreen(),
-              (byte) caseColor.getBlue(), (byte) lcdColor.getRed(),
-              (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()};
-          serialPort.writeBytes(colorData);
+          for (String line : text) {
+            if (line.length() > Data.LCD_WIDTH) {
+              line = line.substring(0, Data.LCD_WIDTH);
+            }
+            serialPort.writeString(line + "\n");
+          }
           try {
             Thread.sleep(Data.LOOP_TIME);
           } catch (InterruptedException e) {
