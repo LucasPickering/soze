@@ -1,6 +1,7 @@
-package casecontrol.command;
+package casecontrol.command.general;
 
 import casecontrol.CaseControl;
+import casecontrol.command.Command;
 
 public final class CommandHelp implements Command {
   @Override

@@ -4,21 +4,24 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import casecontrol.command.Command;
-import casecontrol.command.CommandCaseMode;
-import casecontrol.command.CommandCaseStaticColor;
-import casecontrol.command.CommandExit;
-import casecontrol.command.CommandHelp;
-import casecontrol.command.CommandLcdMode;
+import casecontrol.command.caseled.CommandAddFadeColor;
+import casecontrol.command.caseled.CommandFadeList;
+import casecontrol.command.caseled.CommandCaseMode;
+import casecontrol.command.caseled.CommandRemoveFadeColor;
+import casecontrol.command.caseled.CommandCaseStaticColor;
+import casecontrol.command.caseled.CommandSetFadeTicks;
+import casecontrol.command.general.CommandExit;
+import casecontrol.command.general.CommandHelp;
+import casecontrol.command.lcd.CommandLcdColor;
+import casecontrol.command.lcd.CommandLcdMode;
 
 public final class CaseControl {
 
   public static final CaseControl main = new CaseControl();
   public static final Command[] commands = new Command[]{
-      new CommandExit(),
-      new CommandHelp(),
-      new CommandCaseStaticColor(),
-      new CommandCaseMode(),
-      new CommandLcdMode()
+      new CommandExit(), new CommandHelp(), new CommandCaseMode(), new CommandCaseStaticColor(),
+      new CommandFadeList(), new CommandAddFadeColor(), new CommandRemoveFadeColor(),
+      new CommandSetFadeTicks(), new CommandLcdMode(), new CommandLcdColor()
   };
   private final LoopThread loopThread = new LoopThread();
 

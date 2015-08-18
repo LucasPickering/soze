@@ -1,6 +1,7 @@
-package casecontrol.command;
+package casecontrol.command.lcd;
 
 import casecontrol.Data;
+import casecontrol.command.Command;
 import casecontrol.mode.LcdModeClock;
 import casecontrol.mode.LcdModeOff;
 import casecontrol.mode.LcdModeTemps;

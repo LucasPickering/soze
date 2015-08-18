@@ -1,4 +1,6 @@
-package casecontrol.command;
+package casecontrol.command.general;
+
+import casecontrol.command.Command;
 
 public final class CommandExit implements Command {
 

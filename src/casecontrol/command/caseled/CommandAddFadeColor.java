@@ -1,14 +1,16 @@
-package casecontrol.command;
+package casecontrol.command.caseled;
 
-import java.awt.*;
+import java.awt.Color;
 
 import casecontrol.CaseControl;
 import casecontrol.Data;
+import casecontrol.command.Command;
 
-public final class CommandCaseStaticColor implements Command {
+public final class CommandAddFadeColor implements Command {
+
   @Override
   public String getName() {
-    return "casestatic";
+    return "addfade";
   }
 
   @Override
@@ -17,13 +19,13 @@ public final class CommandCaseStaticColor implements Command {
   }
 
   @Override
-  public String getArgs(){
+  public String getArgs() {
     return "<red> <green> <blue>";
   }
 
   @Override
-  public String getDesc(){
-    return "Set the LED static color to the given RGB color.";
+  public String getDesc() {
+    return "Add the given RGB color to the end of the fade color list.";
   }
 
   @Override
@@ -39,8 +41,9 @@ public final class CommandCaseStaticColor implements Command {
       System.out.println("RGB values must be numbers");
       return true;
     }
-    Data.caseStaticColor = new Color(red, green, blue);
-    System.out.printf("Case static color set to (%d, %d, %d)\n", red, green, blue);
+    Data.caseFadeColors.add(new Color(red, green, blue));
+    System.out.printf("Case fade color (%d, %d, %d) added at %d\n", red, green, blue,
+        Data.caseFadeColors.size() - 1);
     return true;
   }
 }

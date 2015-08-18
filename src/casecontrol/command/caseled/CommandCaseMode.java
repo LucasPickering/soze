@@ -1,6 +1,7 @@
-package casecontrol.command;
+package casecontrol.command.caseled;
 
 import casecontrol.Data;
+import casecontrol.command.Command;
 import casecontrol.mode.CaseModeFade;
 import casecontrol.mode.CaseModeOff;
 import casecontrol.mode.CaseModeStatic;
