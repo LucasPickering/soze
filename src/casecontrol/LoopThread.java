@@ -1,6 +1,6 @@
 package casecontrol;
 
-import java.awt.*;
+import java.awt.Color;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
@@ -11,6 +11,9 @@ public final class LoopThread extends Thread {
   private boolean runLoop;
 
   public LoopThread() {
+    Data.caseFadeColors.add(Color.RED);
+    Data.caseFadeColors.add(Color.GREEN);
+    Data.caseFadeColors.add(Color.BLUE);
   }
 
   @Override
@@ -36,7 +39,7 @@ public final class LoopThread extends Thread {
               (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()};
           serialPort.writeBytes(colorData);
           try {
-            Thread.sleep(30);
+            Thread.sleep(Data.LOOP_TIME);
           } catch (InterruptedException e) {
             e.printStackTrace();
           }

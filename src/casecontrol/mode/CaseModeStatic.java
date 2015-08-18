@@ -1,6 +1,6 @@
 package casecontrol.mode;
 
-import java.awt.*;
+import java.awt.Color;
 
 import casecontrol.Data;
 
