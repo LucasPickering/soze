@@ -3,7 +3,6 @@ package casecontrol.command.caseled;
 import java.awt.Color;
 
 import casecontrol.CaseControl;
-import casecontrol.Data;
 import casecontrol.command.Command;
 
 public final class CommandAddFadeColor implements Command {
@@ -41,9 +40,9 @@ public final class CommandAddFadeColor implements Command {
       System.out.println("RGB values must be numbers");
       return true;
     }
-    Data.caseFadeColors.add(new Color(red, green, blue));
+    CaseControl.getData().caseFadeColors.add(new Color(red, green, blue));
     System.out.printf("Case fade color (%d, %d, %d) added at %d\n", red, green, blue,
-        Data.caseFadeColors.size() - 1);
+        CaseControl.getData().caseFadeColors.size() - 1);
     return true;
   }
 }

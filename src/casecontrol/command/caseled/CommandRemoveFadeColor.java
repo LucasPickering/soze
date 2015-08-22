@@ -1,6 +1,6 @@
 package casecontrol.command.caseled;
 
-import casecontrol.Data;
+import casecontrol.CaseControl;
 import casecontrol.command.Command;
 
 public final class CommandRemoveFadeColor implements Command {
@@ -33,8 +33,8 @@ public final class CommandRemoveFadeColor implements Command {
       System.out.println("Index value must be a number");
       return true;
     }
-    if (0 <= index && index < Data.caseFadeColors.size()) {
-      Data.caseFadeColors.remove(index);
+    if (0 <= index && index < CaseControl.getData().caseFadeColors.size()) {
+      CaseControl.getData().caseFadeColors.remove(index);
       System.out.printf("Case fade color at %d removed\n", index);
     } else {
       System.out.println("Invalid index: " + index);

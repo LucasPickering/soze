@@ -3,7 +3,7 @@ package casecontrol.mode;
 import java.awt.Color;
 import java.util.List;
 
-import casecontrol.Data;
+import casecontrol.CaseControl;
 
 public final class CaseModeFade implements CaseMode {
 
@@ -15,7 +15,7 @@ public final class CaseModeFade implements CaseMode {
 
   @Override
   public Color getColor() {
-    List<Color> colors = Data.caseFadeColors;
+    final List<Color> colors = CaseControl.getData().caseFadeColors;
     if (colors.size() == 0) {
       return Color.BLACK;
     }
@@ -24,15 +24,15 @@ public final class CaseModeFade implements CaseMode {
       colorIndex = 0;
     }
 
-    Color lastColor = Data.caseFadeColors.get(colorIndex);
-    Color nextColor = Data.caseFadeColors.get((colorIndex + 1) % Data.caseFadeColors.size());
-    float percentDone = (float) fadeTicks / Data.caseFadeTicks;
+    Color lastColor = colors.get(colorIndex);
+    Color nextColor = colors.get((colorIndex + 1) % colors.size());
+    float percentDone = (float) fadeTicks / CaseControl.getData().caseFadeTicks;
     Color newColor = new Color(
         (int) ((nextColor.getRed() - lastColor.getRed()) * percentDone) + lastColor.getRed(),
         (int) ((nextColor.getGreen() - lastColor.getGreen()) * percentDone) + lastColor.getGreen(),
         (int) ((nextColor.getBlue() - lastColor.getBlue()) * percentDone) + lastColor.getBlue());
 
-    if (fadeTicks < Data.caseFadeTicks) {
+    if (fadeTicks < CaseControl.getData().caseFadeTicks) {
       fadeTicks++;
     } else {
       pauseTicks++;

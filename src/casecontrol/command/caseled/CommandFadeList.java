@@ -2,7 +2,7 @@ package casecontrol.command.caseled;
 
 import java.awt.Color;
 
-import casecontrol.Data;
+import casecontrol.CaseControl;
 import casecontrol.command.Command;
 
 public final class CommandFadeList implements Command {
@@ -28,8 +28,8 @@ public final class CommandFadeList implements Command {
 
   @Override
   public boolean execute(String[] args) {
-    for (int i = 0; i < Data.caseFadeColors.size(); i++) {
-      Color color = Data.caseFadeColors.get(i);
+    for (int i = 0; i < CaseControl.getData().caseFadeColors.size(); i++) {
+      Color color = CaseControl.getData().caseFadeColors.get(i);
       System.out.printf("%d - (%d, %d, %d)\n", i, color.getRed(), color.getGreen(), color.getBlue());
     }
     return true;

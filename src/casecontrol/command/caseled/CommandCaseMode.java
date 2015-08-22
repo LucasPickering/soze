@@ -1,6 +1,6 @@
 package casecontrol.command.caseled;
 
-import casecontrol.Data;
+import casecontrol.CaseControl;
 import casecontrol.command.Command;
 import casecontrol.mode.CaseModeFade;
 import casecontrol.mode.CaseModeOff;
@@ -31,15 +31,15 @@ public final class CommandCaseMode implements Command {
   public boolean execute(String[] args) {
     switch (args[0]) {
       case "off":
-        Data.caseMode = new CaseModeOff();
+        CaseControl.getData().caseMode = new CaseModeOff();
         System.out.println("Case LED mode set to off");
         break;
       case "static":
-        Data.caseMode = new CaseModeStatic();
+        CaseControl.getData().caseMode = new CaseModeStatic();
         System.out.println("Case LED mode set to static");
         break;
       case "fade":
-        Data.caseMode = new CaseModeFade();
+        CaseControl.getData().caseMode = new CaseModeFade();
         System.out.println("Case LED mode set to fade");
         break;
       default:

@@ -1,8 +1,9 @@
 package casecontrol.mode;
 
 import java.awt.Color;
+import java.io.Serializable;
 
-public interface LcdMode {
+public interface LcdMode extends Serializable {
 
   /**
    * Gets the color that the LCD should currently be.

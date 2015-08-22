@@ -3,6 +3,7 @@ package casecontrol.mode;
 import java.awt.Color;
 import java.util.Arrays;
 
+import casecontrol.CaseControl;
 import casecontrol.Data;
 
 abstract class AbstractLcdMode implements LcdMode {
@@ -15,7 +16,7 @@ abstract class AbstractLcdMode implements LcdMode {
 
   @Override
   public Color getColor() {
-    return Data.lcdColor;
+    return CaseControl.getData().lcdColor;
   }
 
   @Override

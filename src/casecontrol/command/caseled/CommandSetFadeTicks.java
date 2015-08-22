@@ -34,7 +34,7 @@ public final class CommandSetFadeTicks implements Command {
       System.out.println("Tick value must be a number");
       return true;
     }
-    Data.caseFadeTicks = ticks;
+    CaseControl.getData().caseFadeTicks = ticks;
     System.out.println("Fade ticks set to " + ticks);
     return true;
   }

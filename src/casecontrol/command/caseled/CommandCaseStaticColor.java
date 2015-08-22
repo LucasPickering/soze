@@ -1,9 +1,8 @@
 package casecontrol.command.caseled;
 
-import java.awt.*;
+import java.awt.Color;
 
 import casecontrol.CaseControl;
-import casecontrol.Data;
 import casecontrol.command.Command;
 
 public final class CommandCaseStaticColor implements Command {
@@ -18,12 +17,12 @@ public final class CommandCaseStaticColor implements Command {
   }
 
   @Override
-  public String getArgs(){
+  public String getArgs() {
     return "<red> <green> <blue>";
   }
 
   @Override
-  public String getDesc(){
+  public String getDesc() {
     return "Set the LED static color to the given RGB color.";
   }
 
@@ -40,7 +39,7 @@ public final class CommandCaseStaticColor implements Command {
       System.out.println("RGB values must be numbers");
       return true;
     }
-    Data.caseStaticColor = new Color(red, green, blue);
+    CaseControl.getData().caseStaticColor = new Color(red, green, blue);
     System.out.printf("Case static color set to (%d, %d, %d)\n", red, green, blue);
     return true;
   }

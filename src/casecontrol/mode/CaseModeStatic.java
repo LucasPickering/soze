@@ -2,12 +2,12 @@ package casecontrol.mode;
 
 import java.awt.Color;
 
-import casecontrol.Data;
+import casecontrol.CaseControl;
 
 public final class CaseModeStatic implements CaseMode {
 
   @Override
   public Color getColor() {
-    return Data.caseStaticColor;
+    return CaseControl.getData().caseStaticColor;
   }
 }

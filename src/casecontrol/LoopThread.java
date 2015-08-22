@@ -10,12 +10,6 @@ public final class LoopThread extends Thread {
   private final SerialPort serialPort = new SerialPort("COM3");
   private boolean runLoop;
 
-  public LoopThread() {
-    Data.caseFadeColors.add(Color.RED);
-    Data.caseFadeColors.add(Color.GREEN);
-    Data.caseFadeColors.add(Color.BLUE);
-  }
-
   @Override
   public void start() {
     runLoop = true;
@@ -31,13 +25,13 @@ public final class LoopThread extends Thread {
     try {
       while (runLoop) {
         if (serialPort.isOpened()) {
-          Color caseColor = Data.caseMode.getColor();
-          Color lcdColor = Data.lcdMode.getColor();
+          Color caseColor = CaseControl.getData().caseMode.getColor();
+          Color lcdColor = CaseControl.getData().lcdMode.getColor();
           serialPort.writeBytes(new byte[]{
               (byte) caseColor.getRed(), (byte) caseColor.getGreen(), (byte) caseColor.getBlue(),
               (byte) lcdColor.getRed(), (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()});
 
-          String[] text = Data.lcdMode.getText();
+          String[] text = CaseControl.getData().lcdMode.getText();
           for (String line : text) {
             if (line.length() > Data.LCD_WIDTH) {
               line = line.substring(0, Data.LCD_WIDTH);

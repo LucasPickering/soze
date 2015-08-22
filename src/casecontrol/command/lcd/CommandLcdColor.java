@@ -3,7 +3,6 @@ package casecontrol.command.lcd;
 import java.awt.Color;
 
 import casecontrol.CaseControl;
-import casecontrol.Data;
 import casecontrol.command.Command;
 
 public final class CommandLcdColor implements Command {
@@ -40,7 +39,7 @@ public final class CommandLcdColor implements Command {
       System.out.println("RGB values must be numbers");
       return true;
     }
-    Data.lcdColor = new Color(red, green, blue);
+    CaseControl.getData().lcdColor = new Color(red, green, blue);
     System.out.printf("LCD color set to (%d, %d, %d)\n", red, green, blue);
     return true;
   }

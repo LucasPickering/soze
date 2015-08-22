@@ -1,6 +1,6 @@
 package casecontrol.command.lcd;
 
-import casecontrol.Data;
+import casecontrol.CaseControl;
 import casecontrol.command.Command;
 import casecontrol.mode.LcdModeClock;
 import casecontrol.mode.LcdModeOff;
@@ -32,15 +32,15 @@ public final class CommandLcdMode implements Command {
   public boolean execute(String[] args) {
     switch (args[0]) {
       case "off":
-        Data.lcdMode = new LcdModeOff();
+        CaseControl.getData().lcdMode = new LcdModeOff();
         System.out.println("LCD mode set to off");
         break;
       case "clock":
-        Data.lcdMode = new LcdModeClock();
+        CaseControl.getData().lcdMode = new LcdModeClock();
         System.out.println("LCD mode set to clock");
         break;
       case "temps":
-        Data.lcdMode = new LcdModeTemps();
+        CaseControl.getData().lcdMode = new LcdModeTemps();
         System.out.println("LCD mode set to temps");
         break;
       default:

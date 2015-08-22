@@ -15,12 +15,12 @@ public final class CommandExit implements Command {
   }
 
   @Override
-  public String getArgs(){
+  public String getArgs() {
     return "";
   }
 
   @Override
-  public String getDesc(){
+  public String getDesc() {
     return "Terminate the program.";
   }
 
