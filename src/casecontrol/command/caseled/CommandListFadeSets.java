@@ -7,10 +7,10 @@ import java.util.Map;
 import casecontrol.CaseControl;
 import casecontrol.command.Command;
 
-public class CommandListSavedFade implements Command {
+public class CommandListFadeSets implements Command {
   @Override
   public String getName() {
-    return "listsavedfades";
+    return "listfadesets";
   }
 
   @Override

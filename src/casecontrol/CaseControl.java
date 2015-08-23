@@ -15,7 +15,7 @@ import casecontrol.command.caseled.CommandCaseMode;
 import casecontrol.command.caseled.CommandCaseStaticColor;
 import casecontrol.command.caseled.CommandClearFade;
 import casecontrol.command.caseled.CommandFadeList;
-import casecontrol.command.caseled.CommandListSavedFade;
+import casecontrol.command.caseled.CommandListFadeSets;
 import casecontrol.command.caseled.CommandLoadFade;
 import casecontrol.command.caseled.CommandRemoveFade;
 import casecontrol.command.caseled.CommandRemoveFadeColor;
@@ -33,7 +33,7 @@ public final class CaseControl {
       new CommandExit(), new CommandHelp(), new CommandCaseMode(), new CommandCaseStaticColor(),
       new CommandFadeList(), new CommandAddFadeColor(), new CommandRemoveFadeColor(),
       new CommandSaveFade(), new CommandLoadFade(), new CommandRemoveFade(), new CommandClearFade(),
-      new CommandListSavedFade(), new CommandSetFadeTicks(), new CommandLcdMode(),
+      new CommandListFadeSets(), new CommandSetFadeTicks(), new CommandLcdMode(),
       new CommandLcdColor()
   };
   private final LoopThread loopThread = new LoopThread();
