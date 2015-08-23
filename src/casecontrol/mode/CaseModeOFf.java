@@ -1,7 +1,6 @@
 package casecontrol.mode;
 
 import java.awt.Color;
-import java.io.Serializable;
 
 public final class CaseModeOff implements CaseMode {
 

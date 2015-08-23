@@ -41,18 +41,6 @@ public final class CaseControl {
   }
 
   /**
-   * Clamps the given number to the given range.
-   *
-   * @param n   the number to be clamped
-   * @param min the minimum of the range (inclusive)
-   * @param max the maximum of the range (inclusive)
-   * @return n clamped to the range [0, 255]
-   */
-  public static int clamp(int n, int min, int max) {
-    return n < min ? min : n > max ? max : n;
-  }
-
-  /**
    * Constantly receives input from the user. Main loop of the program.
    */
   private void inputLoop() {
