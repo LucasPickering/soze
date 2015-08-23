@@ -3,7 +3,8 @@ package casecontrol;
 import java.awt.Color;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import casecontrol.mode.CaseMode;
 import casecontrol.mode.CaseModeOff;
@@ -22,7 +23,8 @@ public final class Data implements Serializable {
   public CaseMode caseMode = new CaseModeOff();
   public Color caseStaticColor = Color.BLACK;
   public int caseFadeTicks = MIN_FADE_TICKS;
-  public final List<Color> caseFadeColors = new ArrayList<>();
+  public final ArrayList<Color> caseFadeColors = new ArrayList<>();
+  public final Map<String, ArrayList<Color>> savedFades = new HashMap<>();
 
   public LcdMode lcdMode = new LcdModeOff();
   public Color lcdColor = Color.BLACK;
