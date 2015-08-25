@@ -103,11 +103,15 @@ public final class Funcs {
    * @param text   the text to be written
    */
   public static void addBigText(String[] buffer, int offset, String text) {
+    final StringBuilder[] builders = new StringBuilder[3];
     for (char c : text.toCharArray()) {
       String[] newText = getBigChar(c);
-      for (int i = offset; i < buffer.length; i++) {
-        buffer[i] += newText[i - offset];
+      for (int i = 0; i < builders.length; i++) {
+        builders[i].append(newText[i]);
       }
+    }
+    for (int i = 0; i < builders.length; i++) {
+      buffer[offset + i] = builders[i].toString();
     }
   }
 
