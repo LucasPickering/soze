@@ -19,6 +19,7 @@ public final class Data implements Serializable {
   public static final int MIN_FADE_TICKS = 10;
   public static final int MAX_FADE_TICKS = 200;
   public static final String DATA_FILE = "data.ser";
+  public static final String TEMPS_FILE = "C:/Program Files (x86)/SpeedFan/SFLog20150824.csv";
 
   public CaseMode caseMode = new CaseModeOff();
   public Color caseStaticColor = Color.BLACK;

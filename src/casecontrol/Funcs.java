@@ -1,6 +1,10 @@
 package casecontrol;
 
 import java.awt.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 
 public final class Funcs {
@@ -60,7 +64,8 @@ public final class Funcs {
 
   /**
    * Gets a color from a string. The string can either be an RGB set separated by '/', (e.g.
-   * 255/255/255 for white), or an alias (e.g. "white" for white). Valid aliases are all pre-defined
+   * 255/255/255 for white), or an alias (e.g. "white" for white). Valid aliases are all
+   * pre-defined
    * colors in {@link java.awt.Color}. {@code s} is not case-sensitive.
    *
    * @param s the RGB value set or alias for the color
@@ -89,7 +94,8 @@ public final class Funcs {
   }
 
   /**
-   * Adds the characters needed to write {@code text} in 3-line-tall characters to the given buffer.
+   * Adds the characters needed to write {@code text} in 3-line-tall characters to the given
+   * buffer.
    * 3 lines of the buffer will be filled, starting at {@code offset}.
    *
    * @param buffer the string array to be added to
@@ -144,11 +150,61 @@ public final class Funcs {
 
   /**
    * Pads a string with spaces on the left side to make it the given length.
-   * @param s the string to be padded
+   *
+   * @param s      the string to be padded
    * @param length the length to be padded to
-   * @return
    */
   public static String padLeft(String s, int length) {
     return String.format("%1$#" + length + "s", s);
+  }
+
+  /**
+   * Gets the last line of a file.
+   *
+   * @param file the file to be parsed (non-null)
+   * @return the last line, or {@code null} if the file is empty
+   * @throws NullPointerException if {@code file} is {@code null}
+   */
+  private static String getLastLine(String file) {
+    String lastLine = null;
+    try {
+      FileInputStream in = new FileInputStream(file);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+      String tmp;
+
+      while ((tmp = reader.readLine()) != null) {
+        lastLine = tmp;
+      }
+
+      reader.close();
+      in.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return lastLine;
+  }
+
+  /**
+   * Gets the  4 CPU core temps, the GPU temp, & CPU fan speed from SpeedFan.
+   *
+   * @return an array of the data in RPM/degrees Celcius, in the following order:
+   * <ul>
+   * <li>CPU 1</li>
+   * <li>CPU 2</li>
+   * <li>CPU 3</li>
+   * <li>CPU 4</li>
+   * <li>GPU</li>
+   * <li>CPU Fan Speed</li>
+   * </ul>
+   */
+  public static int[] getSpeedFanData() {
+    final String[] pieces = getLastLine(Data.TEMPS_FILE).split("\t");
+    final int[] data = new int[6];
+
+    for (int i = 1; i < pieces.length; i++) {
+      data[i - 1] = new Float(pieces[i]).intValue();
+    }
+
+    return data;
   }
 }
