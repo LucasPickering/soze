@@ -4,7 +4,7 @@ import casecontrol.CaseControl;
 import casecontrol.Data;
 import casecontrol.command.Command;
 
-public class CommandLoadFade implements Command {
+public final class CommandLoadFade implements Command {
   @Override
   public String getName() {
     return "loadfade";

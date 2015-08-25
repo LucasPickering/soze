@@ -3,7 +3,7 @@ package casecontrol.command.caseled;
 import casecontrol.CaseControl;
 import casecontrol.command.Command;
 
-public class CommandClearFade implements Command {
+public final class CommandClearFade implements Command {
   @Override
   public String getName() {
     return "clearfade";
