@@ -107,6 +107,9 @@ public final class Funcs {
     for (char c : text.toCharArray()) {
       String[] newText = getBigChar(c);
       for (int i = 0; i < builders.length; i++) {
+        if (builders[i] == null) {
+          builders[i] = new StringBuilder();
+        }
         builders[i].append(newText[i]);
       }
     }
