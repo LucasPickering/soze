@@ -2,10 +2,14 @@ package casecontrol;
 
 import java.awt.*;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public final class Funcs {
 
@@ -49,6 +53,8 @@ public final class Funcs {
                                                      EMT + EMT + FUL};
   private static final String[] BIG_COLON = new String[]{FUL, EMT, FUL};
   private static final String[] BIG_SPACE = new String[]{EMT, EMT, EMT};
+
+  private static DateFormat TEMPS_DATE_FORMAT = new SimpleDateFormat("YYYYMMDD");
 
   /**
    * Clamps the given number to the given range.
@@ -169,26 +175,37 @@ public final class Funcs {
    * Gets the last line of a file.
    *
    * @param file the file to be parsed (non-null)
-   * @return the last line, or {@code null} if the file is empty
+   * @return the last line, or an empty string if the file does not exist or is empty
    * @throws NullPointerException if {@code file} is {@code null}
    */
-  private static String getLastLine(String file) {
-    String lastLine = null;
-    try {
-      FileInputStream in = new FileInputStream(file);
-      BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-      String tmp;
+  private static String getLastLine(File file) {
+    String lastLine = "";
+    if (file.exists()) {
+      try {
+        FileInputStream in = new FileInputStream(file);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        String tmp;
 
-      while ((tmp = reader.readLine()) != null) {
-        lastLine = tmp;
+        while ((tmp = reader.readLine()) != null) {
+          lastLine = tmp;
+        }
+
+        reader.close();
+        in.close();
+      } catch (IOException e) {
+        e.printStackTrace();
       }
-
-      reader.close();
-      in.close();
-    } catch (IOException e) {
-      e.printStackTrace();
     }
     return lastLine;
+  }
+
+  /**
+   * Gets the file from which SpeedFan temps should be read.
+   *
+   * @return the file to read temps from, which may or may not exist
+   */
+  private static File getTempsFile() {
+    return new File(String.format(Data.TEMPS_FILE, TEMPS_DATE_FORMAT.format(new Date())));
   }
 
   /**
@@ -205,7 +222,7 @@ public final class Funcs {
    * </ul>
    */
   public static int[] getSpeedFanData() {
-    final String[] pieces = getLastLine(Data.TEMPS_FILE).split("\t");
+    final String[] pieces = getLastLine(getTempsFile()).split("\t");
     final int[] data = new int[6];
 
     for (int i = 1; i < pieces.length; i++) {
