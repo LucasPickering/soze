@@ -1,7 +1,7 @@
 package casecontrol.command.general;
 
-import casecontrol.CaseControl;
 import casecontrol.command.Command;
+import casecontrol.command.EnumCommand;
 
 public final class CommandHelp implements Command {
   @Override
@@ -26,7 +26,8 @@ public final class CommandHelp implements Command {
 
   @Override
   public boolean execute(String[] args) {
-    for (Command command : CaseControl.commands) {
+    for (EnumCommand enumCommand : EnumCommand.values()) {
+      final Command command = enumCommand.command;
       System.out.printf("%s %s - %s\n", command.getName(), command.getArgs(), command.getDesc());
     }
     return true;

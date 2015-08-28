@@ -10,42 +10,11 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import casecontrol.command.Command;
-import casecontrol.command.caseled.CommandAddFadeColor;
-import casecontrol.command.caseled.CommandCaseMode;
-import casecontrol.command.caseled.CommandCaseStaticColor;
-import casecontrol.command.caseled.CommandClearFade;
-import casecontrol.command.caseled.CommandFadeList;
-import casecontrol.command.caseled.CommandListFadeSet;
-import casecontrol.command.caseled.CommandLoadFadeSet;
-import casecontrol.command.caseled.CommandRemoveFadeColor;
-import casecontrol.command.caseled.CommandRemoveFadeSet;
-import casecontrol.command.caseled.CommandSaveFadeSet;
-import casecontrol.command.caseled.CommandSetFadeTicks;
-import casecontrol.command.general.CommandExit;
-import casecontrol.command.general.CommandHelp;
-import casecontrol.command.lcd.CommandLcdColor;
-import casecontrol.command.lcd.CommandLcdMode;
+import casecontrol.command.EnumCommand;
 
 public final class CaseControl {
 
   public static final CaseControl caseControl = new CaseControl();
-  public static final Command[] commands = new Command[]{
-          new CommandExit(), new CommandHelp(),
-
-          new CommandCaseMode(),
-          new CommandCaseStaticColor(),
-          new CommandSetFadeTicks(),
-          new CommandAddFadeColor(),
-          new CommandRemoveFadeColor(),
-          new CommandFadeList(),
-          new CommandClearFade(),
-          new CommandSaveFadeSet(),
-          new CommandLoadFadeSet(),
-          new CommandRemoveFadeSet(),
-          new CommandListFadeSet(),
-
-          new CommandLcdMode(), new CommandLcdColor()
-  };
   private final LoopThread loopThread = new LoopThread();
   private Data data = new Data();
 
@@ -82,9 +51,9 @@ public final class CaseControl {
     String[] splits = input.split(" ");
     String commandName = splits[0];
     Command command = null;
-    for (Command command1 : commands) {
-      if (commandName.equals(command1.getName())) {
-        command = command1;
+    for (EnumCommand enumCommand : EnumCommand.values()) {
+      if (commandName.equals(enumCommand.command.getName())) {
+        command = enumCommand.command;
         break;
       }
     }

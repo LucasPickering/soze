@@ -6,7 +6,7 @@ import casecontrol.CaseControl;
 import casecontrol.Funcs;
 import casecontrol.command.Command;
 
-public final class CommandCaseStaticColor implements Command {
+public final class CommandStaticColor implements Command {
   @Override
   public String getName() {
     return "static";
