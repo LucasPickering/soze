@@ -15,11 +15,11 @@ import casecontrol.command.caseled.CommandCaseMode;
 import casecontrol.command.caseled.CommandCaseStaticColor;
 import casecontrol.command.caseled.CommandClearFade;
 import casecontrol.command.caseled.CommandFadeList;
-import casecontrol.command.caseled.CommandListFadeSets;
-import casecontrol.command.caseled.CommandLoadFade;
-import casecontrol.command.caseled.CommandRemoveFade;
+import casecontrol.command.caseled.CommandListFadeSet;
+import casecontrol.command.caseled.CommandLoadFadeSet;
 import casecontrol.command.caseled.CommandRemoveFadeColor;
-import casecontrol.command.caseled.CommandSaveFade;
+import casecontrol.command.caseled.CommandRemoveFadeSet;
+import casecontrol.command.caseled.CommandSaveFadeSet;
 import casecontrol.command.caseled.CommandSetFadeTicks;
 import casecontrol.command.general.CommandExit;
 import casecontrol.command.general.CommandHelp;
@@ -30,11 +30,21 @@ public final class CaseControl {
 
   public static final CaseControl caseControl = new CaseControl();
   public static final Command[] commands = new Command[]{
-      new CommandExit(), new CommandHelp(), new CommandCaseMode(), new CommandCaseStaticColor(),
-      new CommandFadeList(), new CommandAddFadeColor(), new CommandRemoveFadeColor(),
-      new CommandSaveFade(), new CommandLoadFade(), new CommandRemoveFade(), new CommandClearFade(),
-      new CommandListFadeSets(), new CommandSetFadeTicks(), new CommandLcdMode(),
-      new CommandLcdColor()
+          new CommandExit(), new CommandHelp(),
+
+          new CommandCaseMode(),
+          new CommandCaseStaticColor(),
+          new CommandSetFadeTicks(),
+          new CommandAddFadeColor(),
+          new CommandRemoveFadeColor(),
+          new CommandFadeList(),
+          new CommandClearFade(),
+          new CommandSaveFadeSet(),
+          new CommandLoadFadeSet(),
+          new CommandRemoveFadeSet(),
+          new CommandListFadeSet(),
+
+          new CommandLcdMode(), new CommandLcdColor()
   };
   private final LoopThread loopThread = new LoopThread();
   private Data data = new Data();

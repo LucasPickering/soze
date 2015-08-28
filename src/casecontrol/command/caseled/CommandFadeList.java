@@ -8,7 +8,7 @@ import casecontrol.command.Command;
 public final class CommandFadeList implements Command {
   @Override
   public String getName() {
-    return "fadelist";
+    return "listfade";
   }
 
   @Override

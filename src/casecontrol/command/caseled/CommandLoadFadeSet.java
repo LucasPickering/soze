@@ -4,10 +4,10 @@ import casecontrol.CaseControl;
 import casecontrol.Data;
 import casecontrol.command.Command;
 
-public final class CommandRemoveFade implements Command {
+public final class CommandLoadFadeSet implements Command {
   @Override
   public String getName() {
-    return "removefade";
+    return "loadfadeset";
   }
 
   @Override
@@ -22,7 +22,7 @@ public final class CommandRemoveFade implements Command {
 
   @Override
   public String getDesc() {
-    return "Remove the fade with the given name from the saved fade list.";
+    return "Load the fade color set of the given name.";
   }
 
   @Override
@@ -30,8 +30,9 @@ public final class CommandRemoveFade implements Command {
     final String name = args[0];
     final Data data = CaseControl.getData();
     if (data.savedFades.containsKey(name)) {
-      data.savedFades.remove(name);
-      System.out.println("Removed " + name);
+      data.caseFadeColors.clear();
+      data.caseFadeColors.addAll(data.savedFades.get(name));
+      System.out.println("Loaded " + name);
     } else {
       System.out.println("No fade set by the name " + name);
     }

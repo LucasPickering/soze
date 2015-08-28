@@ -7,10 +7,10 @@ import casecontrol.CaseControl;
 import casecontrol.Data;
 import casecontrol.command.Command;
 
-public final class CommandSaveFade implements Command {
+public final class CommandSaveFadeSet implements Command {
   @Override
   public String getName() {
-    return "savefade";
+    return "savefadeset";
   }
 
   @Override
