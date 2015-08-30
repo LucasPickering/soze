@@ -62,7 +62,9 @@ public final class CaseControl {
     } else if (splits.length <= command.getArgumentAmount()) {
       System.out.println("Not enough arguments");
     } else {
-      return command.execute(Arrays.copyOfRange(splits, 1, splits.length));
+      final boolean result = command.execute(Arrays.copyOfRange(splits, 1, splits.length));
+      saveData();
+      return result;
     }
     return true;
   }

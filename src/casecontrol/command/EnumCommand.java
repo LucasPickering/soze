@@ -24,7 +24,7 @@ public enum EnumCommand {
   SET_FADE_TICKS(CommandSetFadeTicks.class), ADD_FADE_COLOR(CommandAddFadeColor.class),
   REMOVE_FADE_COLOR(CommandRemoveFadeColor.class), FADE_LIST(CommandFadeList.class),
   CLEAR_FADE(CommandClearFade.class),
-  SAVE_FADE_SET(CommandSaveFadeSet.class), LOAD_FADE_SET(CommandLoadFadeSet.class), 
+  SAVE_FADE_SET(CommandSaveFadeSet.class), LOAD_FADE_SET(CommandLoadFadeSet.class),
   REMOVE_FADE_SET(CommandRemoveFadeSet.class), LIST_FADE_SET(CommandListFadeSet.class),
 
   LCD_MODE(CommandLcdMode.class), LCD_COLOR(CommandLcdColor.class);
