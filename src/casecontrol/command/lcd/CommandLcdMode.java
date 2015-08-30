@@ -5,6 +5,7 @@ import casecontrol.command.Command;
 import casecontrol.mode.LcdModeClock;
 import casecontrol.mode.LcdModeOff;
 import casecontrol.mode.LcdModeTemps;
+import casecontrol.mode.LcdModeTodo;
 
 public final class CommandLcdMode implements Command {
 
@@ -42,6 +43,10 @@ public final class CommandLcdMode implements Command {
       case "temps":
         CaseControl.getData().lcdMode = new LcdModeTemps();
         System.out.println("LCD mode set to temps");
+        break;
+      case "todo":
+        CaseControl.getData().lcdMode = new LcdModeTodo();
+        System.out.println("LCD mode set to todo");
         break;
       default:
         System.out.println("That was not a valid mode");

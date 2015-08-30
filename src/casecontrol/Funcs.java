@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
@@ -182,8 +183,7 @@ public final class Funcs {
     String lastLine = "";
     if (file.exists()) {
       try {
-        FileInputStream in = new FileInputStream(file);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        BufferedReader reader = new BufferedReader(new FileReader(file));
         String tmp;
 
         while ((tmp = reader.readLine()) != null) {
@@ -191,7 +191,6 @@ public final class Funcs {
         }
 
         reader.close();
-        in.close();
       } catch (IOException e) {
         e.printStackTrace();
       }
