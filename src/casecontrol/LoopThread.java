@@ -1,6 +1,6 @@
 package casecontrol;
 
-import java.awt.Color;
+import java.awt.*;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
@@ -28,8 +28,9 @@ public final class LoopThread extends Thread {
           Color caseColor = CaseControl.getData().caseMode.getColor();
           Color lcdColor = CaseControl.getData().lcdMode.getColor();
           serialPort.writeBytes(new byte[]{
-              (byte) caseColor.getRed(), (byte) caseColor.getGreen(), (byte) caseColor.getBlue(),
-              (byte) lcdColor.getRed(), (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()});
+                  (byte) caseColor.getRed(), (byte) caseColor.getGreen(),
+                  (byte) caseColor.getBlue(),
+                  (byte) lcdColor.getRed(), (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()});
 
           String[] text = CaseControl.getData().lcdMode.getText();
           for (String line : text) {
@@ -53,6 +54,7 @@ public final class LoopThread extends Thread {
           }
         }
       }
+      serialPort.writeBytes(new byte[]{0, 0, 0, 0, 0, 0});
       serialPort.closePort();
     } catch (SerialPortException e) {
       e.printStackTrace();
