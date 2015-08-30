@@ -29,9 +29,9 @@ public final class CommandLcdColor implements Command {
 
   @Override
   public boolean execute(String[] args) {
-    Color color = Funcs.getColor(args[0]);
+    final Color color = Funcs.getColor(args[0]);
     if (color != null) {
-      CaseControl.getData().caseStaticColor = color;
+      CaseControl.getData().lcdColor = color;
       System.out.printf("LCD color set to (%d, %d, %d)\n", color.getRed(),
           color.getGreen(), color.getBlue());
     }
