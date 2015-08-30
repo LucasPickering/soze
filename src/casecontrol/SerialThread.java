@@ -5,7 +5,7 @@ import java.awt.*;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 
-public final class LoopThread extends Thread {
+public final class SerialThread extends Thread {
 
   private final SerialPort serialPort = new SerialPort("COM3");
   private boolean runLoop;
@@ -25,22 +25,22 @@ public final class LoopThread extends Thread {
     try {
       while (runLoop) {
         if (serialPort.isOpened()) {
-          Color caseColor = CaseControl.getData().caseMode.getColor();
-          Color lcdColor = CaseControl.getData().lcdMode.getColor();
-          serialPort.writeBytes(new byte[]{
-                  (byte) caseColor.getRed(), (byte) caseColor.getGreen(),
-                  (byte) caseColor.getBlue(),
-                  (byte) lcdColor.getRed(), (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()});
+          final Data data = CaseControl.getData();
 
-          String[] text = CaseControl.getData().lcdMode.getText();
-          for (String line : text) {
+          serialPort.writeBytes(new byte[]{
+                  (byte) data.caseColor.getRed(), (byte) data.caseColor.getGreen(),
+                  (byte) data.caseColor.getBlue(),
+                  (byte) data.lcdColor.getRed(), (byte) data.lcdColor.getGreen(),
+                  (byte) data.lcdColor.getBlue()});
+
+          for (String line : data.lcdText) {
             if (line.length() > Data.LCD_WIDTH) {
               line = line.substring(0, Data.LCD_WIDTH);
             }
             serialPort.writeString(line + "\n");
           }
           try {
-            Thread.sleep(Data.LOOP_TIME);
+            Thread.sleep(Data.SERIAL_LOOP_TIME);
           } catch (InterruptedException e) {
             e.printStackTrace();
           }

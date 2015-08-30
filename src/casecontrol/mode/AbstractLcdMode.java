@@ -16,7 +16,7 @@ abstract class AbstractLcdMode implements LcdMode {
 
   @Override
   public Color getColor() {
-    return CaseControl.getData().lcdColor;
+    return CaseControl.getData().lcdStaticColor;
   }
 
   @Override

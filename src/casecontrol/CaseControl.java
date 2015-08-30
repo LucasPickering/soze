@@ -15,7 +15,8 @@ import casecontrol.command.EnumCommand;
 public final class CaseControl {
 
   public static final CaseControl caseControl = new CaseControl();
-  private final LoopThread loopThread = new LoopThread();
+  private final ModeThread modeThread = new ModeThread();
+  private final SerialThread serialThread = new SerialThread();
   private Data data = new Data();
 
   public static void main(String[] args) {
@@ -31,12 +32,14 @@ public final class CaseControl {
    */
   private void inputLoop() {
     loadData();
-    loopThread.start();
+    modeThread.start();
+    serialThread.start();
     Scanner scanner = new Scanner(System.in);
     do {
       System.out.print(">");
     } while (runInput(scanner.nextLine().toLowerCase()));
-    loopThread.terminate();
+    serialThread.terminate();
+    modeThread.terminate();
     saveData();
     System.out.println("Exiting...");
   }
