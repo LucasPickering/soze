@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 import casecontrol.command.Command;
+import casecontrol.command.EnumAlias;
 import casecontrol.command.EnumCommand;
 
 public final class CaseControl {
@@ -55,6 +56,11 @@ public final class CaseControl {
     String[] splits = input.split(" ");
     String commandName = splits[0];
     Command command = null;
+    for (EnumAlias alias : EnumAlias.values()) {
+      if (commandName.equals(alias.name)) {
+        return runInput(alias.command);
+      }
+    }
     for (EnumCommand enumCommand : EnumCommand.values()) {
       if (commandName.equals(enumCommand.command.getName())) {
         command = enumCommand.command;
