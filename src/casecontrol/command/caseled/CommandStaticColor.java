@@ -9,7 +9,7 @@ import casecontrol.command.Command;
 public final class CommandStaticColor implements Command {
   @Override
   public String getName() {
-    return "static";
+    return "casecolor";
   }
 
   @Override
