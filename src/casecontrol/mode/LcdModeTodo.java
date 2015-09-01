@@ -13,8 +13,12 @@ public final class LcdModeTodo extends AbstractLcdMode {
     try {
       BufferedReader reader = new BufferedReader(new FileReader("todo.txt"));
       String line;
-      for (int i = 0; i < Data.LCD_HEIGHT && (line = reader.readLine()) != null; i++) {
-        if(line.length() > Data.LCD_WIDTH) {
+      for (int i = 0; i < Data.LCD_HEIGHT; i++) {
+        line = reader.readLine();
+        if (line == null) {
+          line = "";
+        }
+        if (line.length() > Data.LCD_WIDTH) {
           line = line.substring(0, Data.LCD_WIDTH);
         }
         text[i] = line;
