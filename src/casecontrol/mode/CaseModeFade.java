@@ -10,6 +10,7 @@ public final class CaseModeFade implements CaseMode {
 
   private int colorIndex;
   private int fadeTicks;
+  private int pauseTicks;
 
   @Override
   public Color getColor() {
@@ -19,8 +20,14 @@ public final class CaseModeFade implements CaseMode {
       return Color.BLACK;
     }
 
-    if (fadeTicks >= data.caseFadeTicks) {
+
+    if (fadeTicks < data.caseFadeTicks) {
+      fadeTicks++;
+    } else if (pauseTicks < Data.PAUSE_TICKS) {
+      pauseTicks++;
+    } else {
       fadeTicks = 0;
+      pauseTicks = 0;
       colorIndex++;
     }
 
@@ -28,10 +35,13 @@ public final class CaseModeFade implements CaseMode {
       colorIndex = 0;
     }
 
+    float percentDone = (float)fadeTicks / data.caseFadeTicks;
+    if (percentDone > 1F) {
+      percentDone = 1F;
+    }
     Color last = colors.get(colorIndex);
     Color next = colors.get((colorIndex + 1) % colors.size());
 
-    final float percentDone = (float) fadeTicks / data.caseFadeTicks;
     fadeTicks++;
 
     return new Color(

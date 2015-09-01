@@ -31,6 +31,7 @@ public final class CaseControl {
    * Constantly receives input from the user. Main loop of the program.
    */
   private void inputLoop() {
+    Runtime.getRuntime().addShutdownHook(serialThread);
     loadData();
     modeThread.start();
     serialThread.start();
@@ -38,9 +39,9 @@ public final class CaseControl {
     do {
       System.out.print(">");
     } while (runInput(scanner.nextLine().toLowerCase()));
+    saveData();
     serialThread.terminate();
     modeThread.terminate();
-    saveData();
     System.out.println("Exiting...");
   }
 
