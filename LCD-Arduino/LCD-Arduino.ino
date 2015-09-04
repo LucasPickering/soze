@@ -90,9 +90,6 @@ void loop() {
             newLine = true;
             newChar = ' ';
           }
-          else if(newChar == '?') {
-            newChar = 223;
-          }
         }
         
         if(newChar != textLine[col]) {

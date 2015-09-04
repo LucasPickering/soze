@@ -8,11 +8,11 @@ public final class LcdModeTemps extends AbstractLcdMode {
   public String[] getText() {
     final int[] data = Funcs.getSpeedFanData();
 
-    // ? becomes the degree symbol
+    // /u00df is the degree symbol
     text[0] = String.format("Fan: %d RPM", data[5]);
-    text[1] = String.format("CPU: %d?C %d?C", data[0], data[1]);
-    text[2] = String.format("     %d?C %d?C", data[2], data[3]);
-    text[3] = String.format("GPU: %d?C", data[4]);
+    text[1] = String.format("CPU: %d\u00dfC %d\u00dfC", data[0], data[1]);
+    text[2] = String.format("     %d\u00dfC %d\u00dfC", data[2], data[3]);
+    text[3] = String.format("GPU: %d\u00dfC", data[4]);
     return text;
   }
 }
