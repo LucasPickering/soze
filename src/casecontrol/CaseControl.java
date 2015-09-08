@@ -58,7 +58,12 @@ public final class CaseControl {
     Command command = null;
     for (EnumAlias alias : EnumAlias.values()) {
       if (commandName.equals(alias.name)) {
-        return runInput(alias.command);
+        for(String aliasCommand:alias.commands){
+          if(!runInput(aliasCommand)){
+            return false;
+          }
+        }
+        return true;
       }
     }
     for (EnumCommand enumCommand : EnumCommand.values()) {
