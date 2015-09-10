@@ -23,7 +23,7 @@ public final class CaseModeFade implements CaseMode {
 
     if (fadeTicks < data.caseFadeTicks) {
       fadeTicks++;
-    } else if (pauseTicks < Data.PAUSE_TICKS) {
+    } else if (pauseTicks < data.casePauseTicks) {
       pauseTicks++;
     } else {
       fadeTicks = 0;
