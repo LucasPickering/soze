@@ -33,4 +33,9 @@ public final class LcdModeClock extends AbstractLcdMode {
 
     return text;
   }
+
+  @Override
+  public String toString() {
+    return "Clock";
+  }
 }

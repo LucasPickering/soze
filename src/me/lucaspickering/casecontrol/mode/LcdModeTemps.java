@@ -15,4 +15,9 @@ public final class LcdModeTemps extends AbstractLcdMode {
     text[3] = String.format("GPU: %d\u00dfC", data[4]);
     return text;
   }
+
+  @Override
+  public String toString() {
+    return "Temps";
+  }
 }

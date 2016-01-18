@@ -4,6 +4,7 @@ import me.lucaspickering.casecontrol.command.Command;
 import me.lucaspickering.casecontrol.command.EnumCommand;
 
 public final class CommandHelp implements Command {
+
   @Override
   public String getName() {
     return "help";

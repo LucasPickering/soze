@@ -8,4 +8,9 @@ public final class LcdModeOff extends AbstractLcdMode {
   public Color getColor() {
     return Color.BLACK;
   }
+
+  @Override
+  public String toString() {
+    return "Off";
+  }
 }

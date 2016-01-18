@@ -49,4 +49,9 @@ public final class CaseModeFade implements CaseMode {
             (int) ((next.getGreen() - last.getGreen()) * percentDone) + last.getGreen(),
             (int) ((next.getBlue() - last.getBlue()) * percentDone) + last.getBlue());
   }
+
+  @Override
+  public String toString() {
+    return "Fade";
+  }
 }

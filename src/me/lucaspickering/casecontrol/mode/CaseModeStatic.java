@@ -10,4 +10,9 @@ public final class CaseModeStatic implements CaseMode {
   public Color getColor() {
     return CaseControl.getData().caseStaticColor;
   }
+
+  @Override
+  public String toString() {
+    return "Static";
+  }
 }

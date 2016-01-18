@@ -28,4 +28,9 @@ public final class LcdModeTodo extends AbstractLcdMode {
     }
     return text;
   }
+
+  @Override
+  public String toString() {
+    return "Temps";
+  }
 }

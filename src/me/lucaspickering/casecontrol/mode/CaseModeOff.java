@@ -8,4 +8,9 @@ public final class CaseModeOff implements CaseMode {
   public Color getColor() {
     return Color.BLACK;
   }
+
+  @Override
+  public String toString() {
+    return "Off";
+  }
 }
