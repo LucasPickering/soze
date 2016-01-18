@@ -4,7 +4,7 @@ import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.command.Command;
 
-public class CommandInfo implements Command {
+public final class CommandInfo implements Command {
 
   @Override
   public String getName() {
@@ -23,7 +23,7 @@ public class CommandInfo implements Command {
 
   @Override
   public String getDesc() {
-    return "Print the current settings";
+    return "Print the current settings.";
   }
 
   @Override
