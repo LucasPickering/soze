@@ -1,4 +1,5 @@
 #include <LiquidCrystal.h>
+#include "SimpleTimer.h"
 
 const int CASE_RED = 9;
 const int CASE_GREEN = 10;
@@ -23,7 +24,8 @@ const int TIMEOUT = 3000;
 
 LiquidCrystal lcd(2, 4, 7, 8, 12, 13);
 String lcdText[LCD_HEIGHT];
-int lastSerialUpdateTime;
+SimpleTimer timer;
+int timerId;
 
 /*
  Serial Data is sent in packets of 6+ bytes
@@ -66,9 +68,12 @@ void setup() {
   
   lcd.begin(LCD_WIDTH, LCD_HEIGHT);
   Serial.begin(115200);
+
+  timerId = timer.setInterval(TIMEOUT, turnOff);
 }
 
 void loop() {
+  timer.run();
   if (Serial.available() >= 6) {
     // Serial packet received. Update 
     analogWrite(CASE_RED, Serial.read());
@@ -106,19 +111,16 @@ void loop() {
       }
     }
 
-    lastSerialUpdateTime = millis();
-  } else if(millis() - lastSerialUpdateTime >= TIMEOUT) {
-    // No serial packet and it's been TIMEOUT milliseconds
-    // since the last one. Turn everything off.
-    clear();
+    timer.restartTimer(timerId);
   }
 }
 
-void clear() {
-  analogWrite(CASE_RED, 0);
+void turnOff() {
+  /*
+  analogWrite(CASE_RED, 255);
   analogWrite(CASE_GREEN, 0);
   analogWrite(CASE_BLUE, 0);
-  
+  */
   analogWrite(LCD_RED, 255);
   analogWrite(LCD_GREEN, 255);
   analogWrite(LCD_BLUE, 255);
