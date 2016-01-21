@@ -19,9 +19,11 @@ const int FBL = 5;
 const int FUL = 255;
 const int EMT = 32;
 
-LiquidCrystal lcd(2, 4, 7, 8, 12, 13);
+const int TIMEOUT = 3000;
 
+LiquidCrystal lcd(2, 4, 7, 8, 12, 13);
 String lcdText[LCD_HEIGHT];
+int lastSerialUpdateTime;
 
 /*
  Serial Data is sent in packets of 6+ bytes
@@ -68,6 +70,7 @@ void setup() {
 
 void loop() {
   if (Serial.available() >= 6) {
+    // Serial packet received. Update 
     analogWrite(CASE_RED, Serial.read());
     analogWrite(CASE_GREEN, Serial.read());
     analogWrite(CASE_BLUE, Serial.read());
@@ -102,5 +105,23 @@ void loop() {
         Serial.read();
       }
     }
+
+    lastSerialUpdateTime = millis();
+  } else if(millis() - lastSerialUpdateTime >= TIMEOUT) {
+    // No serial packet and it's been TIMEOUT milliseconds
+    // since the last one. Turn everything off.
+    clear();
   }
+}
+
+void clear() {
+  analogWrite(CASE_RED, 0);
+  analogWrite(CASE_GREEN, 0);
+  analogWrite(CASE_BLUE, 0);
+  
+  analogWrite(LCD_RED, 255);
+  analogWrite(LCD_GREEN, 255);
+  analogWrite(LCD_BLUE, 255);
+
+  lcd.clear();
 }

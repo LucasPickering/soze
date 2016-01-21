@@ -1,7 +1,5 @@
 package me.lucaspickering.casecontrol;
 
-import java.awt.*;
-
 import jssc.SerialPort;
 import jssc.SerialPortException;
 
