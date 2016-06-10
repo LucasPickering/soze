@@ -1,6 +1,7 @@
 package me.lucaspickering.casecontrol;
 
 import java.awt.*;
+import java.util.Arrays;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
@@ -9,7 +10,22 @@ public final class SerialThread extends Thread {
 
   private final SerialPort serialPort = new SerialPort("COM3");
   private boolean runLoop;
-  private Data lastData;
+
+  // Those hold the last values sent to the Arduino. New values are only sent when they differ from
+  // these old values.
+  private Color lastCaseColor = Color.BLACK;
+  private Color lastLcdColor = Color.BLACK;
+  private String[] lastLcdText = new String[Data.LCD_HEIGHT];
+
+  private enum PacketTag {
+    CASE_COLOR('c'), LCD_COLOR('l'), LCD_TEXT('t');
+
+    private final char tag;
+
+    PacketTag(char tag) {
+      this.tag = tag;
+    }
+  }
 
   @Override
   public void start() {
@@ -28,19 +44,36 @@ public final class SerialThread extends Thread {
         // If the port is open, write data
         if (serialPort.isOpened()) {
           final Data data = CaseControl.getData(); // The data to be written
-          writeColors(data); // Write color data
 
-          // Write LCD text data
-          for (String line : data.lcdText) {
-            // If the line is too long for the LCD, chop it down
-            if (line.length() > Data.LCD_WIDTH) {
-              line = line.substring(0, Data.LCD_WIDTH);
-            }
-            serialPort.writeString(line + "\n"); // Write the line, with a newline char
+          // If the case color changed, update it.
+          if (!data.caseColor.equals(lastCaseColor)) {
+            writeColor(PacketTag.CASE_COLOR.tag, data.caseColor);
+            lastCaseColor = data.caseColor;
           }
 
+          // If the LCD color changed, update it.
+          if (!data.lcdColor.equals(lastLcdColor)) {
+            writeColor(PacketTag.LCD_COLOR.tag, data.lcdColor);
+            lastLcdColor = data.lcdColor;
+          }
+
+          // If the LCD text changed, update it.
+          if (!Arrays.equals(lastLcdText, data.lcdText)) {
+            serialPort.writeByte((byte) PacketTag.LCD_TEXT.tag); // Tell the Arduino words are coming
+            // For each line in the text...
+            for (String line : data.lcdText) {
+              // If the line is too long for the LCD, chop it down
+              if (line.length() > Data.LCD_WIDTH) {
+                line = line.substring(0, Data.LCD_WIDTH);
+              }
+              serialPort.writeString(line + "\n"); // Write the line, with a newline char at the end
+            }
+            System.arraycopy(data.lcdText, 0, lastLcdText, 0, data.lcdText.length);
+          }
+
+          // Try to pause to let the Arduino read
           try {
-            Thread.sleep(Data.SERIAL_LOOP_TIME); // Pause to let the Arduino read
+            Thread.sleep(Data.SERIAL_LOOP_TIME);
           } catch (InterruptedException e) {
             e.printStackTrace();
           }
@@ -54,18 +87,14 @@ public final class SerialThread extends Thread {
           }
         }
       }
-      serialPort.writeBytes(new byte[6]); // Write zeros to turn everything off
       serialPort.closePort();
     } catch (SerialPortException e) {
       e.printStackTrace();
     }
   }
 
-  private void writeColors(Data data) throws SerialPortException {
-    Color caseColor = data.caseColor;
-    Color lcdColor = data.lcdColor;
+  private void writeColor(char tag, Color color) throws SerialPortException {
     serialPort.writeBytes(new byte[]{
-        (byte) caseColor.getRed(), (byte) caseColor.getGreen(), (byte) caseColor.getBlue(),
-        (byte) lcdColor.getRed(), (byte) lcdColor.getGreen(), (byte) lcdColor.getBlue()});
+        (byte) tag, (byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue()});
   }
 }

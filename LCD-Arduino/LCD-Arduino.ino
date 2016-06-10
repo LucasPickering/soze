@@ -22,21 +22,33 @@ const int EMT = 32;
 
 const int TIMEOUT = 3000;
 
+const int MIN_PACKET_SIZE = 4;
+const char CASE_COLOR_TAG = 'c';
+const char LCD_COLOR_TAG = 'l';
+const char LCD_TEXT_TAG = 't';
+
 LiquidCrystal lcd(2, 4, 7, 8, 12, 13);
 String lcdText[LCD_HEIGHT];
 SimpleTimer timer;
 int timerId;
 
-/*
- Serial Data is sent in packets of 6+ bytes
- 0  - LED Red
- 1  - LED Green
- 2  - LED Blue
- 3  - LCD Red
- 4  - LCD Green
- 5  - LCD Blue
- 6+ - Text to be written to the LCD
-*/
+void serialFlush(){
+  while(Serial.available() > 0) {
+    char t = Serial.read();
+  }
+} 
+
+void turnOff() {
+  analogWrite(CASE_RED, 0);
+  analogWrite(CASE_GREEN, 0);
+  analogWrite(CASE_BLUE, 0);
+  
+  analogWrite(LCD_RED, 255);
+  analogWrite(LCD_GREEN, 255);
+  analogWrite(LCD_BLUE, 255);
+
+  lcd.clear();
+}
 
 void setup() {
   pinMode(CASE_RED, OUTPUT);
@@ -73,7 +85,62 @@ void setup() {
 }
 
 void loop() {
-  timer.run();
+  timer.run(); // The timer to track when a timeout should occur
+  if (Serial.available() >= 4) {
+    timer.restartTimer(timerId); // Reset the timeout
+    char tag = Serial.read(); // Read the first byte (the tag)
+    switch(tag) {
+      case CASE_COLOR_TAG:
+        // Set case color
+        analogWrite(CASE_RED, Serial.read());
+        analogWrite(CASE_GREEN, Serial.read());
+        analogWrite(CASE_BLUE, Serial.read());
+        break;
+      case LCD_COLOR_TAG:
+        // Set LCD color
+        analogWrite(LCD_RED, 255 - Serial.read());
+        analogWrite(LCD_GREEN, 255 - Serial.read());
+        analogWrite(LCD_BLUE, 255 - Serial.read());
+        break;
+      case LCD_TEXT_TAG:
+        // Set LCD text
+        // For each line on the lcd
+        for(int line = 0; line < LCD_HEIGHT; line++) {
+          lcd.setCursor(0, line); // Set the lcd cursor to the start of this line
+          boolean newLine = false;
+          String textLine = lcdText[line];
+          
+          for(int col = 0; col < LCD_WIDTH; col++) {
+            char newChar = ' ';
+            
+            if(!newLine && Serial.available()) {
+              newChar = Serial.read();
+              if(newChar == '\n') {
+                newLine = true;
+                newChar = ' ';
+              }
+            }
+    
+            // If this character is different from the one already there,
+            // update it
+            if(newChar != textLine[col]) {
+              textLine.setCharAt(col, newChar);
+              lcd.write(newChar);
+            }
+          }
+          
+          if(Serial.peek() == '\n') {
+            Serial.read();
+          }
+        }
+        break;
+      default:
+        // Something other than a tag showed up. Not good.
+        serialFlush();
+    }
+  }
+
+/*  
   if (Serial.available() >= 6) {
     // Serial packet received. Update 
     analogWrite(CASE_RED, Serial.read());
@@ -113,20 +180,7 @@ void loop() {
         Serial.read();
       }
     }
-
-    timer.restartTimer(timerId);
+    timer.restartTimer(timerId); // Reset the timeout
   }
-}
-
-void turnOff() {
-  /*
-  analogWrite(CASE_RED, 255);
-  analogWrite(CASE_GREEN, 0);
-  analogWrite(CASE_BLUE, 0);
   */
-  analogWrite(LCD_RED, 255);
-  analogWrite(LCD_GREEN, 255);
-  analogWrite(LCD_BLUE, 255);
-
-  lcd.clear();
 }
