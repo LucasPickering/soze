@@ -83,9 +83,10 @@ void loop() {
     analogWrite(LCD_RED, 255 - Serial.read());
     analogWrite(LCD_GREEN, 255 - Serial.read());
     analogWrite(LCD_BLUE, 255 - Serial.read());
-    
+
+    // For each line on the lcd
     for(int line = 0; line < LCD_HEIGHT; line++) {
-      lcd.setCursor(0, line);
+      lcd.setCursor(0, line); // Set the lcd cursor to the start of this line
       boolean newLine = false;
       String textLine = lcdText[line];
       
@@ -99,7 +100,9 @@ void loop() {
             newChar = ' ';
           }
         }
-        
+
+        // If this character is different from the one already there,
+        // update it
         if(newChar != textLine[col]) {
           textLine.setCharAt(col, newChar);
           lcd.write(newChar);
