@@ -36,17 +36,23 @@ void serialFlush(){
   while(Serial.available() > 0) {
     char t = Serial.read();
   }
-} 
+}
+
+void setCaseColor(byte red, byte green, byte blue) {
+  analogWrite(CASE_RED, red);
+  analogWrite(CASE_GREEN, green);
+  analogWrite(CASE_BLUE, blue);
+}
+
+void setLcdColor(byte red, byte green, byte blue) {
+  analogWrite(LCD_RED, 255 - red);
+  analogWrite(LCD_GREEN, 255 - green);
+  analogWrite(LCD_BLUE, 255 - blue);
+}
 
 void turnOff() {
-  analogWrite(CASE_RED, 0);
-  analogWrite(CASE_GREEN, 0);
-  analogWrite(CASE_BLUE, 0);
-  
-  analogWrite(LCD_RED, 255);
-  analogWrite(LCD_GREEN, 255);
-  analogWrite(LCD_BLUE, 255);
-
+  setCaseColor(0, 0, 0);
+  setLcdColor(0, 0, 0);
   lcd.clear();
 }
 
@@ -92,15 +98,11 @@ void loop() {
     switch(tag) {
       case CASE_COLOR_TAG:
         // Set case color
-        analogWrite(CASE_RED, Serial.read());
-        analogWrite(CASE_GREEN, Serial.read());
-        analogWrite(CASE_BLUE, Serial.read());
+        setCaseColor(Serial.read(), Serial.read(), Serial.read());
         break;
       case LCD_COLOR_TAG:
         // Set LCD color
-        analogWrite(LCD_RED, 255 - Serial.read());
-        analogWrite(LCD_GREEN, 255 - Serial.read());
-        analogWrite(LCD_BLUE, 255 - Serial.read());
+        setLcdColor(Serial.read(), Serial.read(), Serial.read());
         break;
       case LCD_TEXT_TAG:
         // Set LCD text
