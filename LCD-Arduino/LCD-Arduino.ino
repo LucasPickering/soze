@@ -20,6 +20,8 @@ const int FBL = 5;
 const int FUL = 255;
 const int EMT = 32;
 
+const int BAUD_RATE = 57600;
+
 const int TIMEOUT = 3000;
 
 const int MIN_PACKET_SIZE = 4;
@@ -85,7 +87,7 @@ void setup() {
   lcd.createChar(FBL, fblBytes);
   
   lcd.begin(LCD_WIDTH, LCD_HEIGHT);
-  Serial.begin(115200);
+  Serial.begin(57600);
 
   timerId = timer.setInterval(TIMEOUT, turnOff);
 }
@@ -95,94 +97,55 @@ void loop() {
   if (Serial.available() >= 4) {
     timer.restartTimer(timerId); // Reset the timeout
     char tag = Serial.read(); // Read the first byte (the tag)
+    byte bytesRead = 1; // Start at 1 to account for the tag
     switch(tag) {
       case CASE_COLOR_TAG:
+      {
         // Set case color
-        setCaseColor(Serial.read(), Serial.read(), Serial.read());
+        // These variables are needed to make sure the colors get read in the right order
+        byte red = Serial.read();
+        byte green = Serial.read();
+        byte blue = Serial.read();
+        setCaseColor(red, green, blue);
+        bytesRead += 3; // 3 colors
         break;
+      }
       case LCD_COLOR_TAG:
+      {
         // Set LCD color
-        setLcdColor(Serial.read(), Serial.read(), Serial.read());
+        // These variables are needed to make sure the colors get read in the right order
+        byte red = Serial.read();
+        byte green = Serial.read();
+        byte blue = Serial.read();
+        setLcdColor(red, green, blue);
+        bytesRead += 3; // 3 colors
         break;
+      }
       case LCD_TEXT_TAG:
         // Set LCD text
         // For each line on the lcd
         for(int line = 0; line < LCD_HEIGHT; line++) {
           lcd.setCursor(0, line); // Set the lcd cursor to the start of this line
-          boolean newLine = false;
           String textLine = lcdText[line];
           
           for(int col = 0; col < LCD_WIDTH; col++) {
-            char newChar = ' ';
-            
-            if(!newLine && Serial.available()) {
-              newChar = Serial.read();
-              if(newChar == '\n') {
-                newLine = true;
-                newChar = ' ';
-              }
-            }
-    
-            // If this character is different from the one already there,
-            // update it
+            char newChar = Serial.read();
+            bytesRead++;
+            // If this character is different from the one already there, update it
             if(newChar != textLine[col]) {
-              textLine.setCharAt(col, newChar);
-              lcd.write(newChar);
+              textLine.setCharAt(col, newChar); // Update the array
+              lcd.write(newChar); // Update the LCD
             }
-          }
-          
-          if(Serial.peek() == '\n') {
-            Serial.read();
           }
         }
         break;
       default:
         // Something other than a tag showed up. Not good.
-        serialFlush();
+        serialFlush(); // Clear the buffer
+        bytesRead = tag;
+        break;
     }
-  }
-
-/*  
-  if (Serial.available() >= 6) {
-    // Serial packet received. Update 
-    analogWrite(CASE_RED, Serial.read());
-    analogWrite(CASE_GREEN, Serial.read());
-    analogWrite(CASE_BLUE, Serial.read());
     
-    analogWrite(LCD_RED, 255 - Serial.read());
-    analogWrite(LCD_GREEN, 255 - Serial.read());
-    analogWrite(LCD_BLUE, 255 - Serial.read());
-
-    // For each line on the lcd
-    for(int line = 0; line < LCD_HEIGHT; line++) {
-      lcd.setCursor(0, line); // Set the lcd cursor to the start of this line
-      boolean newLine = false;
-      String textLine = lcdText[line];
-      
-      for(int col = 0; col < LCD_WIDTH; col++) {
-        char newChar = ' ';
-        
-        if(!newLine && Serial.available()) {
-          newChar = Serial.read();
-          if(newChar == '\n') {
-            newLine = true;
-            newChar = ' ';
-          }
-        }
-
-        // If this character is different from the one already there,
-        // update it
-        if(newChar != textLine[col]) {
-          textLine.setCharAt(col, newChar);
-          lcd.write(newChar);
-        }
-      }
-      
-      if(Serial.peek() == '\n') {
-        Serial.read();
-      }
-    }
-    timer.restartTimer(timerId); // Reset the timeout
+    Serial.write(bytesRead); // Send a confirmation message
   }
-  */
 }
