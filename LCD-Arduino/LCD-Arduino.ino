@@ -12,13 +12,14 @@ const int LCD_BLUE = 6;
 const int LCD_WIDTH = 20;
 const int LCD_HEIGHT = 4;
 
-const int HBR = 1;
-const int HBL = 2;
-const int BOT = 3;
-const int FBR = 4;
-const int FBL = 5;
-const int FUL = 255;
-const int EMT = 32;
+// Special characters for the LCD, used to make big numbers
+const int HBR = 1; // Half bottom right
+const int HBL = 2; // Half bottom right
+const int BOT = 3; // Bottom
+const int FBR = 4; // Full bottom right
+const int FBL = 5; // Full bottom left
+const int FUL = 255; // Full rect 
+const int EMT = 32; // Empty rect
 
 const int BAUD_RATE = 57600;
 
