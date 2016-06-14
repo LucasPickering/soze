@@ -2,6 +2,7 @@ package me.lucaspickering.casecontrol.command;
 
 public enum EnumAlias {
 
+  EXIT("q", "exit"),
   OFF("off", "casemode off", "lcdmode off"),
   STATIC("static", "casemode static"), FADE("fade", "casemode fade"),
   CLOCK("clock", "lcdmode clock"), TEMPS("temps", "lcdmode temps"), TODO("todo", "lcdmode todo");
