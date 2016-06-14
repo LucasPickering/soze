@@ -21,7 +21,7 @@ const int FBL = 5; // Full bottom left
 const int FUL = 255; // Full rect 
 const int EMT = 32; // Empty rect
 
-const int BAUD_RATE = 57600;
+const long BAUD_RATE = 57600;
 
 const int TIMEOUT = 3000;
 
@@ -88,7 +88,7 @@ void setup() {
   lcd.createChar(FBL, fblBytes);
   
   lcd.begin(LCD_WIDTH, LCD_HEIGHT);
-  Serial.begin(57600);
+  Serial.begin(BAUD_RATE);
 
   timerId = timer.setInterval(TIMEOUT, turnOff);
 }
@@ -143,7 +143,7 @@ void loop() {
       default:
         // Something other than a tag showed up. Not good.
         serialFlush(); // Clear the buffer
-        bytesRead = tag;
+        bytesRead = 255;
         break;
     }
     

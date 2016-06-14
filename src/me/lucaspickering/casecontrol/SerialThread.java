@@ -10,7 +10,9 @@ import jssc.SerialPortTimeoutException;
 public final class SerialThread extends Thread {
 
   private static final int STARTUP_TIME = 2000;
-  private static final int LOOP_TIME = 1000;
+  private static final int LOOP_TIME = 30;
+  private static final int ACK_TIMEOUT = 1000;
+
   private static final int BAUD_RATE = 57600;
   private static final int DATA_BITS = 8;
   private static final int STOP_BITS = 1;
@@ -19,7 +21,7 @@ public final class SerialThread extends Thread {
   private final SerialPort serialPort = new SerialPort("COM3");
   private boolean runLoop;
 
-  // Those hold the last values sent to the Arduino. New values are only sent when they differ from
+  // These hold the last values sent to the Arduino. New values are only sent when they differ from
   // these old values.
   private Color lastCaseColor = null;
   private Color lastLcdColor = null;
@@ -57,13 +59,12 @@ public final class SerialThread extends Thread {
           waitForAck(writeLcdColor(data)); // Write LCD color and wait for ack message
           waitForAck(writeText(data)); // Write LCD text and wait for ack message
 
-          /*
           // Pause for a bit
           try {
             Thread.sleep(LOOP_TIME);
           } catch (InterruptedException e) {
             e.printStackTrace();
-          }*/
+          }
         } else {
           serialPort.openPort(); // Open the port because it isn't already
           serialPort.setParams(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
@@ -138,7 +139,7 @@ public final class SerialThread extends Thread {
         } else if (line.length() < Data.LCD_WIDTH) {
           line = padRight(line, Data.LCD_WIDTH);
         }
-        serialPort.writeString(line); // Write the line
+        writeStringToSerial(line); // Write the line
         bytesWritten += line.length(); // Should always be Data.LCD_WIDTH
       }
       System.arraycopy(data.lcdText, 0, lastLcdText, 0, data.lcdText.length);
@@ -162,19 +163,29 @@ public final class SerialThread extends Thread {
   private void waitForAck(int bytesExpected) throws SerialPortException {
     if (bytesExpected > 0) {
       try {
-        byte ack = serialPort.readBytes(1, 1000)[0];
-        System.out.println(String.format("Should be %d. Was %d.", bytesExpected, ack)); // TODO: DEL
-        if(ack != bytesExpected) {
-          System.err.println(String.format("Error! Expected ACK of %d but received %d!",
-                                           bytesExpected, ack));
+        byte ack = serialPort.readBytes(1, ACK_TIMEOUT)[0];
+        if (ack != bytesExpected) {
+          System.err.printf("Error! Expected ACK of %d but received %d!\n", bytesExpected, ack);
         }
       } catch (SerialPortTimeoutException e) {
-        e.printStackTrace();
+        System.err.printf("No ACK received after %d ms\n", ACK_TIMEOUT);
       }
     }
   }
 
   private static String padRight(String s, int n) {
     return String.format("%1$-" + n + "s", s);
+  }
+
+  /**
+   * Write the given string to the serial port. {@link SerialPort#writeString} wasn't working (but
+   * only in IntelliJ) so I wrote this.
+   *
+   * @param s the string to be written
+   */
+  private void writeStringToSerial(String s) throws SerialPortException {
+    for (char c : s.toCharArray()) {
+      serialPort.writeByte((byte) c);
+    }
   }
 }
