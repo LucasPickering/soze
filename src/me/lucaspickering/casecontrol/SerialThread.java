@@ -59,12 +59,7 @@ public final class SerialThread extends Thread {
           System.err.printf("Error opening serial port. Will try again in %d ms.\n", STARTUP_TIME);
         }
 
-        // Pause to let the serial port set up (or before trying to open again
-        try {
-          Thread.sleep(STARTUP_TIME);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
+        Funcs.pause(STARTUP_TIME); // Pause to let the serial port set up
       } else {
         final Data data = CaseControl.getData(); // The data to be written
 
@@ -77,12 +72,7 @@ public final class SerialThread extends Thread {
           System.err.println("Error sending data over serial port.");
         }
 
-        // Pause for a bit
-        try {
-          Thread.sleep(LOOP_TIME);
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
+        Funcs.pause(LOOP_TIME); // Pause for a bit
       }
     }
 
@@ -148,7 +138,7 @@ public final class SerialThread extends Thread {
         if (line.length() > Data.LCD_WIDTH) {
           line = line.substring(0, Data.LCD_WIDTH);
         } else if (line.length() < Data.LCD_WIDTH) {
-          line = padRight(line, Data.LCD_WIDTH);
+          line = Funcs.padRight(line, Data.LCD_WIDTH);
         }
         writeStringToSerial(line); // Write the line
         bytesWritten += line.length(); // Should always be Data.LCD_WIDTH
@@ -182,10 +172,6 @@ public final class SerialThread extends Thread {
         System.err.printf("No ACK received after %d ms\n", ACK_TIMEOUT);
       }
     }
-  }
-
-  private static String padRight(String s, int n) {
-    return String.format("%1$-" + n + "s", s);
   }
 
   /**

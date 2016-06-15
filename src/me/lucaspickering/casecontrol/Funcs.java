@@ -3,10 +3,8 @@ package me.lucaspickering.casecontrol;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -71,8 +69,7 @@ public final class Funcs {
 
   /**
    * Gets a color from a string. The string can either be an RGB set separated by '/', (e.g.
-   * 255/255/255 for white), or an alias (e.g. "white" for white). Valid aliases are all
-   * pre-defined
+   * 255/255/255 for white), or an alias (e.g. "white" for white). Valid aliases are all pre-defined
    * colors in {@link java.awt.Color}. {@code s} is not case-sensitive.
    *
    * @param s the RGB value set or alias for the color
@@ -101,9 +98,8 @@ public final class Funcs {
   }
 
   /**
-   * Adds the characters needed to write {@code text} in 3-line-tall characters to the given
-   * buffer.
-   * 3 lines of the buffer will be filled, starting at {@code offset}.
+   * Adds the characters needed to write {@code text} in 3-line-tall characters to the given buffer. 3
+   * lines of the buffer will be filled, starting at {@code offset}.
    *
    * @param buffer the string array to be added to
    * @param offset the line of {@code buffer} to start the adding at
@@ -210,15 +206,8 @@ public final class Funcs {
   /**
    * Gets the  4 CPU core temps, the GPU temp, & CPU fan speed from SpeedFan.
    *
-   * @return an array of the data in RPM/degrees Celcius, in the following order:
-   * <ul>
-   * <li>CPU 1</li>
-   * <li>CPU 2</li>
-   * <li>CPU 3</li>
-   * <li>CPU 4</li>
-   * <li>GPU</li>
-   * <li>CPU Fan Speed</li>
-   * </ul>
+   * @return an array of the data in RPM/degrees Celcius, in the following order: <ul> <li>CPU 1</li>
+   * <li>CPU 2</li> <li>CPU 3</li> <li>CPU 4</li> <li>GPU</li> <li>CPU Fan Speed</li> </ul>
    */
   public static int[] getSpeedFanData() {
     final String[] pieces = getLastLine(getTempsFile()).split("\t");
@@ -229,5 +218,17 @@ public final class Funcs {
     }
 
     return data;
+  }
+
+  public static void pause(long ms) {
+    try {
+      Thread.sleep(ms);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static String padRight(String s, int n) {
+    return String.format("%1$-" + n + "s", s);
   }
 }
