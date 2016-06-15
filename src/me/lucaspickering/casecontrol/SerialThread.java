@@ -10,7 +10,7 @@ import jssc.SerialPortTimeoutException;
 public final class SerialThread extends Thread {
 
   private static final int STARTUP_TIME = 2000;
-  private static final int LOOP_TIME = 30;
+  private static final int LOOP_TIME = 20;
   private static final int ACK_TIMEOUT = 1000;
 
   private static final int BAUD_RATE = 57600;
@@ -180,6 +180,24 @@ public final class SerialThread extends Thread {
   /**
    * Write the given string to the serial port. {@link SerialPort#writeString} wasn't working (but
    * only in IntelliJ) so I wrote this.
+   *
+   * I guess this is as good a place as any to describe the bug (so I don't run into it again, so here
+   * goes:
+   *
+   * Under windows-1232 encoding, it works fine because it encodes characters into bytes exactly
+   * according to the literal codes they're defined with, i.e. "\u00ff" will be decoded into 255 (or
+   * more accurately, 0b11111111, which will print as -1 for a signed byte). BUT, under UTF-8, any
+   * character with a code 128+ will be encoded as 2+ bytes, so when a string containing that
+   * character gets decoded, that character will be represented by multiple bytes in the
+   * array/buffer/etc. {@link SerialPort#writeString} uses {@link String#getBytes} and treats each
+   * byte in the array as one character (why wouldn't it). Unfortunately, for any character with code
+   * 128+ (not typically relevant because ASCII only goes to 127), it will start screwing up and
+   * everything will get offset by one byte (or more). I could make {@link SerialPort#writeString}
+   * work by forcing the default encoding to windows-1232, but I'm not sure how portable that is (will
+   * Linux like that?) and as far as I can tell, the only way to do that is with a VM flag
+   * (-Dfile.encoding=windows-1232) when the program starts, and having to remember to set up a VM
+   * flag is dumb. If you're future me and you're reading this, you're welcome. If you're anyone else,
+   * why the hell are you reading this?
    *
    * @param s the string to be written
    */
