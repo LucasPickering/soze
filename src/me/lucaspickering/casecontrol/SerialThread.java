@@ -49,37 +49,48 @@ public final class SerialThread extends Thread {
 
   @Override
   public void run() {
-    try {
-      while (runLoop) {
-        // If the port is open, write data
-        if (serialPort.isOpened()) {
-          final Data data = CaseControl.getData(); // The data to be written
+    while (runLoop) {
+      // If the port isn't open, try to open it. Otherwise, send data.
+      if (!serialPort.isOpened()) {
+        try {
+          serialPort.openPort(); // Open the port because it isn't already
+          serialPort.setParams(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
+        } catch (SerialPortException e) {
+          System.err.printf("Error opening serial port. Will try again in %d ms.\n", STARTUP_TIME);
+        }
 
+        // Pause to let the serial port set up (or before trying to open again
+        try {
+          Thread.sleep(STARTUP_TIME);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      } else {
+        final Data data = CaseControl.getData(); // The data to be written
+
+        // Send all necessary data
+        try {
           waitForAck(writeCaseColor(data)); // Write case color and wait for ack message
           waitForAck(writeLcdColor(data)); // Write LCD color and wait for ack message
           waitForAck(writeText(data)); // Write LCD text and wait for ack message
+        } catch (SerialPortException e) {
+          System.err.println("Error sending data over serial port.");
+        }
 
-          // Pause for a bit
-          try {
-            Thread.sleep(LOOP_TIME);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
-        } else {
-          serialPort.openPort(); // Open the port because it isn't already
-          serialPort.setParams(BAUD_RATE, DATA_BITS, STOP_BITS, PARITY);
-
-          // Pause to let the serial port set up
-          try {
-            Thread.sleep(STARTUP_TIME);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
+        // Pause for a bit
+        try {
+          Thread.sleep(LOOP_TIME);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
       }
+    }
+
+    // Close the port
+    try {
       serialPort.closePort();
     } catch (SerialPortException e) {
-      e.printStackTrace();
+      System.err.println("Error closing serial port.");
     }
   }
 
