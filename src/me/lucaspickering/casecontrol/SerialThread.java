@@ -166,7 +166,7 @@ public final class SerialThread extends Thread {
       try {
         byte ack = serialPort.readBytes(1, ACK_TIMEOUT)[0];
         if (ack != bytesExpected) {
-          System.err.printf("Error! Expected ACK of %d but received %d!\n", bytesExpected, ack);
+//          System.err.printf("Error! Expected ACK of %d but received %d!\n", bytesExpected, ack);
         }
       } catch (SerialPortTimeoutException e) {
         System.err.printf("No ACK received after %d ms\n", ACK_TIMEOUT);
