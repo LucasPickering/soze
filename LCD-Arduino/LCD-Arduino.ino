@@ -18,8 +18,7 @@ const int HBL = 2; // Half bottom right
 const int BOT = 3; // Bottom
 const int FBR = 4; // Full bottom right
 const int FBL = 5; // Full bottom left
-const int FUL = 255; // Full rect 
-const int EMT = 32; // Empty rect
+const int FUL = 255; // Full rect
 
 const long BAUD_RATE = 57600;
 
