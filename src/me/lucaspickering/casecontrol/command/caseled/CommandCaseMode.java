@@ -25,22 +25,25 @@ public class CommandCaseMode extends AbstractCommand {
 
   @Override
   public boolean execute(String[] args) {
-    switch (args[0]) {
-      case "off":
-        CaseControl.getData().caseMode = new CaseModeOff();
-        System.out.println("Case LED mode set to off");
-        break;
-      case "static":
-        CaseControl.getData().caseMode = new CaseModeStatic();
-        System.out.println("Case LED mode set to static");
-        break;
-      case "fade":
-        CaseControl.getData().caseMode = new CaseModeFade();
-        System.out.println("Case LED mode set to fade");
-        break;
-      default:
-        System.out.println("That was not a valid case LED mode");
+    if (args.length >= 1) {
+      switch (args[0]) {
+        case "off":
+          CaseControl.getData().caseMode = new CaseModeOff();
+          System.out.println("Case LED mode set to off");
+          break;
+        case "static":
+          CaseControl.getData().caseMode = new CaseModeStatic();
+          System.out.println("Case LED mode set to static");
+          break;
+        case "fade":
+          CaseControl.getData().caseMode = new CaseModeFade();
+          System.out.println("Case LED mode set to fade");
+          break;
+        default:
+          System.out.println("That was not a valid case LED mode");
+      }
+      return true;
     }
-    return true;
+    return false;
   }
 }

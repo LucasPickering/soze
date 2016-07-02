@@ -5,6 +5,7 @@ import me.lucaspickering.casecontrol.command.caseled.fade.CommandFade;
 import me.lucaspickering.casecontrol.command.general.CommandExit;
 import me.lucaspickering.casecontrol.command.general.CommandHelp;
 import me.lucaspickering.casecontrol.command.general.CommandInfo;
+import me.lucaspickering.casecontrol.command.lcd.CommandLcd;
 
 public enum EnumCommand {
 
