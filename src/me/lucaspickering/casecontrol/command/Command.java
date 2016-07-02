@@ -10,31 +10,42 @@ public interface Command {
   String getName();
 
   /**
-   * Gets the amount of arguments this command takes.
+   * Does this command have subcommands? If true, the first string after the command will be treated
+   * as a subcommand, rather than the first argument, and arguments will start at the third string.
    *
-   * @return the exact amount of arguments this command takes
+   * @return true if this command has subcommands, false otherwise
    */
-  int getArgumentAmount();
+  boolean hasSubCommands();
 
   /**
-   * Gets a description of the arguments of this command.
+   * Is the given string a valid sub-command for this command?
    *
-   * @return a String containing the arguments
+   * @return true if the given sub-command is valid, false otherwise
    */
-  String getArgs();
+  boolean isSubCommand(String subcommand);
 
   /**
-   * Gets the description of this command and what it does.
+   * Gets a brief description of this command's arguments. An example would be "<mode>" for "case
+   * mode".
    *
-   * @return a String containing the description
+   * @return the brief description
    */
-  String getDesc();
+  String getArgDesc();
+
+  /**
+   * Gets a full sentence (or more!) describing what this command does.
+   *
+   * @return the full description
+   */
+  String getFullDesc();
 
   /**
    * Executes this command with the given arguments.
    *
-   * @param args an array of length {@link #getArgumentAmount} containing only lower-case Strings
-   * @return true if the program should keep running, false if it should terminate
+   * @param args an array containg the arguments for this command
+   * @return true if the execution was succesful, false otherwise (in which case help dialogue will
+   * be printed)
    */
   boolean execute(String[] args);
+
 }

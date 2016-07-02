@@ -11,7 +11,6 @@ import me.lucaspickering.casecontrol.command.caseled.CommandRemoveFadeSet;
 import me.lucaspickering.casecontrol.command.caseled.CommandSaveFadeSet;
 import me.lucaspickering.casecontrol.command.caseled.CommandSetFadeTicks;
 import me.lucaspickering.casecontrol.command.caseled.CommandSetPauseTicks;
-import me.lucaspickering.casecontrol.command.caseled.CommandStaticColor;
 import me.lucaspickering.casecontrol.command.general.CommandExit;
 import me.lucaspickering.casecontrol.command.general.CommandHelp;
 import me.lucaspickering.casecontrol.command.general.CommandInfo;

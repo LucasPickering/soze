@@ -1,6 +1,7 @@
 package me.lucaspickering.casecontrol.command.caseled;
 
 import java.awt.Color;
+import java.util.List;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Funcs;
@@ -11,6 +12,26 @@ public final class CommandAddFadeColor implements Command {
   @Override
   public String getName() {
     return "addfade";
+  }
+
+  @Override
+  public boolean hasSubCommands() {
+    return false;
+  }
+
+  @Override
+  public List<String> getSubCommands() {
+    return null;
+  }
+
+  @Override
+  public String getArgDesc() {
+    return null;
+  }
+
+  @Override
+  public String getFullDesc() {
+    return null;
   }
 
   @Override

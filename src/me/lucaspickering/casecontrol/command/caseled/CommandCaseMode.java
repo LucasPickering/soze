@@ -1,29 +1,25 @@
 package me.lucaspickering.casecontrol.command.caseled;
 
 import me.lucaspickering.casecontrol.CaseControl;
-import me.lucaspickering.casecontrol.command.Command;
+import me.lucaspickering.casecontrol.command.AbstractCommand;
 import me.lucaspickering.casecontrol.mode.CaseModeFade;
 import me.lucaspickering.casecontrol.mode.CaseModeOff;
 import me.lucaspickering.casecontrol.mode.CaseModeStatic;
 
-public final class CommandCaseMode implements Command {
+public final class CommandCaseMode extends AbstractCommand {
+
   @Override
   public String getName() {
-    return "casemode";
+    return "mode";
   }
 
   @Override
-  public int getArgumentAmount() {
-    return 1;
-  }
-
-  @Override
-  public String getArgs() {
+  public String getArgDesc() {
     return "<mode>";
   }
 
   @Override
-  public String getDesc() {
+  public String getFullDesc() {
     return "Set the mode for the case LEDs. Valid modes are 'off', 'static', and 'fade'";
   }
 
