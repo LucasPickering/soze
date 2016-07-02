@@ -1,11 +1,10 @@
-package me.lucaspickering.casecontrol.command;
+package me.lucaspickering.casecontrol.command.caseled;
 
-import me.lucaspickering.casecontrol.command.caseled.CommandCaseColor;
-import me.lucaspickering.casecontrol.command.caseled.CommandCaseMode;
+import me.lucaspickering.casecontrol.command.AbstractCommand;
 
 public class CommandCase extends AbstractCommand {
 
-  protected CommandCase() {
+  public CommandCase() {
     super(new CommandCaseMode(), new CommandCaseColor());
   }
 

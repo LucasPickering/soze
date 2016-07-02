@@ -1,29 +1,25 @@
-package me.lucaspickering.casecontrol.command.caseled;
+package me.lucaspickering.casecontrol.command.caseled.fade;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.Funcs;
-import me.lucaspickering.casecontrol.command.Command;
+import me.lucaspickering.casecontrol.command.AbstractCommand;
 
-public final class CommandSetFadeTicks implements Command {
+public class CommandFadeTimingTrans extends AbstractCommand{
+
   @Override
   public String getName() {
-    return "fadeticks";
+    return "trans";
   }
 
   @Override
-  public int getArgumentAmount() {
-    return 1;
-  }
-
-  @Override
-  public String getArgs() {
+  public String getArgDesc() {
     return "<ticks>";
   }
 
   @Override
-  public String getDesc() {
-    return "Set the amount of ticks it takes to fade between colors.";
+  public String getFullDesc() {
+    return "Set the number of transition ticks for fading.";
   }
 
   @Override
@@ -33,10 +29,10 @@ public final class CommandSetFadeTicks implements Command {
       ticks = Funcs.clamp(new Integer(args[0]), Data.MIN_FADE_TICKS, Data.MAX_FADE_TICKS);
     } catch (NumberFormatException e) {
       System.out.println("Tick value must be a number");
-      return true;
+      return false; // Failed. Print help.
     }
     CaseControl.getData().caseFadeTicks = ticks;
-    System.out.println("Fade ticks set to " + ticks);
+    System.out.println("Transition ticks set to " + ticks);
     return true;
   }
 }

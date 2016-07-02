@@ -1,28 +1,24 @@
-package me.lucaspickering.casecontrol.command.caseled;
+package me.lucaspickering.casecontrol.command.caseled.fade;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
-import me.lucaspickering.casecontrol.command.Command;
+import me.lucaspickering.casecontrol.command.AbstractCommand;
 
-public final class CommandLoadFadeSet implements Command {
+public final class CommandFadeSetLoad extends AbstractCommand {
+
   @Override
   public String getName() {
     return "loadfadeset";
   }
 
   @Override
-  public int getArgumentAmount() {
-    return 1;
-  }
-
-  @Override
-  public String getArgs() {
+  public String getArgDesc() {
     return "<name>";
   }
 
   @Override
-  public String getDesc() {
-    return "Load the fade color set of the given name.";
+  public String getFullDesc() {
+    return "Sets the current fade set to the saved set of the given name.";
   }
 
   @Override

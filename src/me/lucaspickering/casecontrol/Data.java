@@ -4,6 +4,7 @@ import java.awt.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import me.lucaspickering.casecontrol.mode.CaseMode;
@@ -27,8 +28,8 @@ public final class Data implements Serializable {
   public Color caseStaticColor = Color.BLACK;
   public int caseFadeTicks = 50;
   public int casePauseTicks = 50;
-  public final ArrayList<Color> caseFadeColors = new ArrayList<>();
-  public final Map<String, ArrayList<Color>> savedFades = new HashMap<>();
+  public final List<Color> caseFadeColors = new ArrayList<>();
+  public final Map<String, List<Color>> savedFades = new HashMap<>();
 
   public LcdMode lcdMode = new LcdModeOff();
   public Color lcdStaticColor = Color.BLACK;

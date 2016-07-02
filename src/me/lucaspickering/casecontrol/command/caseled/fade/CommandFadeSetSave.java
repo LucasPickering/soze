@@ -1,31 +1,26 @@
-package me.lucaspickering.casecontrol.command.caseled;
+package me.lucaspickering.casecontrol.command.caseled.fade;
 
-import java.awt.Color;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
-import me.lucaspickering.casecontrol.command.Command;
+import me.lucaspickering.casecontrol.command.AbstractCommand;
 
-public final class CommandSaveFadeSet implements Command {
+public final class CommandFadeSetSave extends AbstractCommand {
+
   @Override
   public String getName() {
     return "savefadeset";
   }
 
   @Override
-  public int getArgumentAmount() {
-    return 1;
-  }
-
-  @Override
-  public String getArgs() {
+  public String getArgDesc() {
     return "<name>";
   }
 
   @Override
-  public String getDesc() {
-    return "Save the current fade color set with the given name.";
+  public String getFullDesc() {
+    return "Saves the current fade set under the given name.";
   }
 
   @Override
@@ -36,7 +31,7 @@ public final class CommandSaveFadeSet implements Command {
       System.out.println("Fade list is empty, nothing saved");
     } else {
       final String name = args[0];
-      data.savedFades.put(name, (ArrayList<Color>) data.caseFadeColors.clone());
+      data.savedFades.put(name, new LinkedList<>(data.caseFadeColors));
       System.out.println("Saved current fade set under " + name);
     }
     return true;
