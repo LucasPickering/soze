@@ -4,22 +4,22 @@ import me.lucaspickering.casecontrol.command.AbstractCommand;
 
 public class CommandFade extends AbstractCommand {
 
-  public CommandFade() {
-    super(new CommandFadeTiming(), new CommandFadeColor(), new CommandFadeSet());
-  }
+	public CommandFade() {
+		super(new CommandFadeTiming(), new CommandFadeColor(), new CommandFadeSet());
+	}
 
-  @Override
-  public String getName() {
-    return "fade";
-  }
+	@Override
+	public String getName() {
+		return "fade";
+	}
 
-  @Override
-  public String getArgDesc() {
-    return "";
-  }
+	@Override
+	public String getArgDesc() {
+		return "";
+	}
 
-  @Override
-  public String getFullDesc() {
-    return "Contains sub-commands for case-related activities.";
-  }
+	@Override
+	public String getFullDesc() {
+		return "Contains sub-commands for case-related activities.";
+	}
 }

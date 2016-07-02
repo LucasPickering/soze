@@ -4,22 +4,22 @@ import me.lucaspickering.casecontrol.command.AbstractCommand;
 
 public class CommandCase extends AbstractCommand {
 
-  public CommandCase() {
-    super(new CommandCaseMode(), new CommandCaseColor());
-  }
+	public CommandCase() {
+		super(new CommandCaseMode(), new CommandCaseColor());
+	}
 
-  @Override
-  public String getName() {
-    return "case";
-  }
+	@Override
+	public String getName() {
+		return "case";
+	}
 
-  @Override
-  public String getArgDesc() {
-    return "";
-  }
+	@Override
+	public String getArgDesc() {
+		return "";
+	}
 
-  @Override
-  public String getFullDesc() {
-    return "Contains sub-commands for case-related activities.";
-  }
+	@Override
+	public String getFullDesc() {
+		return "Contains sub-commands for case-related activities.";
+	}
 }

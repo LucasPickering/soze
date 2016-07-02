@@ -29,6 +29,10 @@ public final class CaseControl {
 		return caseControl.data;
 	}
 
+	public static void stop() {
+
+	}
+
 	/**
 	 * Constantly receives input from the user. Main loop of the program.
 	 */

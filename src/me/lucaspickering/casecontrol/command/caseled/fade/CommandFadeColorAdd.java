@@ -9,32 +9,32 @@ import me.lucaspickering.casecontrol.command.AbstractCommand;
 
 public class CommandFadeColorAdd extends AbstractCommand {
 
-  @Override
-  public String getName() {
-    return null;
-  }
+	@Override
+	public String getName() {
+		return null;
+	}
 
-  @Override
-  public String getArgDesc() {
-    return null;
-  }
+	@Override
+	public String getArgDesc() {
+		return null;
+	}
 
-  @Override
-  public String getFullDesc() {
-    return null;
-  }
+	@Override
+	public String getFullDesc() {
+		return null;
+	}
 
-  @Override
-  public boolean execute(String[] args) {
-    Color color;
-    if (args.length >= 1 && (color = Funcs.getColor(args[0])) != null) {
-      Data data = CaseControl.getData();
-      data.caseFadeColors.add(color);
-      System.out.printf("Case fade color (%d, %d, %d) added at position %d\n",
-                        color.getRed(), color.getGreen(), color.getBlue(),
-                        data.caseFadeColors.size() - 1);
-      return true;
-    }
-    return false;
-  }
+	@Override
+	public boolean execute(String[] args) {
+		Color color;
+		if (args.length >= 1 && (color = Funcs.getColor(args[0])) != null) {
+			Data data = CaseControl.getData();
+			data.caseFadeColors.add(color);
+			System.out.printf("Case fade color (%d, %d, %d) added at position %d\n",
+												color.getRed(), color.getGreen(), color.getBlue(),
+												data.caseFadeColors.size() - 1);
+			return true;
+		}
+		return false;
+	}
 }

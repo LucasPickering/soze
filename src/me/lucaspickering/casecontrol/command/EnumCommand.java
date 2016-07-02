@@ -9,18 +9,18 @@ import me.lucaspickering.casecontrol.command.lcd.CommandLcd;
 
 public enum EnumCommand {
 
-  EXIT(CommandExit.class), HELP(CommandHelp.class), INFO(CommandInfo.class),
-  CASE(CommandCaseMode.class), FADE(CommandFade.class), LCD(CommandLcd.class);
+	EXIT(CommandExit.class), HELP(CommandHelp.class), INFO(CommandInfo.class),
+	CASE(CommandCaseMode.class), FADE(CommandFade.class), LCD(CommandLcd.class);
 
-  public final Command command;
+	public final Command command;
 
-  EnumCommand(Class<? extends Command> commandClass) {
-    Command command = null;
-    try {
-      command = commandClass.newInstance();
-    } catch (IllegalAccessException | InstantiationException e) {
-      e.printStackTrace();
-    }
-    this.command = command;
-  }
+	EnumCommand(Class<? extends Command> commandClass) {
+		Command command = null;
+		try {
+			command = commandClass.newInstance();
+		} catch (IllegalAccessException | InstantiationException e) {
+			e.printStackTrace();
+		}
+		this.command = command;
+	}
 }
