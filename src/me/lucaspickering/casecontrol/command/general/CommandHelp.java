@@ -1,9 +1,10 @@
 package me.lucaspickering.casecontrol.command.general;
 
+import me.lucaspickering.casecontrol.command.AbstractCommand;
 import me.lucaspickering.casecontrol.command.Command;
 import me.lucaspickering.casecontrol.command.EnumCommand;
 
-public final class CommandHelp implements Command {
+public final class CommandHelp extends AbstractCommand {
 
 	@Override
 	public String getName() {
@@ -11,25 +12,29 @@ public final class CommandHelp implements Command {
 	}
 
 	@Override
-	public int getArgumentAmount() {
-		return 0;
+	public String getArgDesc() {
+		return null;
 	}
 
 	@Override
-	public String getArgs() {
-		return "";
-	}
-
-	@Override
-	public String getDesc() {
-		return "Print the help dialog.";
+	public String getFullDesc() {
+		return "Prints help for each command.";
 	}
 
 	@Override
 	public boolean execute(String[] args) {
 		for (EnumCommand enumCommand : EnumCommand.values()) {
 			final Command command = enumCommand.command;
-			System.out.printf("%s %s - %s\n", command.getName(), command.getArgs(), command.getDesc());
+			final String name = command.getName();
+			final String argDesc = command.getArgDesc();
+			final String fullDesc = command.getFullDesc();
+
+			// Print info for each command
+			if (argDesc == null) {
+				System.out.printf("%s - %s\n", name, fullDesc);
+			} else {
+				System.out.printf("%s %s - %s\n", name, argDesc, fullDesc);
+			}
 		}
 		return true;
 	}

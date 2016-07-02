@@ -16,6 +16,8 @@ import me.lucaspickering.casecontrol.command.Command;
 public final class CaseControl {
 
 	private static final CaseControl caseControl = new CaseControl();
+	private static boolean run = true;
+
 	private final ModeThread modeThread = new ModeThread();
 	private final SerialThread serialThread = new SerialThread();
 	private Data data = new Data();
@@ -30,7 +32,7 @@ public final class CaseControl {
 	}
 
 	public static void stop() {
-
+		run = false;
 	}
 
 	/**
@@ -44,7 +46,8 @@ public final class CaseControl {
 		Scanner scanner = new Scanner(System.in);
 		do {
 			System.out.print(">");
-		} while (runInput(scanner.nextLine().toLowerCase()));
+			runInput(scanner.nextLine().toLowerCase());
+		} while (run);
 		saveData();
 		serialThread.terminate();
 		modeThread.terminate();
@@ -55,14 +58,11 @@ public final class CaseControl {
 	 * Interprets input from the user.
 	 *
 	 * @param input the input from the user, must be lower case
-	 * @return true if the program should keep running, false if it should terminate
 	 */
-	private boolean runInput(String input) {
+	private void runInput(String input) {
 		String[] splits = input.split(" "); // Split the input into words.
 		String commandName = splits[0];
 		Command command = null;
-
-		return true;
 	}
 
 	private void saveData() {

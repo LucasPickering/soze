@@ -1,8 +1,9 @@
 package me.lucaspickering.casecontrol.command.general;
 
-import me.lucaspickering.casecontrol.command.Command;
+import me.lucaspickering.casecontrol.CaseControl;
+import me.lucaspickering.casecontrol.command.AbstractCommand;
 
-public final class CommandExit implements Command {
+public final class CommandExit extends AbstractCommand {
 
 	@Override
 	public String getName() {
@@ -10,22 +11,18 @@ public final class CommandExit implements Command {
 	}
 
 	@Override
-	public int getArgumentAmount() {
-		return 0;
+	public String getArgDesc() {
+		return null;
 	}
 
 	@Override
-	public String getArgs() {
-		return "";
-	}
-
-	@Override
-	public String getDesc() {
-		return "Terminate the program.";
+	public String getFullDesc() {
+		return "Stops the program.";
 	}
 
 	@Override
 	public boolean execute(String args[]) {
-		return false;
+		CaseControl.stop();
+		return true;
 	}
 }
