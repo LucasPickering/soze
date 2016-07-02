@@ -20,7 +20,7 @@ public class CommandFadeSet extends AbstractCommand {
 
 	@Override
 	public String getArgDesc() {
-		return "";
+		return null;
 	}
 
 	@Override

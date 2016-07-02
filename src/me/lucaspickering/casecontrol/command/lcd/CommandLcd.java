@@ -15,7 +15,7 @@ public class CommandLcd extends AbstractCommand {
 
 	@Override
 	public String getArgDesc() {
-		return "";
+		return null;
 	}
 
 	@Override

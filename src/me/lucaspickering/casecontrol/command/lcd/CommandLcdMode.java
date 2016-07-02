@@ -7,7 +7,7 @@ import me.lucaspickering.casecontrol.mode.LcdModeOff;
 import me.lucaspickering.casecontrol.mode.LcdModeTemps;
 import me.lucaspickering.casecontrol.mode.LcdModeTodo;
 
-public final class CommandLcdMode extends AbstractCommand {
+public class CommandLcdMode extends AbstractCommand {
 
 	@Override
 	public String getName() {

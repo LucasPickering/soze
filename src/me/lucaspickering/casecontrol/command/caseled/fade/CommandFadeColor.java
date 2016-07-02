@@ -19,7 +19,7 @@ public class CommandFadeColor extends AbstractCommand {
 
 	@Override
 	public String getArgDesc() {
-		return "";
+		return null;
 	}
 
 	@Override

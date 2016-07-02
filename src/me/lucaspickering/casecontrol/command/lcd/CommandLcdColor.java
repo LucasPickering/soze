@@ -7,7 +7,7 @@ import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.Funcs;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
 
-public final class CommandLcdColor extends AbstractCommand {
+public class CommandLcdColor extends AbstractCommand {
 
 	@Override
 	public String getName() {

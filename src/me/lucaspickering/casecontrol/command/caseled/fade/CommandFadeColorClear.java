@@ -12,7 +12,7 @@ public class CommandFadeColorClear extends AbstractCommand {
 
 	@Override
 	public String getArgDesc() {
-		return "";
+		return null;
 	}
 
 	@Override

@@ -15,7 +15,7 @@ public class CommandFade extends AbstractCommand {
 
 	@Override
 	public String getArgDesc() {
-		return "";
+		return null;
 	}
 
 	@Override

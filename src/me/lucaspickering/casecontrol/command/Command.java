@@ -28,7 +28,7 @@ public interface Command {
 	 * Gets a brief description of this command's arguments. An example would be "<mode>" for "case
 	 * mode".
 	 *
-	 * @return the brief description
+	 * @return the brief description, or {@code null} if this command takes no arguments
 	 */
 	String getArgDesc();
 
