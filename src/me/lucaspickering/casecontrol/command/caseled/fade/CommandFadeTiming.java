@@ -1,5 +1,7 @@
 package me.lucaspickering.casecontrol.command.caseled.fade;
 
+import me.lucaspickering.casecontrol.CaseControl;
+import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
 
 public class CommandFadeTiming extends AbstractCommand {
@@ -26,7 +28,10 @@ public class CommandFadeTiming extends AbstractCommand {
   @Override
   public boolean execute(String[] args) {
     // Print current fade timing settings, then return false to print help
-    // TODO: Print fade timings
+    Data data = CaseControl.getData();
+    System.out.println("Fade timings:");
+    System.out.printf("  Transition: %d ticks\n", data.caseFadeTicks);
+    System.out.printf("  Pause: %d ticks\n", data.casePauseTicks);
     return false;
   }
 }

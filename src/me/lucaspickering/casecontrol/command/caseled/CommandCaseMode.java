@@ -6,7 +6,7 @@ import me.lucaspickering.casecontrol.mode.CaseModeFade;
 import me.lucaspickering.casecontrol.mode.CaseModeOff;
 import me.lucaspickering.casecontrol.mode.CaseModeStatic;
 
-public final class CommandCaseMode extends AbstractCommand {
+public class CommandCaseMode extends AbstractCommand {
 
   @Override
   public String getName() {

@@ -6,7 +6,7 @@ import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
 
-public final class CommandFadeSetSave extends AbstractCommand {
+public class CommandFadeSetSave extends AbstractCommand {
 
   @Override
   public String getName() {

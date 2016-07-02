@@ -4,7 +4,7 @@ import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
 
-public final class CommandFadeSetDel extends AbstractCommand {
+public class CommandFadeSetDel extends AbstractCommand {
 
   @Override
   public String getName() {
@@ -27,6 +27,7 @@ public final class CommandFadeSetDel extends AbstractCommand {
       Data data = CaseControl.getData();
       if (data.savedFades.containsKey(args[0])) {
         data.savedFades.remove(args[0]);
+        System.out.println("Removed " + args[0]);
       } else {
         System.out.println(args[0] + " is not a valid fade set name.");
       }
