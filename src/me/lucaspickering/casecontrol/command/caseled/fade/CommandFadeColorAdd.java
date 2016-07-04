@@ -11,17 +11,17 @@ public class CommandFadeColorAdd extends AbstractCommand {
 
 	@Override
 	public String getName() {
-		return null;
+		return "add";
 	}
 
 	@Override
 	public String getArgDesc() {
-		return null;
+		return "<color>";
 	}
 
 	@Override
 	public String getFullDesc() {
-		return null;
+		return "Adds a color to the end of the current fade set.";
 	}
 
 	@Override

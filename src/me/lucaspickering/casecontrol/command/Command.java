@@ -26,6 +26,11 @@ public interface Command {
 	Command getSubcommand(String subcommand);
 
 	/**
+	 * Prints a list of all available sub-commands for this command, and their purposes.
+	 */
+	void printSubcommands();
+
+	/**
 	 * Gets a brief description of this command's arguments. An example would be "<mode>" for "case
 	 * mode".
 	 *

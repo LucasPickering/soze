@@ -24,6 +24,13 @@ public abstract class AbstractCommand implements Command {
 	}
 
 	@Override
+	public final void printSubcommands() {
+		for (Command subcommand : subcommands.values()) {
+			System.out.println(subcommand.getName());
+		}
+	}
+
+	@Override
 	public boolean execute(String[] args) {
 		return false;
 	}

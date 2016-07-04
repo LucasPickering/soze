@@ -85,10 +85,13 @@ public final class CaseControl {
 			// command is now the lowest-level sub-command possible. All remaining strings in splits
 			// are arguments (if there are any at all).
 
-			command.execute(Arrays.copyOfRange(splits, i, splits.length)); // Execute with all strings
-			// in splits at and after i as arguments
+			// Execute command with arguments
+			if (!command.execute(Arrays.copyOfRange(splits, i, splits.length))) {
+				System.out.println("Available sub-commands for this command:");
+				command.printSubcommands();
+			}
 		} else {
-			System.out.println("That was not a valid command. Maybe try \'help\'");
+			System.out.println("That was not a valid command. Maybe try \'help\'.");
 		}
 	}
 
