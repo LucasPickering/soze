@@ -9,9 +9,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import me.lucaspickering.casecontrol.command.Command;
+import me.lucaspickering.casecontrol.command.EnumCommand;
 
 public final class CaseControl {
 
@@ -21,7 +25,8 @@ public final class CaseControl {
 	private final ModeThread modeThread = new ModeThread();
 	private final SerialThread serialThread = new SerialThread();
 	private Data data = new Data();
-	private CommandLineParser parser = new DefaultParser();
+	private final CommandLineParser parser = new DefaultParser();
+	private final Map<String, Command> commands = new HashMap<>();
 
 	public static void main(String[] args) {
 		caseControl.inputLoop();
@@ -39,11 +44,15 @@ public final class CaseControl {
 	 * Constantly receives input from the user. Main loop of the program.
 	 */
 	private void inputLoop() {
-		Runtime.getRuntime().addShutdownHook(serialThread);
-		loadData();
-		modeThread.start();
-		serialThread.start();
-		Scanner scanner = new Scanner(System.in);
+		Runtime.getRuntime().addShutdownHook(serialThread); // Tell the serial thread when we stop
+		loadData(); // Load saved data (if possible)
+		modeThread.start(); // Start the trhread that does color/text calculations
+		serialThread.start(); // Start the thread that communicates over the serial port
+		// Register all top-level commands
+		for (EnumCommand command : EnumCommand.values()) {
+			commands.put(command.command.getName(), command.command);
+		}
+		Scanner scanner = new Scanner(System.in); // Scanner to get input from the command lin
 		do {
 			System.out.print(">");
 			runInput(scanner.nextLine().toLowerCase());
@@ -62,7 +71,25 @@ public final class CaseControl {
 	private void runInput(String input) {
 		String[] splits = input.split(" "); // Split the input into words.
 		String commandName = splits[0];
-		Command command = null;
+		if (commands.containsKey(commandName)) {
+			Command command = commands.get(commandName);
+			// Keep going down the array until the next string in there isn't a sub-command
+			int i;
+			for (i = 1; i < splits.length; i++) {
+				if (command.isSubcommand(splits[i])) {
+					command = command.getSubcommand(splits[i]);
+				} else {
+					break;
+				}
+			}
+			// command is now the lowest-level sub-command possible. All remaining strings in splits
+			// are arguments (if there are any at all).
+
+			command.execute(Arrays.copyOfRange(splits, i, splits.length)); // Execute with all strings
+			// in splits at and after i as arguments
+		} else {
+			System.out.println("That was not a valid command. Maybe try \'help\'");
+		}
 	}
 
 	private void saveData() {
@@ -81,12 +108,15 @@ public final class CaseControl {
 
 	private void loadData() {
 		try {
+			// If the data file exists...
 			if (new File(Data.DATA_FILE).exists()) {
+				// Open the file
 				FileInputStream fileIn = new FileInputStream(Data.DATA_FILE);
 				ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
-				data = (Data) objectIn.readObject();
+				data = (Data) objectIn.readObject(); // Read the data in
 
+				// Close the file
 				objectIn.close();
 				fileIn.close();
 			}

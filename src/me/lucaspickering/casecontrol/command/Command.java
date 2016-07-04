@@ -10,19 +10,20 @@ public interface Command {
 	String getName();
 
 	/**
-	 * Does this command have subcommands? If true, the first string after the command will be treated
-	 * as a subcommand, rather than the first argument, and arguments will start at the third string.
-	 *
-	 * @return true if this command has subcommands, false otherwise
-	 */
-	boolean hasSubCommands();
-
-	/**
 	 * Is the given string a valid sub-command for this command?
 	 *
 	 * @return true if the given sub-command is valid, false otherwise
 	 */
-	boolean isSubCommand(String subcommand);
+	boolean isSubcommand(String subcommand);
+
+	/**
+	 * Gets the sub-command for the given string.
+	 *
+	 * @param subcommand the sub-command to get by name
+	 * @return the sub-command, or {@code null} if there is no sub-command for this command by the
+	 * given name
+	 */
+	Command getSubcommand(String subcommand);
 
 	/**
 	 * Gets a brief description of this command's arguments. An example would be "<mode>" for "case

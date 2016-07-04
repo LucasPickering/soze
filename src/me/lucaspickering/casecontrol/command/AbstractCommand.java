@@ -14,13 +14,13 @@ public abstract class AbstractCommand implements Command {
 	}
 
 	@Override
-	public final boolean hasSubCommands() {
-		return !subcommands.isEmpty();
+	public final boolean isSubcommand(String subcommand) {
+		return subcommands.containsKey(subcommand);
 	}
 
 	@Override
-	public final boolean isSubCommand(String subcommand) {
-		return subcommands.containsKey(subcommand);
+	public final Command getSubcommand(String subcommand) {
+		return subcommands.get(subcommand);
 	}
 
 	@Override
