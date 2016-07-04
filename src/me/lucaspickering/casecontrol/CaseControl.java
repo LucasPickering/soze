@@ -1,8 +1,5 @@
 package me.lucaspickering.casecontrol;
 
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,7 +22,6 @@ public final class CaseControl {
 	private final ModeThread modeThread = new ModeThread();
 	private final SerialThread serialThread = new SerialThread();
 	private Data data = new Data();
-	private final CommandLineParser parser = new DefaultParser();
 	private final Map<String, Command> commands = new HashMap<>();
 
 	public static void main(String[] args) {
