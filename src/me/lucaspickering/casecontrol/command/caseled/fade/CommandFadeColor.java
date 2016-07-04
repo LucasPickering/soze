@@ -31,10 +31,11 @@ public class CommandFadeColor extends AbstractCommand {
 	public boolean execute(String[] args) {
 		// Print current fade colors, then return false to print help
 		Data data = CaseControl.getData();
+		System.out.println("Current fade colors:");
 		int i = 0;
 		for (Color color : data.caseFadeColors) {
-			System.out
-					.printf("%d - (%d, %d, %d)\n", i, color.getRed(), color.getGreen(), color.getBlue());
+			System.out.printf("  %d - (%d, %d, %d)\n", i,
+												color.getRed(), color.getGreen(), color.getBlue());
 			i++;
 		}
 		return false;

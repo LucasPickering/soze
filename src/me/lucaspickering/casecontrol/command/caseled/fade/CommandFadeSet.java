@@ -31,10 +31,11 @@ public class CommandFadeSet extends AbstractCommand {
 	@Override
 	public boolean execute(String[] args) {
 		// Print available fade sets, then return false to print help
+		System.out.println("Available fade sets:");
 		for (Map.Entry<String, List<Color>> entry : CaseControl.getData().savedFades.entrySet()) {
-			System.out.println(entry.getKey());
+			System.out.println("  " + entry.getKey());
 			for (Color color : entry.getValue()) {
-				System.out.printf("  (%d, %d, %d)\n", color.getRed(), color.getGreen(), color.getBlue());
+				System.out.printf("    (%d, %d, %d)\n", color.getRed(), color.getGreen(), color.getBlue());
 			}
 		}
 		return false;

@@ -3,6 +3,8 @@ package me.lucaspickering.casecontrol.command;
 import java.util.HashMap;
 import java.util.Map;
 
+import me.lucaspickering.casecontrol.Funcs;
+
 public abstract class AbstractCommand implements Command {
 
 	private final Map<String, Command> subcommands = new HashMap<>();
@@ -11,6 +13,11 @@ public abstract class AbstractCommand implements Command {
 		for (Command command : subcomms) {
 			subcommands.put(command.getName(), command);
 		}
+	}
+
+	@Override
+	public final boolean hasSubcommands() {
+		return !subcommands.isEmpty();
 	}
 
 	@Override
@@ -25,9 +32,7 @@ public abstract class AbstractCommand implements Command {
 
 	@Override
 	public final void printSubcommands() {
-		for (Command subcommand : subcommands.values()) {
-			System.out.println(subcommand.getName());
-		}
+		subcommands.values().forEach(Funcs::printCommandInfo); // Print info for each command
 	}
 
 	@Override

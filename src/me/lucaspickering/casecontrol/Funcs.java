@@ -10,6 +10,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import me.lucaspickering.casecontrol.command.Command;
+
 public final class Funcs {
 
 	private static final String HBR = "\u0001";
@@ -230,5 +232,23 @@ public final class Funcs {
 
 	public static String padRight(String s, int n) {
 		return String.format("%1$-" + n + "s", s);
+	}
+
+	/**
+	 * Prints help info for the given command.
+	 *
+	 * @param command the command to print info on (non-null)
+	 */
+	public static void printCommandInfo(Command command) {
+		final String name = command.getName();
+		final String argDesc = command.getArgDesc();
+		final String fullDesc = command.getFullDesc();
+
+		// Print info
+		if (argDesc == null) {
+			System.out.printf("  %s - %s\n", name, fullDesc);
+		} else {
+			System.out.printf("  %s %s - %s\n", name, argDesc, fullDesc);
+		}
 	}
 }

@@ -87,8 +87,10 @@ public final class CaseControl {
 
 			// Execute command with arguments
 			if (!command.execute(Arrays.copyOfRange(splits, i, splits.length))) {
-				System.out.println("Available sub-commands for this command:");
-				command.printSubcommands();
+				if (command.hasSubcommands()) {
+					System.out.println("Available sub-commands:");
+					command.printSubcommands();
+				}
 			}
 		} else {
 			System.out.println("That was not a valid command. Maybe try \'help\'.");

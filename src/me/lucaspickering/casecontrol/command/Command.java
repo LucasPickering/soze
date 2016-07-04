@@ -10,6 +10,13 @@ public interface Command {
 	String getName();
 
 	/**
+	 * Does this command have at least one sub-command?
+	 *
+	 * @return true if this command has sub-command(s), false otherwise
+	 */
+	boolean hasSubcommands();
+
+	/**
 	 * Is the given string a valid sub-command for this command?
 	 *
 	 * @return true if the given sub-command is valid, false otherwise
