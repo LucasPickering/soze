@@ -55,7 +55,7 @@ public final class Funcs {
 	private static final String[] BIG_COLON = new String[]{FUL, EMT, FUL};
 	private static final String[] BIG_SPACE = new String[]{EMT, EMT, EMT};
 
-	private static DateFormat TEMPS_DATE_FORMAT = new SimpleDateFormat("YYYYMMdd");
+	private static final DateFormat TEMPS_DATE_FORMAT = new SimpleDateFormat("YYYYMMdd");
 
 	/**
 	 * Clamps the given number to the given range.

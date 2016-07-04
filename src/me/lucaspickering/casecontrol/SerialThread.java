@@ -25,7 +25,7 @@ public final class SerialThread extends Thread {
 	// these old values.
 	private Color lastCaseColor = null;
 	private Color lastLcdColor = null;
-	private String[] lastLcdText = new String[Data.LCD_HEIGHT];
+	private final String[] lastLcdText = new String[Data.LCD_HEIGHT];
 
 	private enum PacketTag {
 		CASE_COLOR('c'), LCD_COLOR('l'), LCD_TEXT('t');
