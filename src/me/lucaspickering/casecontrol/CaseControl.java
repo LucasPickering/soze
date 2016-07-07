@@ -52,8 +52,8 @@ public final class CaseControl {
 		do {
 			System.out.print(">");
 			runInput(scanner.nextLine().toLowerCase());
+			saveData(); // Save data after each command (it's cheap)
 		} while (run);
-		saveData();
 		serialThread.terminate();
 		modeThread.terminate();
 		System.out.println("Exiting...");
@@ -98,7 +98,7 @@ public final class CaseControl {
 			FileOutputStream fileOut = new FileOutputStream(Data.DATA_FILE);
 			ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 
-			objectOut.writeObject(data);
+			objectOut.writeObject(getData());
 
 			objectOut.close();
 			fileOut.close();
