@@ -24,7 +24,6 @@ public class CommandFadeSetSave extends AbstractCommand {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public boolean execute(String[] args) {
 		final Data data = CaseControl.getData();
 		if (data.caseFadeColors.isEmpty()) {
