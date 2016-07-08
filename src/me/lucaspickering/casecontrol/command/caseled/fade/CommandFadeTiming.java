@@ -30,8 +30,10 @@ public class CommandFadeTiming extends AbstractCommand {
 		// Print current fade timing settings, then return false to print help
 		Data data = CaseControl.getData();
 		System.out.println("Fade timings:");
-		System.out.printf("  Transition: %d ticks\n", data.caseFadeTicks);
-		System.out.printf("  Pause: %d ticks\n", data.casePauseTicks);
+		System.out.printf("  Transition: %d ticks (Min %d; Max %d)\n",
+											data.caseFadeTicks, Data.MIN_FADE_TICKS, Data.MAX_FADE_TICKS);
+		System.out.printf("  Pause: %d ticks (Min %d; Max %d)\n",
+											data.casePauseTicks, Data.MIN_PAUSE_TICKS, Data.MAX_PAUSE_TICKS);
 		return false;
 	}
 }
