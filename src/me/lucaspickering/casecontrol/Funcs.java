@@ -238,17 +238,25 @@ public final class Funcs {
 	 * Prints help info for the given command.
 	 *
 	 * @param command the command to print info on (non-null)
+	 * @param indent  if true, the output will be indented
 	 */
-	public static void printCommandInfo(Command command) {
+	public static void printCommandInfo(Command command, boolean indent) {
 		final String name = command.getName();
 		final String argDesc = command.getArgDesc();
 		final String fullDesc = command.getFullDesc();
 
 		// Print info
-		if (argDesc == null) {
-			System.out.printf("  %s - %s\n", name, fullDesc);
-		} else {
-			System.out.printf("  %s %s - %s\n", name, argDesc, fullDesc);
+		if(indent) {
+			System.out.print("  ");
 		}
+		if (argDesc == null) {
+			System.out.printf("%s - %s\n", name, fullDesc);
+		} else {
+			System.out.printf("%s %s - %s\n", name, argDesc, fullDesc);
+		}
+	}
+
+	public static void printCommandInfo(Command command) {
+		printCommandInfo(command, false);
 	}
 }

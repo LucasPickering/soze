@@ -10,7 +10,7 @@ public class CommandFadeSetSave extends AbstractCommand {
 
 	@Override
 	public String getName() {
-		return "savefadeset";
+		return "save";
 	}
 
 	@Override
@@ -25,14 +25,19 @@ public class CommandFadeSetSave extends AbstractCommand {
 
 	@Override
 	public boolean execute(String[] args) {
-		final Data data = CaseControl.getData();
-		if (data.caseFadeColors.isEmpty()) {
-			System.out.println("Fade list is empty, nothing saved");
-		} else {
-			final String name = args[0];
-			data.savedFades.put(name, new LinkedList<>(data.caseFadeColors));
-			System.out.println("Saved current fade set under " + name);
+		if (args.length >= 1) {
+			final Data data = CaseControl.getData();
+			if (data.caseFadeColors.isEmpty()) {
+				System.out.println("Fade list is empty, nothing saved");
+			} else if (args.length == 0) {
+				return false;
+			} else {
+				final String name = args[0];
+				data.savedFades.put(name, new LinkedList<>(data.caseFadeColors));
+				System.out.println("Saved current fade set under " + name);
+			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 }

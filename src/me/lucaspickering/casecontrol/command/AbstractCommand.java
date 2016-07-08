@@ -32,7 +32,8 @@ public abstract class AbstractCommand implements Command {
 
 	@Override
 	public final void printSubcommands() {
-		subcommands.values().forEach(Funcs::printCommandInfo); // Print info for each command
+		// Print info for each sub-command
+		subcommands.values().forEach(command -> Funcs.printCommandInfo(command, true));
 	}
 
 	@Override

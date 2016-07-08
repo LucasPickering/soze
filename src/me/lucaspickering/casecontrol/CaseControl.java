@@ -86,6 +86,8 @@ public final class CaseControl {
 				if (command.hasSubcommands()) {
 					System.out.println("Available sub-commands:");
 					command.printSubcommands();
+				} else {
+					Funcs.printCommandInfo(command);
 				}
 			}
 		} else {
