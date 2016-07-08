@@ -1,5 +1,4 @@
 #include <LiquidCrystal.h>
-#include "SimpleTimer.h"
 
 const int CASE_RED = 9;
 const int CASE_GREEN = 10;
@@ -31,8 +30,8 @@ const char LCD_TEXT_TAG = 't';
 
 LiquidCrystal lcd(2, 4, 7, 8, 12, 13);
 String lcdText[LCD_HEIGHT];
-SimpleTimer timer;
 int timerId;
+unsigned long lastReceiveTime = 0;
 
 void serialFlush(){
   while(Serial.available() > 0) {
@@ -88,14 +87,10 @@ void setup() {
   
   lcd.begin(LCD_WIDTH, LCD_HEIGHT);
   Serial.begin(BAUD_RATE);
-
-  timerId = timer.setInterval(TIMEOUT, turnOff);
 }
 
 void loop() {
-  timer.run(); // The timer to track when a timeout should occur
   if (Serial.available() >= 4) {
-    timer.restartTimer(timerId); // Reset the timeout
     char tag = Serial.read(); // Read the first byte (the tag)
     switch(tag) {
       case CASE_COLOR_TAG:
@@ -140,5 +135,10 @@ void loop() {
         serialFlush(); // Clear the buffer
         break;
     }
+    lastReceiveTime = millis();
+  }
+
+  if(millis() - lastReceiveTime >= TIMEOUT) {
+    turnOff();
   }
 }
