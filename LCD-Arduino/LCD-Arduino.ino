@@ -97,7 +97,6 @@ void loop() {
   if (Serial.available() >= 4) {
     timer.restartTimer(timerId); // Reset the timeout
     char tag = Serial.read(); // Read the first byte (the tag)
-    byte bytesRead = 1; // Start at 1 to account for the tag
     switch(tag) {
       case CASE_COLOR_TAG:
       {
@@ -107,7 +106,6 @@ void loop() {
         byte green = Serial.read();
         byte blue = Serial.read();
         setCaseColor(red, green, blue);
-        bytesRead += 3; // 3 colors
         break;
       }
       case LCD_COLOR_TAG:
@@ -118,7 +116,6 @@ void loop() {
         byte green = Serial.read();
         byte blue = Serial.read();
         setLcdColor(red, green, blue);
-        bytesRead += 3; // 3 colors
         break;
       }
       case LCD_TEXT_TAG:
@@ -130,7 +127,6 @@ void loop() {
           
           for(int col = 0; col < LCD_WIDTH; col++) {
             char newChar = Serial.read();
-            bytesRead++;
             // If this character is different from the one already there, update it
             if(newChar != textLine[col]) {
               textLine.setCharAt(col, newChar); // Update the array
@@ -142,10 +138,7 @@ void loop() {
       default:
         // Something other than a tag showed up. Not good.
         serialFlush(); // Clear the buffer
-        bytesRead = 255;
         break;
     }
-    
-    Serial.write(bytesRead); // Send a confirmation message
   }
 }

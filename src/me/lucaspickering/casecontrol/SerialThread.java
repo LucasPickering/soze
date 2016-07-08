@@ -5,13 +5,11 @@ import java.util.Arrays;
 
 import jssc.SerialPort;
 import jssc.SerialPortException;
-import jssc.SerialPortTimeoutException;
 
 public final class SerialThread extends Thread {
 
 	private static final int STARTUP_TIME = 2000;
 	private static final int LOOP_TIME = 20;
-	private static final int ACK_TIMEOUT = 1000;
 	private static final int PING_FREQUENCY = 1000;
 
 	private static final int BAUD_RATE = 57600;
@@ -67,11 +65,12 @@ public final class SerialThread extends Thread {
 
 				// Send all necessary data
 				try {
-					waitForAck(writeCaseColor(data)); // Write case color and wait for ack message
-					waitForAck(writeLcdColor(data)); // Write LCD color and wait for ack message
-					waitForAck(writeText(data)); // Write LCD text and wait for ack message
+					writeCaseColor(data); // Write case color
+					writeLcdColor(data); // Write LCD color
+					writeText(data); // Write LCD text
 				} catch (SerialPortException e) {
 					System.err.println("Error sending data over serial port.");
+					e.printStackTrace();
 				}
 
 				Funcs.pause(LOOP_TIME); // Pause for a bit
@@ -157,26 +156,6 @@ public final class SerialThread extends Thread {
 	private void writeColor(char tag, Color color) throws SerialPortException {
 		serialPort.writeBytes(new byte[]{
 				(byte) tag, (byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue()});
-	}
-
-	/**
-	 * Waits for an acknowledge message from the serial port. The message code will be equal to the
-	 * number of bytes written to the stream since the last ACK was received. If {@code bytesExpected}
-	 * is zero, nothing happens.
-	 *
-	 * @param bytesExpected the code expected to come from the stream
-	 */
-	private void waitForAck(int bytesExpected) throws SerialPortException {
-		if (bytesExpected > 0) {
-			try {
-				byte ack = serialPort.readBytes(1, ACK_TIMEOUT)[0];
-				if (ack != bytesExpected) {
-//          System.err.printf("Error! Expected ACK of %d but received %d!\n", bytesExpected, ack);
-				}
-			} catch (SerialPortTimeoutException e) {
-				System.err.printf("No ACK received after %d ms\n", ACK_TIMEOUT);
-			}
-		}
 	}
 
 	/**
