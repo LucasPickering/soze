@@ -5,7 +5,6 @@ import me.lucaspickering.casecontrol.command.AbstractCommand;
 import me.lucaspickering.casecontrol.mode.LcdModeClock;
 import me.lucaspickering.casecontrol.mode.LcdModeOff;
 import me.lucaspickering.casecontrol.mode.LcdModeTemps;
-import me.lucaspickering.casecontrol.mode.LcdModeTodo;
 
 public class CommandLcdMode extends AbstractCommand {
 
@@ -39,10 +38,6 @@ public class CommandLcdMode extends AbstractCommand {
 				case "temps":
 					CaseControl.getData().lcdMode = new LcdModeTemps();
 					System.out.println("LCD mode set to temps");
-					break;
-				case "todo":
-					CaseControl.getData().lcdMode = new LcdModeTodo();
-					System.out.println("LCD mode set to todo");
 					break;
 				default:
 					System.out.println("That was not a valid mode");
