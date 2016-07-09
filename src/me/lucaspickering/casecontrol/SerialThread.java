@@ -90,17 +90,14 @@ public final class SerialThread extends Thread {
 	 * written.
 	 *
 	 * @param data the data containing the current case color
-	 * @return the number of bytes written to the stream
 	 */
-	private int writeCaseColor(Data data) throws SerialPortException {
+	private void writeCaseColor(Data data) throws SerialPortException {
 		// If the case color changed, update it.
 		if (lastCaseColor == null || !data.caseColor.equals(lastCaseColor) || timeToUpdate()) {
 			writeColor(PacketTag.CASE_COLOR.tag, data.caseColor);
 			lastCaseColor = data.caseColor;
 			resetLastUpdateTime();
-			return 4;
 		}
-		return 0;
 	}
 
 	/**
@@ -108,17 +105,14 @@ public final class SerialThread extends Thread {
 	 * written.
 	 *
 	 * @param data the data containing the current LCD color
-	 * @return the number of bytes written to the stream
 	 */
-	private int writeLcdColor(Data data) throws SerialPortException {
+	private void writeLcdColor(Data data) throws SerialPortException {
 		// If the case color changed, update it.
 		if (lastLcdColor == null || !data.lcdColor.equals(lastLcdColor) || timeToUpdate()) {
 			writeColor(PacketTag.LCD_COLOR.tag, data.lcdColor);
 			lastLcdColor = data.lcdColor;
 			resetLastUpdateTime();
-			return 4;
 		}
-		return 0;
 	}
 
 	/**
@@ -126,13 +120,10 @@ public final class SerialThread extends Thread {
 	 * written.
 	 *
 	 * @param data the data containing the current LCD text
-	 * @return the number of bytes written to the stream
 	 */
-	private int writeText(Data data) throws SerialPortException {
+	private void writeText(Data data) throws SerialPortException {
 		if (!Arrays.equals(lastLcdText, data.lcdText)) {
-			int bytesWritten = 0;
 			serialPort.writeByte((byte) PacketTag.LCD_TEXT.tag); // Tell the Arduino words are coming
-			bytesWritten++; // Account for the tag byte
 
 			// For each line in the text...
 			for (String line : data.lcdText) {
@@ -144,13 +135,10 @@ public final class SerialThread extends Thread {
 					line = Funcs.padRight(line, Data.LCD_WIDTH);
 				}
 				writeStringToSerial(line); // Write the line
-				bytesWritten += line.length(); // Should always be Data.LCD_WIDTH
 			}
 			System.arraycopy(data.lcdText, 0, lastLcdText, 0, data.lcdText.length);
 			resetLastUpdateTime();
-			return bytesWritten;
 		}
-		return 0;
 	}
 
 	private void writeColor(char tag, Color color) throws SerialPortException {
