@@ -70,19 +70,23 @@ public final class Funcs {
 	}
 
 	/**
-	 * Gets a color from a string. The string can either be an RGB set separated by '/', (e.g.
-	 * 255/255/255 for white), or an alias (e.g. "white" for white). Valid aliases are all pre-defined
-	 * colors in {@link java.awt.Color}. {@code s} is not case-sensitive.
+	 * Gets a color from a string, or a set of strings. The string can either be an RGB set separated
+	 * by any of the delimited listed below, (e.g. "255/255/255" for white, "255 0 0" for red), or an
+	 * alias (e.g. "white" for white). Validaliases are all pre-defined colors in {@link
+	 * java.awt.Color}. {@code s} is not case-sensitive.
+	 * Delimiters: ' ' '/' ',' '-'
 	 *
-	 * @param s the RGB value set or alias for the color
+	 * @param strs the RGB value set or alias for the color
 	 */
-	public static Color getColor(String s) {
-		String[] rgbSet = s.split("/");
+	public static Color getColor(String... strs) {
+		String s = String.join(" ", (CharSequence[]) strs);
+		String[] rgbSet = s.split("/|-| |,");
+
 		if (rgbSet.length == 1) {
 			try {
 				Field colorField = Color.class.getField(s.toUpperCase());
 				return (Color) colorField.get(Color.BLACK);
-			} catch (Exception e) {
+			} catch (NoSuchFieldException | IllegalAccessException e) {
 				System.out.println(s + " is not a valid color.");
 			}
 		} else if (rgbSet.length >= 3) {
@@ -92,10 +96,9 @@ public final class Funcs {
 				int blue = clamp(new Integer(rgbSet[2]), 0, 255);
 				return new Color(red, green, blue);
 			} catch (NumberFormatException e) {
-				System.out.println("Invalid RGB set. Arguments must be numbers.");
+				System.out.println("Invalid RGB set. Arguments must be numbers, or the name of a color.");
 			}
 		}
-		System.out.println("Invalid argument. Only RGB sets and color aliases are accepted.");
 		return null;
 	}
 
@@ -246,7 +249,7 @@ public final class Funcs {
 		final String fullDesc = command.getFullDesc();
 
 		// Print info
-		if(indent) {
+		if (indent) {
 			System.out.print("  ");
 		}
 		if (argDesc == null) {

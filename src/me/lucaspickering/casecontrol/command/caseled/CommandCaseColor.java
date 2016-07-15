@@ -28,7 +28,7 @@ public class CommandCaseColor extends AbstractCommand {
 	@Override
 	public boolean execute(String[] args) {
 		Color color;
-		if (args.length >= 1 && (color = Funcs.getColor(args[0])) != null) {
+		if (args.length >= 1 && (color = Funcs.getColor(args)) != null) {
 			Data data = CaseControl.getData();
 			data.caseStaticColor = color; // Set the static color
 			data.caseMode = new CaseModeStatic(); // Set the mode to static
