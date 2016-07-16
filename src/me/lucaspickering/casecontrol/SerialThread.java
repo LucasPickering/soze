@@ -10,7 +10,7 @@ public final class SerialThread extends Thread {
 
 	private static final int STARTUP_TIME = 2000;
 	private static final int LOOP_TIME = 20;
-	private static final int PING_FREQUENCY = 1000;
+	private static final int PING_FREQUENCY = 1500;
 
 	private static final int BAUD_RATE = 57600;
 	private static final int DATA_BITS = 8;
@@ -25,7 +25,9 @@ public final class SerialThread extends Thread {
 	private Color lastCaseColor = null;
 	private Color lastLcdColor = null;
 	private final String[] lastLcdText = new String[Data.LCD_HEIGHT];
-	private long lastUpdateTime;
+	private long lastCaseColorUpdateTime;
+	private long lastLcdColorUpdateTime;
+	private long lastLcdTextUpdateTime;
 
 	private enum PacketTag {
 		CASE_COLOR('c'), LCD_COLOR('l'), LCD_TEXT('t');
@@ -93,10 +95,11 @@ public final class SerialThread extends Thread {
 	 */
 	private void writeCaseColor(Data data) throws SerialPortException {
 		// If the case color changed, update it.
-		if (lastCaseColor == null || !data.caseColor.equals(lastCaseColor) || timeToUpdate()) {
+		if (lastCaseColor == null || !data.caseColor.equals(lastCaseColor)
+				|| timeToUpdate(lastCaseColorUpdateTime)) {
 			writeColor(PacketTag.CASE_COLOR.tag, data.caseColor);
 			lastCaseColor = data.caseColor;
-			resetLastUpdateTime();
+			lastCaseColorUpdateTime = System.currentTimeMillis();
 		}
 	}
 
@@ -108,10 +111,11 @@ public final class SerialThread extends Thread {
 	 */
 	private void writeLcdColor(Data data) throws SerialPortException {
 		// If the case color changed, update it.
-		if (lastLcdColor == null || !data.lcdColor.equals(lastLcdColor) || timeToUpdate()) {
+		if (lastLcdColor == null || !data.lcdColor.equals(lastLcdColor)
+				|| timeToUpdate(lastLcdColorUpdateTime)) {
 			writeColor(PacketTag.LCD_COLOR.tag, data.lcdColor);
 			lastLcdColor = data.lcdColor;
-			resetLastUpdateTime();
+			lastLcdColorUpdateTime = System.currentTimeMillis();
 		}
 	}
 
@@ -122,7 +126,7 @@ public final class SerialThread extends Thread {
 	 * @param data the data containing the current LCD text
 	 */
 	private void writeText(Data data) throws SerialPortException {
-		if (!Arrays.equals(lastLcdText, data.lcdText)) {
+		if (!Arrays.equals(lastLcdText, data.lcdText) || timeToUpdate(lastLcdTextUpdateTime)) {
 			serialPort.writeByte((byte) PacketTag.LCD_TEXT.tag); // Tell the Arduino words are coming
 
 			// For each line in the text...
@@ -137,7 +141,7 @@ public final class SerialThread extends Thread {
 				writeStringToSerial(line); // Write the line
 			}
 			System.arraycopy(data.lcdText, 0, lastLcdText, 0, data.lcdText.length);
-			resetLastUpdateTime();
+			lastLcdTextUpdateTime = System.currentTimeMillis();
 		}
 	}
 
@@ -177,19 +181,12 @@ public final class SerialThread extends Thread {
 	}
 
 	/**
-	 * Resets {@link #lastUpdateTime} to the current system time.
-	 */
-	private void resetLastUpdateTime() {
-		lastUpdateTime = System.currentTimeMillis();
-	}
-
-	/**
 	 * Is it time to update the Arduino again?
 	 *
-	 * @return true if it's been more than {@link #PING_FREQUENCY} ms since the last update (to keep
-	 * the Arduino from timing out).
+	 * @param lastUpdateTime the last time the relevant information was updated
+	 * @return true if it's been more than {@link #PING_FREQUENCY} ms since the last update
 	 */
-	private boolean timeToUpdate() {
+	private boolean timeToUpdate(long lastUpdateTime) {
 		return System.currentTimeMillis() - lastUpdateTime >= PING_FREQUENCY;
 	}
 }
