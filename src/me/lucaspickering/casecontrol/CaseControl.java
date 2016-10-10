@@ -42,7 +42,7 @@ public final class CaseControl {
 	private void inputLoop() {
 		Runtime.getRuntime().addShutdownHook(serialThread); // Tell the serial thread when we stop
 		loadData(); // Load saved data (if possible)
-		modeThread.start(); // Start the trhread that does color/text calculations
+		modeThread.start(); // Start the thread that does color/text calculations
 		serialThread.start(); // Start the thread that communicates over the serial port
 		// Register all top-level commands
 		for (EnumCommand command : EnumCommand.values()) {
