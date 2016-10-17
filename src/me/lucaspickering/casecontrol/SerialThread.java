@@ -156,8 +156,7 @@ public final class SerialThread extends Thread {
      * Write the given string to the serial port. {@link SerialPort#writeString} wasn't working (but
      * only in IntelliJ) so I wrote this.
      *
-     * I guess this is as good a place as any to describe the bug (so I don't run into it again, so
-     * here goes:
+     * I guess this is as good a place as any to describe the bug (so I don't run into it again):
      *
      * Under windows-1232 encoding, it works fine because it encodes characters into bytes exactly
      * according to the literal codes they're defined with, i.e. "\u00ff" will be decoded into 255
