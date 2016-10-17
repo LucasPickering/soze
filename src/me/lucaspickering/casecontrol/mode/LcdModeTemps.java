@@ -5,6 +5,11 @@ import me.lucaspickering.casecontrol.Funcs;
 public final class LcdModeTemps extends AbstractLcdMode {
 
     @Override
+    public EnumLcdMode getMode() {
+        return EnumLcdMode.TEMPS;
+    }
+
+    @Override
     public String[] getText() {
         final int[] data = Funcs.getSpeedFanData();
 

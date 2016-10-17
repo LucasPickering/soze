@@ -15,6 +15,11 @@ public final class LcdModeClock extends AbstractLcdMode {
     private static final DateFormat SECONDS = new SimpleDateFormat("ss");
 
     @Override
+    public EnumLcdMode getMode() {
+        return EnumLcdMode.CLOCK;
+    }
+
+    @Override
     public String[] getText() {
         final Date date = new Date();
         final String today = DATE.format(date);

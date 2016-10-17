@@ -13,6 +13,11 @@ public final class CaseModeFade implements CaseMode {
     private int pauseTicks;
 
     @Override
+    public EnumCaseMode getMode() {
+        return EnumCaseMode.FADE;
+    }
+
+    @Override
     public Color getColor() {
         final Data data = CaseControl.getData();
         final List<Color> colors = data.caseFadeColors;

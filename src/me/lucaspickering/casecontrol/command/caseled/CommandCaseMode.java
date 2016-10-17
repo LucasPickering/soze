@@ -32,12 +32,8 @@ public class CommandCaseMode extends AbstractCommand {
             final String mode = args[0];
             for (EnumCaseMode caseMode : EnumCaseMode.values()) {
                 if (mode.equals(caseMode.name)) {
-                    try {
-                        CaseControl.getData().caseMode = caseMode.clazz.newInstance();
-                        System.out.printf("Case LED mode set to %s\n", caseMode.name);
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
+                    CaseControl.getData().caseMode = caseMode;
+                    System.out.printf("Case LED mode set to %s\n", caseMode.name);
                     return true; // Succesfully completed
                 }
             }

@@ -132,6 +132,11 @@ public final class LcdModeStandings extends AbstractLcdMode {
     }
 
     @Override
+    public EnumLcdMode getMode() {
+        return EnumLcdMode.NHL;
+    }
+
+    @Override
     public String[] getText() {
         final List<Team> sortedTeams = sortedDivisionStandings(Division.METROPOLITAN);
         int i = 0;

@@ -6,6 +6,13 @@ import java.io.Serializable;
 public interface LcdMode extends Serializable {
 
     /**
+     * Gets the {@link EnumLcdMode} for this mode.
+     *
+     * @return the appropriate {@link EnumLcdMode}
+     */
+    EnumLcdMode getMode();
+
+    /**
      * Gets the color that the LCD should currently be.
      *
      * @return the desired color

@@ -6,7 +6,7 @@ import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.Funcs;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
-import me.lucaspickering.casecontrol.mode.CaseModeStatic;
+import me.lucaspickering.casecontrol.mode.EnumCaseMode;
 
 public class CommandCaseColor extends AbstractCommand {
 
@@ -31,7 +31,7 @@ public class CommandCaseColor extends AbstractCommand {
         if (args.length >= 1 && (color = Funcs.getColor(args)) != null) {
             Data data = CaseControl.getData();
             data.caseStaticColor = color; // Set the static color
-            data.caseMode = new CaseModeStatic(); // Set the mode to static
+            data.caseMode = EnumCaseMode.STATIC; // Set the mode to static
             return true;
         } else {
             return false;

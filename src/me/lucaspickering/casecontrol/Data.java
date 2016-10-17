@@ -7,10 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import me.lucaspickering.casecontrol.mode.CaseMode;
-import me.lucaspickering.casecontrol.mode.CaseModeOff;
-import me.lucaspickering.casecontrol.mode.LcdMode;
-import me.lucaspickering.casecontrol.mode.LcdModeOff;
+import me.lucaspickering.casecontrol.mode.EnumCaseMode;
+import me.lucaspickering.casecontrol.mode.EnumLcdMode;
 
 public final class Data implements Serializable {
 
@@ -24,14 +22,14 @@ public final class Data implements Serializable {
     public static final String DATA_FILE = "data.ser";
     public static final String TEMPS_FILE = "C:/Program Files (x86)/SpeedFan/SFLog%s.csv";
 
-    public CaseMode caseMode = new CaseModeOff();
+    public EnumCaseMode caseMode = EnumCaseMode.OFF;
     public Color caseStaticColor = Color.BLACK;
     public int caseFadeTicks = 50;
     public int casePauseTicks = 50;
     public final List<Color> caseFadeColors = new ArrayList<>();
     public final Map<String, List<Color>> savedFades = new HashMap<>();
 
-    public LcdMode lcdMode = new LcdModeOff();
+    public EnumLcdMode lcdMode = EnumLcdMode.OFF;
     public Color lcdStaticColor = Color.BLACK;
 
     public Color caseColor = caseStaticColor;

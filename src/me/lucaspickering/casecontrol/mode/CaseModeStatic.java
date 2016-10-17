@@ -7,6 +7,11 @@ import me.lucaspickering.casecontrol.CaseControl;
 public final class CaseModeStatic implements CaseMode {
 
     @Override
+    public EnumCaseMode getMode() {
+        return EnumCaseMode.STATIC;
+    }
+
+    @Override
     public Color getColor() {
         return CaseControl.getData().caseStaticColor;
     }
