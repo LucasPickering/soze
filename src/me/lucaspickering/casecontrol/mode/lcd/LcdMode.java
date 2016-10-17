@@ -19,10 +19,11 @@ public interface LcdMode {
     Color getColor();
 
     /**
-     * Gets the text that should currently be displayed on the LCD.
+     * Gets the text that should currently be displayed on the LCD. A String in the array CAN be
+     * longer than {@link me.lucaspickering.casecontrol.Data#LCD_WIDTH}, which case the String
+     * should be cut down to size by the caller of this method.
      *
-     * @return a String[] of length {@link me.lucaspickering.casecontrol.Data#LCD_HEIGHT}, with each
-     * String no longer than {@link me.lucaspickering.casecontrol.Data#LCD_WIDTH} characters long.
+     * @return a String[] of length {@link me.lucaspickering.casecontrol.Data#LCD_HEIGHT}
      */
     String[] getText();
 

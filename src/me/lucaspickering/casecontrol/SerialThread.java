@@ -133,11 +133,11 @@ public final class SerialThread extends Thread {
 
             // For each line in the text...
             for (String line : data.lcdText) {
-                // If the line is too long for the LCD, chop it down.
-                // If it's too short, pad it with spaces
                 if (line.length() > Data.LCD_WIDTH) {
+                    // If the line is too long for the LCD, chop it down
                     line = line.substring(0, Data.LCD_WIDTH);
                 } else if (line.length() < Data.LCD_WIDTH) {
+                    // If it's too short, pad it with spaces
                     line = Funcs.padRight(line, Data.LCD_WIDTH);
                 }
                 writeStringToSerial(line); // Write the line

@@ -73,7 +73,7 @@ public final class LcdModeNhl extends AbstractLcdMode {
     private static final String TEAM_RGX_FORMAT =
         "%s.*?(?<gp>\\d+).*?(?<w>\\d+).*?(?<l>\\d+).*?(?<otl>\\d+).*?(?<pts>\\d+).*?(?<roWins>\\d+)"
         + ".*?(?<soWins>\\d+).*?(?<soLosses>\\d+)";
-    private static final String OUTPUT_FORMAT = "%s (%d)";
+    private static final String OUTPUT_FORMAT = "%d. %s %3$-4d";
 
     private final Map<Team, Stats> allStats = new EnumMap<>(Team.class);
 
@@ -141,8 +141,11 @@ public final class LcdModeNhl extends AbstractLcdMode {
         final List<Team> sortedTeams = sortedDivisionStandings(Division.METROPOLITAN);
         int i = 0;
         Arrays.fill(text, "");
+        // Use foreach because List access isn't necessarily constant time
         for (Team team : sortedTeams) {
-            text[i] += String.format(OUTPUT_FORMAT, team.abbrev, allStats.get(team).points);
+            text[i % text.length] += String.format(OUTPUT_FORMAT, i + 1, team.abbrev,
+                                                   allStats.get(team).points);
+            i++;
         }
         return text;
     }
