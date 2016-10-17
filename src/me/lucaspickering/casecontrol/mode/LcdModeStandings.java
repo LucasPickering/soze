@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -13,10 +14,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class LcdModeStandings extends AbstractLcdMode {
+public final class LcdModeStandings extends AbstractLcdMode {
 
     private enum Division {
-        ATLANTIC, METROPOLITAN, CENTRAL, PACIFIC;
+        ATLANTIC, METROPOLITAN, CENTRAL, PACIFIC
     }
 
     private enum Team {
@@ -72,7 +73,7 @@ public class LcdModeStandings extends AbstractLcdMode {
     private static final String TEAM_RGX_FORMAT =
         "%s.*?(?<gp>\\d+).*?(?<w>\\d+).*?(?<l>\\d+).*?(?<otl>\\d+).*?(?<pts>\\d+).*?(?<roWins>\\d+)"
         + ".*?(?<soWins>\\d+).*?(?<soLosses>\\d+)";
-    private static final String OUTPUT_FORMAT = "%s (%d)  %s (%d)";
+    private static final String OUTPUT_FORMAT = "%s (%d)";
 
     private transient final Map<Team, Stats> allStats = new EnumMap<>(Team.class);
 
@@ -133,12 +134,10 @@ public class LcdModeStandings extends AbstractLcdMode {
     @Override
     public String[] getText() {
         final List<Team> sortedTeams = sortedDivisionStandings(Division.METROPOLITAN);
-        for (int i = 0; i < 4; i++) {
-            int j = i + 4;
-            Team t1 = sortedTeams.get(i);
-            Team t2 = sortedTeams.get(j);
-            text[i] = String.format(OUTPUT_FORMAT, t1.abbrev, allStats.get(t1).points,
-                                    t2.abbrev, allStats.get(t2).points);
+        int i = 0;
+        Arrays.fill(text, "");
+        for (Team team : sortedTeams) {
+            text[i] += String.format(OUTPUT_FORMAT, team.abbrev, allStats.get(team).points);
         }
         return text;
     }
@@ -216,9 +215,9 @@ public class LcdModeStandings extends AbstractLcdMode {
     }
 
     private List<Team> sortedDivisionStandings(Division division) {
-        // Get a list of all teams in this division, sorted by Stats.compareTo
+        // Get a list of all teams in this division, sorted ascendingly by Stats.compareTo
         return allStats.entrySet().stream().filter(e -> e.getKey().division == division)
-            .sorted((e1, e2) -> e1.getValue().compareTo(e2.getValue())).map(Map.Entry::getKey)
+            .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())).map(Map.Entry::getKey)
             .collect(Collectors.toList());
     }
 }
