@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
-import me.lucaspickering.casecontrol.mode.EnumLcdMode;
+import me.lucaspickering.casecontrol.mode.lcd.EnumLcdMode;
 
 public class CommandLcdMode extends AbstractCommand {
 

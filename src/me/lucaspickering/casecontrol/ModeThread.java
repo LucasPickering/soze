@@ -1,7 +1,7 @@
 package me.lucaspickering.casecontrol;
 
-import me.lucaspickering.casecontrol.mode.CaseMode;
-import me.lucaspickering.casecontrol.mode.LcdMode;
+import me.lucaspickering.casecontrol.mode.caseled.CaseMode;
+import me.lucaspickering.casecontrol.mode.lcd.LcdMode;
 
 public final class ModeThread extends Thread {
 

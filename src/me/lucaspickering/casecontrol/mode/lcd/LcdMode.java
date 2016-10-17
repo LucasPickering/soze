@@ -1,4 +1,4 @@
-package me.lucaspickering.casecontrol.mode;
+package me.lucaspickering.casecontrol.mode.lcd;
 
 import java.awt.*;
 import java.io.Serializable;

@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import me.lucaspickering.casecontrol.mode.EnumCaseMode;
-import me.lucaspickering.casecontrol.mode.EnumLcdMode;
+import me.lucaspickering.casecontrol.mode.caseled.EnumCaseMode;
+import me.lucaspickering.casecontrol.mode.lcd.EnumLcdMode;
 
 public final class Data implements Serializable {
 

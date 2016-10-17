@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
-import me.lucaspickering.casecontrol.mode.EnumCaseMode;
+import me.lucaspickering.casecontrol.mode.caseled.EnumCaseMode;
 
 public class CommandCaseMode extends AbstractCommand {
 

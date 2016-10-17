@@ -1,12 +1,12 @@
-package me.lucaspickering.casecontrol.mode;
+package me.lucaspickering.casecontrol.mode.lcd;
 
 import java.awt.*;
 
-public final class CaseModeOff implements CaseMode {
+public final class LcdModeOff extends AbstractLcdMode {
 
     @Override
-    public EnumCaseMode getMode() {
-        return EnumCaseMode.OFF;
+    public EnumLcdMode getMode() {
+        return EnumLcdMode.OFF;
     }
 
     @Override

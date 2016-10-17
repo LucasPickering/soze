@@ -6,7 +6,7 @@ import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.Funcs;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
-import me.lucaspickering.casecontrol.mode.EnumCaseMode;
+import me.lucaspickering.casecontrol.mode.caseled.EnumCaseMode;
 
 public class CommandCaseColor extends AbstractCommand {
 
