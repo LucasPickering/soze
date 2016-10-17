@@ -1,9 +1,8 @@
 package me.lucaspickering.casecontrol.mode.caseled;
 
 import java.awt.*;
-import java.io.Serializable;
 
-public interface CaseMode extends Serializable {
+public interface CaseMode {
 
     /**
      * Gets the {@link EnumCaseMode} for this mode.

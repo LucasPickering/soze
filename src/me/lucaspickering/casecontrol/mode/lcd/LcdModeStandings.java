@@ -75,7 +75,7 @@ public final class LcdModeStandings extends AbstractLcdMode {
         + ".*?(?<soWins>\\d+).*?(?<soLosses>\\d+)";
     private static final String OUTPUT_FORMAT = "%s (%d)";
 
-    private transient final Map<Team, Stats> allStats = new EnumMap<>(Team.class);
+    private final Map<Team, Stats> allStats = new EnumMap<>(Team.class);
 
     /**
      * A class representing a team's current standings stats. Compare to itself for the purposes

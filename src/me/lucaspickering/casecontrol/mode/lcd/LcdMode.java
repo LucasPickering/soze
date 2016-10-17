@@ -1,9 +1,8 @@
 package me.lucaspickering.casecontrol.mode.lcd;
 
 import java.awt.*;
-import java.io.Serializable;
 
-public interface LcdMode extends Serializable {
+public interface LcdMode {
 
     /**
      * Gets the {@link EnumLcdMode} for this mode.
