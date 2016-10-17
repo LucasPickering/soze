@@ -56,7 +56,7 @@ public interface Command {
      * Executes this command with the given arguments.
      *
      * @param args an array containg the arguments for this command
-     * @return true if the execution was succesful, false otherwise (in which case help dialogue
+     * @return true if the execution was successful, false otherwise (in which case help dialogue
      * will be printed)
      */
     boolean execute(String[] args);

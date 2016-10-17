@@ -1,10 +1,10 @@
 package me.lucaspickering.casecontrol.command.lcd;
 
+import java.util.Arrays;
+
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
-import me.lucaspickering.casecontrol.mode.LcdModeClock;
-import me.lucaspickering.casecontrol.mode.LcdModeOff;
-import me.lucaspickering.casecontrol.mode.LcdModeTemps;
+import me.lucaspickering.casecontrol.mode.EnumLcdMode;
 
 public class CommandLcdMode extends AbstractCommand {
 
@@ -20,29 +20,28 @@ public class CommandLcdMode extends AbstractCommand {
 
     @Override
     public String getFullDesc() {
-        return "Sets the LCD mode.";
+        // List all the possible modes
+        final CharSequence[] names =
+            Arrays.stream(EnumLcdMode.values()).map(m -> m.name).toArray(CharSequence[]::new);
+        return "Set the mode for the LCD. Valid modes are: " + String.join(", ", names);
     }
 
     @Override
     public boolean execute(String[] args) {
         if (args.length >= 1) {
-            switch (args[0]) {
-                case "off":
-                    CaseControl.getData().lcdMode = new LcdModeOff();
-                    System.out.println("LCD mode set to off");
-                    break;
-                case "clock":
-                    CaseControl.getData().lcdMode = new LcdModeClock();
-                    System.out.println("LCD mode set to clock");
-                    break;
-                case "temps":
-                    CaseControl.getData().lcdMode = new LcdModeTemps();
-                    System.out.println("LCD mode set to temps");
-                    break;
-                default:
-                    System.out.println("That was not a valid mode");
+            final String mode = args[0];
+            for (EnumLcdMode lcdMode : EnumLcdMode.values()) {
+                if (mode.equals(lcdMode.name)) {
+                    try {
+                        CaseControl.getData().lcdMode = lcdMode.clazz.newInstance();
+                        System.out.printf("Case LED mode set to %s\n", lcdMode.name);
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                    return true; // Succesfully completed
+                }
             }
-            return true;
+            System.out.printf("Invalid mode: %s\n", mode);
         }
         return false;
     }
