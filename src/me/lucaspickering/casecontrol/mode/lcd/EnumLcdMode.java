@@ -7,7 +7,7 @@ public enum EnumLcdMode {
     OFF("off", LcdModeOff.class),
     CLOCK("clock", LcdModeClock.class),
     TEMPS("temps", LcdModeTemps.class),
-    NHL("nhl", LcdModeNhl.class);
+    NHL("nhl", LcdModeNhl.class, 10L * 60L * 1000L); // Update every 10 minutes
 
     public final String name;
     private final Class<? extends LcdMode> clazz;

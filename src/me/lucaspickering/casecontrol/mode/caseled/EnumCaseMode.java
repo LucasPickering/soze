@@ -6,7 +6,7 @@ public enum EnumCaseMode {
 
     OFF("off", CaseModeOff.class),
     STATIC("static", CaseModeStatic.class),
-    FADE("fade", CaseModeFade.class);
+    FADE("fade", CaseModeFade.class, 30L); // Update every 30 ms
 
     public final String name;
     private final Class<? extends CaseMode> clazz;

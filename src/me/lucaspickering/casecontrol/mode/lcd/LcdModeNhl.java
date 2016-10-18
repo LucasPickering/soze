@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,17 +65,6 @@ public final class LcdModeNhl extends AbstractLcdMode {
         }
     }
 
-    private static final String STANDINGS_URL = "http://www.espn.com/nhl/standings";
-    private static final Pattern TABLE_RGX = Pattern.compile("<table.*</table>");
-
-    // Group ordering: GP, W, L, OTL, PTS, ROW, SOW, SOL
-    private static final String TEAM_RGX_FORMAT =
-        "%s.*?(?<gp>\\d+).*?(?<w>\\d+).*?(?<l>\\d+).*?(?<otl>\\d+).*?(?<pts>\\d+).*?(?<roWins>\\d+)"
-        + ".*?(?<soWins>\\d+).*?(?<soLosses>\\d+)";
-    private static final String OUTPUT_FORMAT = "%d. %s %3$-4d";
-
-    private final Map<Team, Stats> allStats = new EnumMap<>(Team.class);
-
     /**
      * A class representing a team's current standings stats. Compare to itself for the purposes
      * of sorting teams by standings location.
@@ -126,9 +114,19 @@ public final class LcdModeNhl extends AbstractLcdMode {
         }
     }
 
+    private static final String STANDINGS_URL = "http://www.espn.com/nhl/standings";
+
+    private static final Pattern TABLE_RGX = Pattern.compile("<table.*</table>");
+    // Group ordering: GP, W, L, OTL, PTS, ROW, SOW, SOL
+    private static final String TEAM_RGX_FORMAT =
+        "%s.*?(?<gp>\\d+).*?(?<w>\\d+).*?(?<l>\\d+).*?(?<otl>\\d+).*?(?<pts>\\d+).*?(?<roWins>\\d+)"
+        + ".*?(?<soWins>\\d+).*?(?<soLosses>\\d+)";
+
+    private static final String OUTPUT_FORMAT = "%d. %s %3$-4d";
+
     public LcdModeNhl() {
         super();
-        updateStandings();
+        getStandings();
     }
 
     @Override
@@ -138,19 +136,25 @@ public final class LcdModeNhl extends AbstractLcdMode {
 
     @Override
     public String[] getText() {
-        final List<Team> sortedTeams = sortedDivisionStandings(Division.METROPOLITAN);
+        // Standings are re-downloaded and parsed every iteration, because this only gets called
+        // every 10 minutes.
+        System.out.println("getting standings");
+        final Map<Team, Stats> standings = getStandings();
+        final List<Team> sortedTeams = sortedDivisionStandings(standings, Division.METROPOLITAN);
         int i = 0;
-        Arrays.fill(text, "");
         // Use foreach because List access isn't necessarily constant time
         for (Team team : sortedTeams) {
+            if (i < text.length) {
+                text[i] = ""; // If this is the first string to go in the row, clear the row first
+            }
             text[i % text.length] += String.format(OUTPUT_FORMAT, i + 1, team.abbrev,
-                                                   allStats.get(team).points);
+                                                   standings.get(team).points);
             i++;
         }
         return text;
     }
 
-    private void updateStandings() {
+    private Map<Team, Stats> getStandings() {
         final String data = downloadStandings();
         Objects.requireNonNull(data);
         Matcher matcher = TABLE_RGX.matcher(data); // Isolate the standings table data
@@ -162,9 +166,11 @@ public final class LcdModeNhl extends AbstractLcdMode {
 
         // Match data for each team, and populate the stats map
         final String tableData = matcher.group();
+        final Map<Team, Stats> rv = new HashMap<>();
         for (Team team : Team.values()) {
-            allStats.put(team, getTeamStats(tableData, team));
+            rv.put(team, getTeamStats(tableData, team));
         }
+        return rv;
     }
 
     /**
@@ -222,9 +228,9 @@ public final class LcdModeNhl extends AbstractLcdMode {
         return new Stats(gp, w, l, otl, pts, row, sow, sol);
     }
 
-    private List<Team> sortedDivisionStandings(Division division) {
+    private List<Team> sortedDivisionStandings(Map<Team, Stats> standings, Division division) {
         // Get a list of all teams in this division, sorted ascendingly by Stats.compareTo
-        return allStats.entrySet().stream().filter(e -> e.getKey().division == division)
+        return standings.entrySet().stream().filter(e -> e.getKey().division == division)
             .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())).map(Map.Entry::getKey)
             .collect(Collectors.toList());
     }
