@@ -13,6 +13,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import me.lucaspickering.casecontrol.Consts;
+
 public final class LcdModeNhl extends AbstractLcdMode {
 
     private enum Division {
@@ -138,11 +140,11 @@ public final class LcdModeNhl extends AbstractLcdMode {
     public String[] getText() {
         // Standings are re-downloaded and parsed every iteration, because this only gets called
         // every 10 minutes.
-        System.out.println("getting standings");
         final Map<Team, Stats> standings = getStandings();
         final List<Team> sortedTeams = sortedDivisionStandings(standings, Division.METROPOLITAN);
         int i = 0;
         // Use foreach because List access isn't necessarily constant time
+        final String[] text = new String[Consts.LCD_HEIGHT];
         for (Team team : sortedTeams) {
             if (i < text.length) {
                 text[i] = ""; // If this is the first string to go in the row, clear the row first

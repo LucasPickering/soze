@@ -23,8 +23,12 @@ public final class LcdModeClock extends AbstractLcdMode {
     public String[] getText() {
         final Date date = new Date();
         final String today = DATE.format(date);
+        final String[] text = new String[Consts.LCD_HEIGHT];
+
+        // First line is date and seconds
         text[0] = today + Funcs.padLeft(SECONDS.format(date), Consts.LCD_WIDTH - today.length());
 
+        // Next three lines are hours:minutes
         final String hours = HOURS.format(date);
         final String minutes = MINUTES.format(date);
         String time;
