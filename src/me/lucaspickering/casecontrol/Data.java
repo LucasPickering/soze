@@ -71,9 +71,8 @@ public final class Data implements Serializable {
      * @return the clamped value
      */
     public int setCasePauseTicks(int casePauseTicks) {
-        return
-            this.casePauseTicks = Funcs.clamp(casePauseTicks, Consts.MIN_PAUSE_TICKS,
-                                              Consts.MAX_PAUSE_TICKS);
+        return this.casePauseTicks = Funcs.clamp(casePauseTicks, Consts.MIN_PAUSE_TICKS,
+                                                 Consts.MAX_PAUSE_TICKS);
     }
 
     public List<Color> getCaseFadeColors() {
