@@ -1,11 +1,12 @@
 package me.lucaspickering.casecontrol.mode.caseled;
 
-import java.awt.*;
+import java.awt.Color;
 
 public interface CaseMode {
 
     /**
      * Gets the {@link EnumCaseMode} for this mode.
+     *
      * @return the appropriate {@link EnumCaseMode}
      */
     EnumCaseMode getMode();

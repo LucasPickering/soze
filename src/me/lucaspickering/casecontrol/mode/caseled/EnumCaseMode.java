@@ -1,5 +1,7 @@
 package me.lucaspickering.casecontrol.mode.caseled;
 
+import me.lucaspickering.casecontrol.Consts;
+
 public enum EnumCaseMode {
 
     OFF("off", CaseModeOff.class),
@@ -7,10 +9,24 @@ public enum EnumCaseMode {
     FADE("fade", CaseModeFade.class);
 
     public final String name;
-    public final Class<? extends CaseMode> clazz;
+    private final Class<? extends CaseMode> clazz;
+    public final long updatePeriod;
 
     EnumCaseMode(String name, Class<? extends CaseMode> clazz) {
+        this(name, clazz, Consts.DEFAULT_MODE_UPDATE_PERIOD);
+    }
+
+    EnumCaseMode(String name, Class<? extends CaseMode> clazz, long updatePeriod) {
         this.name = name;
         this.clazz = clazz;
+        this.updatePeriod = updatePeriod;
+    }
+
+    public CaseMode instantiateMode() {
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("Error creating case mode: ", e);
+        }
     }
 }

@@ -1,6 +1,6 @@
 package me.lucaspickering.casecontrol.mode.lcd;
 
-import java.awt.*;
+import java.awt.Color;
 
 public interface LcdMode {
 
@@ -20,10 +20,10 @@ public interface LcdMode {
 
     /**
      * Gets the text that should currently be displayed on the LCD. A String in the array CAN be
-     * longer than {@link me.lucaspickering.casecontrol.Data#LCD_WIDTH}, which case the String
+     * longer than {@link me.lucaspickering.casecontrol.Consts#LCD_WIDTH}, which case the String
      * should be cut down to size by the caller of this method.
      *
-     * @return a String[] of length {@link me.lucaspickering.casecontrol.Data#LCD_HEIGHT}
+     * @return a String[] of length {@link me.lucaspickering.casecontrol.Consts#LCD_HEIGHT}
      */
     String[] getText();
 

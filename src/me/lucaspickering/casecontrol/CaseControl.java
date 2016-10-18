@@ -11,16 +11,23 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import me.lucaspickering.casecontrol.command.Command;
 import me.lucaspickering.casecontrol.command.EnumCommand;
+import me.lucaspickering.casecontrol.mode.caseled.CaseMode;
+import me.lucaspickering.casecontrol.mode.caseled.EnumCaseMode;
+import me.lucaspickering.casecontrol.mode.lcd.EnumLcdMode;
+import me.lucaspickering.casecontrol.mode.lcd.LcdMode;
 
 public final class CaseControl {
 
     private static final CaseControl caseControl = new CaseControl();
     private static boolean run = true;
 
-    private final ModeThread modeThread = new ModeThread();
+    private Timer caseModeTimer;
+    private Timer lcdModeTimer;
     private final SerialThread serialThread = new SerialThread();
     private Data data = new Data();
     private final Map<String, Command> commands = new HashMap<>();
@@ -37,14 +44,27 @@ public final class CaseControl {
         run = false;
     }
 
+    public static void restartCaseTimer() {
+        caseControl.caseModeTimer.cancel(); // Stop the old timer
+        caseControl.startCaseTimer(data()); // Start the new timer
+    }
+
+    public static void restartLcdTimer() {
+        caseControl.lcdModeTimer.cancel(); // Stop the old timer
+        caseControl.startLcdTimer(data()); // Start the new timer
+    }
+
     /**
      * Constantly receives input from the user. Main loop of the program.
      */
     private void inputLoop() {
         Runtime.getRuntime().addShutdownHook(serialThread); // Tell the serial thread when we stop
         loadData(); // Load saved data (if possible)
-        modeThread.start(); // Start the thread that does color/text calculations
+
+        startCaseTimer(data); // Spawn a thread to periodically update the case data
+        startLcdTimer(data); // Spawn a thread to periodically update the LCD data
         serialThread.start(); // Start the thread that communicates over the serial port
+
         // Register all top-level commands
         for (EnumCommand command : EnumCommand.values()) {
             commands.put(command.command.getName(), command.command);
@@ -55,8 +75,12 @@ public final class CaseControl {
             runInput(scanner.nextLine().toLowerCase());
             saveData(); // Save data after each command (it's cheap)
         } while (run);
+
+        // Stop the timers/threads
+        caseModeTimer.cancel();
+        lcdModeTimer.cancel();
         serialThread.terminate();
-        modeThread.terminate();
+
         System.out.println("Exiting...");
     }
 
@@ -96,6 +120,47 @@ public final class CaseControl {
         }
     }
 
+    /**
+     * Starts a {@link Timer} to periodically process case data.
+     *
+     * @param data the current data state
+     */
+    private void startCaseTimer(Data data) {
+        final EnumCaseMode caseModeType = data.getCaseMode();
+        final CaseMode caseMode = caseModeType.instantiateMode();
+
+        // Create a task to be called on a regular interval to update the case color
+        final TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                data.setCaseColor(caseMode.getColor());
+            }
+        };
+        caseModeTimer = new Timer();
+        caseModeTimer.schedule(task, 0L, caseModeType.updatePeriod);
+    }
+
+    /**
+     * Starts a {@link Timer} to periodically process case data.
+     *
+     * @param data the current data state
+     */
+    private void startLcdTimer(Data data) {
+        final EnumLcdMode lcdModeType = data.getLcdMode();
+        final LcdMode lcdMode = lcdModeType.instantiateMode();
+
+        // Create a task to be called on a regular interbal to update the LCD color/text
+        final TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                data.setLcdColor(lcdMode.getColor());
+                data.setLcdText(lcdMode.getText());
+            }
+        };
+        lcdModeTimer = new Timer();
+        lcdModeTimer.schedule(task, 0L, lcdModeType.updatePeriod);
+    }
+
     private void saveData() {
         try {
             FileOutputStream fileOut = new FileOutputStream(Consts.DATA_FILE);
@@ -112,10 +177,10 @@ public final class CaseControl {
 
     private void loadData() {
         try {
-            // If the data file exists...
-            if (new File(Consts.DATA_FILE).exists()) {
+            final File file = new File(Consts.DATA_FILE);
+            if (file.exists()) {
                 // Open the file
-                FileInputStream fileIn = new FileInputStream(Consts.DATA_FILE);
+                FileInputStream fileIn = new FileInputStream(file);
                 ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
                 try {

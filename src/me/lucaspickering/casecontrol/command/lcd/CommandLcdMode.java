@@ -33,6 +33,7 @@ public class CommandLcdMode extends AbstractCommand {
             for (EnumLcdMode lcdMode : EnumLcdMode.values()) {
                 if (mode.equals(lcdMode.name)) {
                     CaseControl.data().setLcdMode(lcdMode);
+                    CaseControl.restartLcdTimer(); // Restart the timer for the LCD mode
                     System.out.printf("Case LED mode set to %s\n", lcdMode.name);
                     return true; // Succesfully completed
                 }
