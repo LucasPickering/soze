@@ -13,9 +13,8 @@ public final class LcdModeOff extends AbstractLcdMode {
         Arrays.fill(BLANK_SCREEN, ""); // Fill it with empty strings
     }
 
-    @Override
-    public EnumLcdMode getMode() {
-        return EnumLcdMode.OFF;
+    public LcdModeOff() {
+        super(EnumLcdMode.OFF);
     }
 
     @Override

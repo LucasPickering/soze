@@ -127,13 +127,7 @@ public final class LcdModeNhl extends AbstractLcdMode {
     private static final String OUTPUT_FORMAT = "%d. %s %3$-4d";
 
     public LcdModeNhl() {
-        super();
-        getStandings();
-    }
-
-    @Override
-    public EnumLcdMode getMode() {
-        return EnumLcdMode.NHL;
+        super(EnumLcdMode.NHL);
     }
 
     @Override

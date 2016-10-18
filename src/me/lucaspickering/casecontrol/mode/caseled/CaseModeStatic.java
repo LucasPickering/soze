@@ -4,20 +4,14 @@ import java.awt.*;
 
 import me.lucaspickering.casecontrol.CaseControl;
 
-public final class CaseModeStatic implements CaseMode {
+public final class CaseModeStatic extends AbstractCaseMode {
 
-    @Override
-    public EnumCaseMode getMode() {
-        return EnumCaseMode.STATIC;
+    public CaseModeStatic() {
+        super(EnumCaseMode.STATIC);
     }
 
     @Override
     public Color getColor() {
         return CaseControl.data().getCaseStaticColor();
-    }
-
-    @Override
-    public String toString() {
-        return "Static";
     }
 }

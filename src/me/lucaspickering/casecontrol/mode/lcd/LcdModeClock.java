@@ -14,9 +14,8 @@ public final class LcdModeClock extends AbstractLcdMode {
     private static final DateFormat MINUTES = new SimpleDateFormat("mm");
     private static final DateFormat SECONDS = new SimpleDateFormat("ss");
 
-    @Override
-    public EnumLcdMode getMode() {
-        return EnumLcdMode.CLOCK;
+    public LcdModeClock() {
+        super(EnumLcdMode.CLOCK);
     }
 
     @Override
@@ -41,10 +40,5 @@ public final class LcdModeClock extends AbstractLcdMode {
         Funcs.addBigText(text, 1, time);
 
         return text;
-    }
-
-    @Override
-    public String toString() {
-        return "Clock";
     }
 }

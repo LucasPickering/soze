@@ -1,20 +1,19 @@
 package me.lucaspickering.casecontrol.mode.caseled;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 
-public final class CaseModeFade implements CaseMode {
+public final class CaseModeFade extends AbstractCaseMode {
 
     private int colorIndex;
     private int fadeTicks;
     private int pauseTicks;
 
-    @Override
-    public EnumCaseMode getMode() {
-        return EnumCaseMode.FADE;
+    public CaseModeFade() {
+        super(EnumCaseMode.FADE);
     }
 
     @Override
@@ -52,10 +51,5 @@ public final class CaseModeFade implements CaseMode {
             (int) ((next.getRed() - last.getRed()) * percentDone) + last.getRed(),
             (int) ((next.getGreen() - last.getGreen()) * percentDone) + last.getGreen(),
             (int) ((next.getBlue() - last.getBlue()) * percentDone) + last.getBlue());
-    }
-
-    @Override
-    public String toString() {
-        return "Fade";
     }
 }

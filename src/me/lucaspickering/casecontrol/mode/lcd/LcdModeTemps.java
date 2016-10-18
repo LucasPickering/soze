@@ -4,9 +4,8 @@ import me.lucaspickering.casecontrol.Funcs;
 
 public final class LcdModeTemps extends AbstractLcdMode {
 
-    @Override
-    public EnumLcdMode getMode() {
-        return EnumLcdMode.TEMPS;
+    public LcdModeTemps() {
+        super(EnumLcdMode.TEMPS);
     }
 
     @Override
@@ -20,10 +19,5 @@ public final class LcdModeTemps extends AbstractLcdMode {
             String.format("     %d\u00dfC %d\u00dfC", sfData[2], sfData[3]),
             String.format("GPU: %d\u00dfC", sfData[4])
         };
-    }
-
-    @Override
-    public String toString() {
-        return "Temps";
     }
 }
