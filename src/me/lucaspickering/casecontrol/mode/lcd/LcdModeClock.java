@@ -4,7 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import me.lucaspickering.casecontrol.Data;
+import me.lucaspickering.casecontrol.Consts;
 import me.lucaspickering.casecontrol.Funcs;
 
 public final class LcdModeClock extends AbstractLcdMode {
@@ -23,7 +23,7 @@ public final class LcdModeClock extends AbstractLcdMode {
     public String[] getText() {
         final Date date = new Date();
         final String today = DATE.format(date);
-        text[0] = today + Funcs.padLeft(SECONDS.format(date), Data.LCD_WIDTH - today.length());
+        text[0] = today + Funcs.padLeft(SECONDS.format(date), Consts.LCD_WIDTH - today.length());
 
         final String hours = HOURS.format(date);
         final String minutes = MINUTES.format(date);

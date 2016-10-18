@@ -98,7 +98,7 @@ public final class CaseControl {
 
     private void saveData() {
         try {
-            FileOutputStream fileOut = new FileOutputStream(Data.DATA_FILE);
+            FileOutputStream fileOut = new FileOutputStream(Consts.DATA_FILE);
             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 
             objectOut.writeObject(data());
@@ -113,9 +113,9 @@ public final class CaseControl {
     private void loadData() {
         try {
             // If the data file exists...
-            if (new File(Data.DATA_FILE).exists()) {
+            if (new File(Consts.DATA_FILE).exists()) {
                 // Open the file
-                FileInputStream fileIn = new FileInputStream(Data.DATA_FILE);
+                FileInputStream fileIn = new FileInputStream(Consts.DATA_FILE);
                 ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
                 try {

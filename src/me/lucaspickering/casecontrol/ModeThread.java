@@ -5,6 +5,9 @@ import me.lucaspickering.casecontrol.mode.lcd.LcdMode;
 
 public final class ModeThread extends Thread {
 
+    private static final int LOOP_TIME = 30;
+
+
     private boolean runLoop;
     private CaseMode caseMode;
     private LcdMode lcdMode;
@@ -36,7 +39,7 @@ public final class ModeThread extends Thread {
             data.setLcdColor(lcdMode.getColor());
             data.setLcdText(lcdMode.getText());
             try {
-                Thread.sleep(Data.MODE_LOOP_TIME);
+                Thread.sleep(LOOP_TIME);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -44,12 +47,13 @@ public final class ModeThread extends Thread {
     }
 
     private void updateModes() throws InstantiationException, IllegalAccessException {
+        // Change modes if they updated
         final Data data = CaseControl.data();
         if (caseMode == null || caseMode.getMode() != data.getCaseMode()) {
-            caseMode = data.getCaseMode().clazz.newInstance(); // If the case mode changed, update it
+            caseMode = data.getCaseMode().clazz.newInstance();
         }
         if (lcdMode == null || lcdMode.getMode() != data.getLcdMode()) {
-            lcdMode = data.getLcdMode().clazz.newInstance(); // If the LCD mode changed, update it
+            lcdMode = data.getLcdMode().clazz.newInstance();
         }
     }
 }

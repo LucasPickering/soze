@@ -24,7 +24,7 @@ public final class SerialThread extends Thread {
     // these old values.
     private Color lastCaseColor = null;
     private Color lastLcdColor = null;
-    private final String[] lastLcdText = new String[Data.LCD_HEIGHT];
+    private final String[] lastLcdText = new String[Consts.LCD_HEIGHT];
     private long lastCaseColorUpdateTime;
     private long lastLcdColorUpdateTime;
     private long lastLcdTextUpdateTime;
@@ -135,12 +135,12 @@ public final class SerialThread extends Thread {
 
             // For each line in the text...
             for (String line : lcdText) {
-                if (line.length() > Data.LCD_WIDTH) {
+                if (line.length() > Consts.LCD_WIDTH) {
                     // If the line is too long for the LCD, chop it down
-                    line = line.substring(0, Data.LCD_WIDTH);
-                } else if (line.length() < Data.LCD_WIDTH) {
+                    line = line.substring(0, Consts.LCD_WIDTH);
+                } else if (line.length() < Consts.LCD_WIDTH) {
                     // If it's too short, pad it with spaces
-                    line = Funcs.padRight(line, Data.LCD_WIDTH);
+                    line = Funcs.padRight(line, Consts.LCD_WIDTH);
                 }
                 writeStringToSerial(line); // Write the line
             }

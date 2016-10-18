@@ -1,14 +1,14 @@
 package me.lucaspickering.casecontrol.mode.lcd;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Arrays;
 
 import me.lucaspickering.casecontrol.CaseControl;
-import me.lucaspickering.casecontrol.Data;
+import me.lucaspickering.casecontrol.Consts;
 
 abstract class AbstractLcdMode implements LcdMode {
 
-    protected final String[] text = new String[Data.LCD_HEIGHT];
+    protected final String[] text = new String[Consts.LCD_HEIGHT];
 
     public AbstractLcdMode() {
         Arrays.fill(text, "");

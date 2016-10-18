@@ -205,7 +205,7 @@ public final class Funcs {
      * @return the file to read temps from, which may or may not exist
      */
     private static File getTempsFile() {
-        return new File(String.format(Data.TEMPS_FILE, TEMPS_DATE_FORMAT.format(new Date())));
+        return new File(String.format(Consts.TEMPS_FILE, TEMPS_DATE_FORMAT.format(new Date())));
     }
 
     /**
