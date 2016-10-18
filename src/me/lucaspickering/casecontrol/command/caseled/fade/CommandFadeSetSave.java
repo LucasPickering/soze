@@ -26,7 +26,7 @@ public class CommandFadeSetSave extends AbstractCommand {
     @Override
     public boolean execute(String[] args) {
         if (args.length >= 1) {
-            final Data data = CaseControl.getData();
+            final Data data = CaseControl.data();
             if (data.caseFadeColors.isEmpty()) {
                 System.out.println("Fade list is empty, nothing saved");
             } else if (args.length == 0) {

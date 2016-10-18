@@ -22,6 +22,7 @@ public final class Data implements Serializable {
     public static final String DATA_FILE = "data.ser";
     public static final String TEMPS_FILE = "C:/Program Files (x86)/SpeedFan/SFLog%s.csv";
 
+    // Case parameters
     public EnumCaseMode caseMode = EnumCaseMode.OFF;
     public Color caseStaticColor = Color.BLACK;
     public int caseFadeTicks = 50;
@@ -29,9 +30,11 @@ public final class Data implements Serializable {
     public final List<Color> caseFadeColors = new ArrayList<>();
     public final Map<String, List<Color>> savedFades = new HashMap<>();
 
+    // LCD parameters
     public EnumLcdMode lcdMode = EnumLcdMode.OFF;
     public Color lcdStaticColor = Color.BLACK;
 
+    // Actual values sent to the Arduino
     public Color caseColor = caseStaticColor;
     public Color lcdColor = lcdStaticColor;
     public String[] lcdText = new String[LCD_HEIGHT];

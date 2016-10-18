@@ -23,7 +23,7 @@ public final class ModeThread extends Thread {
     public void run() {
         while (runLoop) {
             // All this does is call the get functions, which do the processing for color/text
-            final Data data = CaseControl.getData();
+            final Data data = CaseControl.data();
 
             try {
                 // Update case/LCD modes, if necessary
@@ -44,7 +44,7 @@ public final class ModeThread extends Thread {
     }
 
     private void updateModes() throws InstantiationException, IllegalAccessException {
-        final Data data = CaseControl.getData();
+        final Data data = CaseControl.data();
         if (caseMode == null || caseMode.getMode() != data.caseMode) {
             caseMode = data.caseMode.clazz.newInstance(); // If the case mode changed, update it
         }

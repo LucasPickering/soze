@@ -32,7 +32,7 @@ public class CommandFadeColorDel extends AbstractCommand {
                 System.out.println("Index value must be a number.");
                 return false;
             }
-            Data data = CaseControl.getData();
+            Data data = CaseControl.data();
             if (0 <= index && index < data.caseFadeColors.size()) {
                 data.caseFadeColors.remove(index);
                 System.out.printf("Case fade color at %d removed\n", index);

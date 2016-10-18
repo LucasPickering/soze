@@ -24,7 +24,7 @@ public class CommandFadeSetDel extends AbstractCommand {
     @Override
     public boolean execute(String[] args) {
         if (args.length >= 1) {
-            Data data = CaseControl.getData();
+            Data data = CaseControl.data();
             if (data.savedFades.containsKey(args[0])) {
                 data.savedFades.remove(args[0]);
                 System.out.println("Removed " + args[0]);

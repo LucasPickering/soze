@@ -64,7 +64,7 @@ public final class SerialThread extends Thread {
 
                 Funcs.pause(STARTUP_TIME); // Pause to let the serial port set up
             } else {
-                final Data data = CaseControl.getData(); // The data to be written
+                final Data data = CaseControl.data(); // The data to be written
 
                 // Send all necessary data
                 try {

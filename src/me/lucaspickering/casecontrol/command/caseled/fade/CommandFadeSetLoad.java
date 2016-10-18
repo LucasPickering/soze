@@ -25,7 +25,7 @@ public class CommandFadeSetLoad extends AbstractCommand {
     public boolean execute(String[] args) {
         if (args.length >= 1) {
             final String name = args[0];
-            final Data data = CaseControl.getData();
+            final Data data = CaseControl.data();
             if (data.savedFades.containsKey(name)) {
                 data.caseFadeColors.clear();
                 data.caseFadeColors.addAll(data.savedFades.get(name));

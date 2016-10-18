@@ -28,7 +28,7 @@ public class CommandFadeColorAdd extends AbstractCommand {
     public boolean execute(String[] args) {
         Color color;
         if (args.length >= 1 && (color = Funcs.getColor(args)) != null) {
-            Data data = CaseControl.getData();
+            Data data = CaseControl.data();
             data.caseFadeColors.add(color);
             System.out.printf("Case fade color (%d, %d, %d) added at position %d\n",
                               color.getRed(), color.getGreen(), color.getBlue(),

@@ -31,7 +31,7 @@ public class CommandFadeTimingPause extends AbstractCommand {
             System.out.println("Tick value must be a number");
             return false; // Failed. Print help.
         }
-        CaseControl.getData().casePauseTicks = ticks;
+        CaseControl.data().casePauseTicks = ticks;
         System.out.println("Pause ticks set to " + ticks);
         return true;
     }

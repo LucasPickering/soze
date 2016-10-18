@@ -28,7 +28,7 @@ public final class CaseControl {
         caseControl.inputLoop();
     }
 
-    public static Data getData() {
+    public static Data data() {
         return caseControl.data;
     }
 
@@ -100,7 +100,7 @@ public final class CaseControl {
             FileOutputStream fileOut = new FileOutputStream(Data.DATA_FILE);
             ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
 
-            objectOut.writeObject(getData());
+            objectOut.writeObject(data());
 
             objectOut.close();
             fileOut.close();

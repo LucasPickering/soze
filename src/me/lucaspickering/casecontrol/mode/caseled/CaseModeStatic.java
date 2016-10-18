@@ -13,7 +13,7 @@ public final class CaseModeStatic implements CaseMode {
 
     @Override
     public Color getColor() {
-        return CaseControl.getData().caseStaticColor;
+        return CaseControl.data().caseStaticColor;
     }
 
     @Override

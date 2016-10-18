@@ -19,7 +19,7 @@ public final class CaseModeFade implements CaseMode {
 
     @Override
     public Color getColor() {
-        final Data data = CaseControl.getData();
+        final Data data = CaseControl.data();
         final List<Color> colors = data.caseFadeColors;
         if (colors.isEmpty()) {
             return Color.BLACK;

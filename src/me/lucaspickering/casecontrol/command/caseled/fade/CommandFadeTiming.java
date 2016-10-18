@@ -28,7 +28,7 @@ public class CommandFadeTiming extends AbstractCommand {
     @Override
     public boolean execute(String[] args) {
         // Print current fade timing settings, then return false to print help
-        Data data = CaseControl.getData();
+        Data data = CaseControl.data();
         System.out.println("Fade timings:");
         System.out.printf("  Transition: %d ticks (Min %d; Max %d)\n",
                           data.caseFadeTicks, Data.MIN_FADE_TICKS, Data.MAX_FADE_TICKS);
