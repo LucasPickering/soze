@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -135,11 +135,11 @@ public final class LcdModeNhl extends AbstractLcdMode {
         // Standings are re-downloaded and parsed every iteration, because this only gets called
         // every 10 minutes.
         final Map<Team, Stats> standings = getStandings();
-        final List<Team> sortedTeams = sortedDivisionStandings(standings, Division.METROPOLITAN);
+        final List<Team> sortedDivision = sortedDivisionStandings(standings, Division.METROPOLITAN);
         int i = 0;
         // Use foreach because List access isn't necessarily constant time
         final String[] text = new String[Consts.LCD_HEIGHT];
-        for (Team team : sortedTeams) {
+        for (Team team : sortedDivision) {
             if (i < text.length) {
                 text[i] = ""; // If this is the first string to go in the row, clear the row first
             }
@@ -162,7 +162,7 @@ public final class LcdModeNhl extends AbstractLcdMode {
 
         // Match data for each team, and populate the stats map
         final String tableData = matcher.group();
-        final Map<Team, Stats> rv = new HashMap<>();
+        final Map<Team, Stats> rv = new EnumMap<>(Team.class);
         for (Team team : Team.values()) {
             rv.put(team, getTeamStats(tableData, team));
         }
