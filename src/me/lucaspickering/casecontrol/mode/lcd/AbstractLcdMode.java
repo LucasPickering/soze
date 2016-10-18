@@ -12,6 +12,10 @@ abstract class AbstractLcdMode implements LcdMode {
         this.lcdMode = lcdMode;
     }
 
+    public void init(String... args) {
+        // Do nothing by default
+    }
+
     @Override
     public final EnumLcdMode getMode() {
         return lcdMode;

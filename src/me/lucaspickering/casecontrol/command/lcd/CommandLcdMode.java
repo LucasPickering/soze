@@ -32,8 +32,12 @@ public class CommandLcdMode extends AbstractCommand {
             final String mode = args[0];
             for (EnumLcdMode lcdMode : EnumLcdMode.values()) {
                 if (mode.equals(lcdMode.name)) {
+                    // Copy all args but the first into a new array to be passed to the mode
+                    final String[] modeArgs = new String[args.length - 1]; // args.length >= 1
+                    System.arraycopy(args, 1, modeArgs, 0, args.length - 1);
+
                     CaseControl.data().setLcdMode(lcdMode);
-                    CaseControl.restartLcdTimer(); // Restart the timer for the LCD mode
+                    CaseControl.restartLcdTimer(modeArgs); // Restart the timer for the LCD mode
                     System.out.printf("Case LED mode set to %s\n", lcdMode.name);
                     return true; // Succesfully completed
                 }

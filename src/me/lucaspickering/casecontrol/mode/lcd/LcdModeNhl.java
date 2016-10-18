@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,32 @@ import me.lucaspickering.casecontrol.Consts;
 public final class LcdModeNhl extends AbstractLcdMode {
 
     private enum Division {
-        ATLANTIC, METROPOLITAN, CENTRAL, PACIFIC
+        ATLANTIC("Atlantic", "atl"),
+        METROPOLITAN("Metropolitan", "metro"),
+        CENTRAL("Central", "ctl"),
+        PACIFIC("Pacific", "pac");
+
+        private final String name;
+        private final List<String> abbrevs;
+
+        Division(String name, String... abbrevs) {
+            this.name = name;
+            this.abbrevs = Arrays.asList(abbrevs);
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
+        private static Division fromString(String name) {
+            for (Division div : values()) {
+                if (name.equalsIgnoreCase(div.name) || div.abbrevs.contains(name)) {
+                    return div;
+                }
+            }
+            return null;
+        }
     }
 
     private enum Team {
@@ -117,17 +143,31 @@ public final class LcdModeNhl extends AbstractLcdMode {
     }
 
     private static final String STANDINGS_URL = "http://www.espn.com/nhl/standings";
-
     private static final Pattern TABLE_RGX = Pattern.compile("<table.*</table>");
-    // Group ordering: GP, W, L, OTL, PTS, ROW, SOW, SOL
     private static final String TEAM_RGX_FORMAT =
         "%s.*?(?<gp>\\d+).*?(?<w>\\d+).*?(?<l>\\d+).*?(?<otl>\\d+).*?(?<pts>\\d+).*?(?<roWins>\\d+)"
         + ".*?(?<soWins>\\d+).*?(?<soLosses>\\d+)";
-
     private static final String OUTPUT_FORMAT = "%d. %s %3$-4d";
+    private static final Division DEFAULT_DIVISION = Division.METROPOLITAN;
+
+    private Division division = DEFAULT_DIVISION;
 
     public LcdModeNhl() {
         super(EnumLcdMode.NHL);
+    }
+
+    @Override
+    public void init(String... args) {
+        if (args.length >= 1) {
+            // If a division was passed in, use that one. Otherwise the default stays
+            final Division div = Division.fromString(args[0]);
+            if (div != null) {
+                division = div;
+            } else {
+                System.out.printf("Unknown division '%s', defaulting to '%s'\n",
+                                  args[0], division);
+            }
+        }
     }
 
     @Override
@@ -135,7 +175,7 @@ public final class LcdModeNhl extends AbstractLcdMode {
         // Standings are re-downloaded and parsed every iteration, because this only gets called
         // every 10 minutes.
         final Map<Team, Stats> standings = getStandings();
-        final List<Team> sortedDivision = sortedDivisionStandings(standings, Division.METROPOLITAN);
+        final List<Team> sortedDivision = sortedDivisionStandings(standings, division);
         int i = 0;
         // Use foreach because List access isn't necessarily constant time
         final String[] text = new String[Consts.LCD_HEIGHT];

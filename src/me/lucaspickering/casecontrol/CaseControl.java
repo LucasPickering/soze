@@ -49,9 +49,9 @@ public final class CaseControl {
         caseControl.startCaseTimer(data()); // Start the new timer
     }
 
-    public static void restartLcdTimer() {
+    public static void restartLcdTimer(String... modeArgs) {
         caseControl.lcdModeTimer.cancel(); // Stop the old timer
-        caseControl.startLcdTimer(data()); // Start the new timer
+        caseControl.startLcdTimer(data(), modeArgs); // Start the new timer
     }
 
     /**
@@ -143,11 +143,13 @@ public final class CaseControl {
     /**
      * Starts a {@link Timer} to periodically process case data.
      *
-     * @param data the current data state
+     * @param data     the current data state
+     * @param modeArgs the argument(s) that should be passed into the mode on initialization
      */
-    private void startLcdTimer(Data data) {
+    private void startLcdTimer(Data data, String... modeArgs) {
         final EnumLcdMode lcdModeType = data.getLcdMode();
         final LcdMode lcdMode = lcdModeType.instantiateMode();
+        lcdMode.init(modeArgs);
 
         // Create a task to be called on a regular interbal to update the LCD color/text
         final TimerTask task = new TimerTask() {
