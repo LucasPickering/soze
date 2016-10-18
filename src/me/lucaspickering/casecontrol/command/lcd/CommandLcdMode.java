@@ -32,7 +32,7 @@ public class CommandLcdMode extends AbstractCommand {
             final String mode = args[0];
             for (EnumLcdMode lcdMode : EnumLcdMode.values()) {
                 if (mode.equals(lcdMode.name)) {
-                    CaseControl.data().lcdMode = lcdMode;
+                    CaseControl.data().setLcdMode(lcdMode);
                     System.out.printf("Case LED mode set to %s\n", lcdMode.name);
                     return true; // Succesfully completed
                 }

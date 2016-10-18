@@ -1,8 +1,6 @@
 package me.lucaspickering.casecontrol.command.caseled.fade;
 
 import me.lucaspickering.casecontrol.CaseControl;
-import me.lucaspickering.casecontrol.Data;
-import me.lucaspickering.casecontrol.Funcs;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
 
 public class CommandFadeTimingPause extends AbstractCommand {
@@ -26,12 +24,12 @@ public class CommandFadeTimingPause extends AbstractCommand {
     public boolean execute(String[] args) {
         final int ticks;
         try {
-            ticks = Funcs.clamp(new Integer(args[0]), Data.MIN_PAUSE_TICKS, Data.MAX_PAUSE_TICKS);
+            ticks = new Integer(args[0]);
         } catch (NumberFormatException e) {
             System.out.println("Tick value must be a number");
             return false; // Failed. Print help.
         }
-        CaseControl.data().casePauseTicks = ticks;
+        CaseControl.data().setCaseFadeTicks(ticks);
         System.out.println("Pause ticks set to " + ticks);
         return true;
     }

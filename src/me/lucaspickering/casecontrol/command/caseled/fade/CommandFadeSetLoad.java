@@ -1,5 +1,9 @@
 package me.lucaspickering.casecontrol.command.caseled.fade;
 
+import java.awt.Color;
+import java.util.List;
+import java.util.Map;
+
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
@@ -26,9 +30,11 @@ public class CommandFadeSetLoad extends AbstractCommand {
         if (args.length >= 1) {
             final String name = args[0];
             final Data data = CaseControl.data();
-            if (data.savedFades.containsKey(name)) {
-                data.caseFadeColors.clear();
-                data.caseFadeColors.addAll(data.savedFades.get(name));
+            final Map<String, List<Color>> savedFades = data.getSavedFades();
+            if (savedFades.containsKey(name)) {
+                final List<Color> caseFadeColors = data.getCaseFadeColors();
+                caseFadeColors.clear();
+                caseFadeColors.addAll(savedFades.get(name));
                 System.out.println("Loaded " + name);
             } else {
                 System.out.println("No fade set by the name " + name);

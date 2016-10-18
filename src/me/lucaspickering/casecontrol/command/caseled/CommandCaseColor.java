@@ -30,8 +30,8 @@ public class CommandCaseColor extends AbstractCommand {
         Color color;
         if (args.length >= 1 && (color = Funcs.getColor(args)) != null) {
             Data data = CaseControl.data();
-            data.caseStaticColor = color; // Set the static color
-            data.caseMode = EnumCaseMode.STATIC; // Set the mode to static
+            data.setCaseStaticColor(color); // Set the static color
+            data.setCaseMode(EnumCaseMode.STATIC); // Set the mode to static
             return true;
         } else {
             return false;

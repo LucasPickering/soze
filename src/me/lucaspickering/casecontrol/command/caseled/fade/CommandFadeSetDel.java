@@ -1,5 +1,9 @@
 package me.lucaspickering.casecontrol.command.caseled.fade;
 
+import java.awt.Color;
+import java.util.List;
+import java.util.Map;
+
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
@@ -24,9 +28,10 @@ public class CommandFadeSetDel extends AbstractCommand {
     @Override
     public boolean execute(String[] args) {
         if (args.length >= 1) {
-            Data data = CaseControl.data();
-            if (data.savedFades.containsKey(args[0])) {
-                data.savedFades.remove(args[0]);
+            final Data data = CaseControl.data();
+            final Map<String, List<Color>> savedFades = data.getSavedFades();
+            if (savedFades.containsKey(args[0])) {
+                savedFades.remove(args[0]);
                 System.out.println("Removed " + args[0]);
             } else {
                 System.out.println(args[0] + " is not a valid fade set name.");

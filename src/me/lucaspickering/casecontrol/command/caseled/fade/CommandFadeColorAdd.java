@@ -1,6 +1,8 @@
 package me.lucaspickering.casecontrol.command.caseled.fade;
 
-import java.awt.*;
+
+import java.awt.Color;
+import java.util.List;
 
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
@@ -29,10 +31,11 @@ public class CommandFadeColorAdd extends AbstractCommand {
         Color color;
         if (args.length >= 1 && (color = Funcs.getColor(args)) != null) {
             Data data = CaseControl.data();
-            data.caseFadeColors.add(color);
+            final List<Color> colors = data.getCaseFadeColors();
+            colors.add(color); // Add this color to the list
             System.out.printf("Case fade color (%d, %d, %d) added at position %d\n",
                               color.getRed(), color.getGreen(), color.getBlue(),
-                              data.caseFadeColors.size() - 1);
+                              colors.size() - 1);
             return true;
         }
         return false;

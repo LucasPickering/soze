@@ -32,9 +32,9 @@ public final class ModeThread extends Thread {
                 e.printStackTrace();
             }
 
-            data.caseColor = caseMode.getColor();
-            data.lcdColor = lcdMode.getColor();
-            data.lcdText = lcdMode.getText();
+            data.setCaseColor(caseMode.getColor());
+            data.setLcdColor(lcdMode.getColor());
+            data.setLcdText(lcdMode.getText());
             try {
                 Thread.sleep(Data.MODE_LOOP_TIME);
             } catch (InterruptedException e) {
@@ -45,11 +45,11 @@ public final class ModeThread extends Thread {
 
     private void updateModes() throws InstantiationException, IllegalAccessException {
         final Data data = CaseControl.data();
-        if (caseMode == null || caseMode.getMode() != data.caseMode) {
-            caseMode = data.caseMode.clazz.newInstance(); // If the case mode changed, update it
+        if (caseMode == null || caseMode.getMode() != data.getCaseMode()) {
+            caseMode = data.getCaseMode().clazz.newInstance(); // If the case mode changed, update it
         }
-        if (lcdMode == null || lcdMode.getMode() != data.lcdMode) {
-            lcdMode = data.lcdMode.clazz.newInstance(); // If the LCD mode changed, update it
+        if (lcdMode == null || lcdMode.getMode() != data.getLcdMode()) {
+            lcdMode = data.getLcdMode().clazz.newInstance(); // If the LCD mode changed, update it
         }
     }
 }

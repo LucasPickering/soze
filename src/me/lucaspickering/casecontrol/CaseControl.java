@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
@@ -117,7 +118,11 @@ public final class CaseControl {
                 FileInputStream fileIn = new FileInputStream(Data.DATA_FILE);
                 ObjectInputStream objectIn = new ObjectInputStream(fileIn);
 
-                data = (Data) objectIn.readObject(); // Read the data in
+                try {
+                    data = (Data) objectIn.readObject(); // Read the data in
+                } catch (InvalidClassException e) {
+                    System.out.println("Could not load saved data. Maybe it was an older version?");
+                }
 
                 // Close the file
                 objectIn.close();

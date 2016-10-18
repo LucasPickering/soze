@@ -28,8 +28,7 @@ public class CommandLcdColor extends AbstractCommand {
     public boolean execute(String[] args) {
         Color color;
         if (args.length >= 1 && (color = Funcs.getColor(args)) != null) {
-            Data data = CaseControl.data();
-            data.lcdStaticColor = color; // Set the static color
+            CaseControl.data().setLcdStaticColor(color);
             // TODO: Set LCD mode to clock if it is currently off
             return true;
         } else {

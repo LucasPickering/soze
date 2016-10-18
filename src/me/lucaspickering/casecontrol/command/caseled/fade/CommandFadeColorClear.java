@@ -22,7 +22,7 @@ public class CommandFadeColorClear extends AbstractCommand {
 
     @Override
     public boolean execute(String[] args) {
-        CaseControl.data().caseFadeColors.clear();
+        CaseControl.data().getCaseFadeColors().clear();
         return true;
     }
 }

@@ -31,7 +31,7 @@ public class CommandFadeTimingTrans extends AbstractCommand {
             System.out.println("Tick value must be a number");
             return false; // Failed. Print help.
         }
-        CaseControl.data().caseFadeTicks = ticks;
+        CaseControl.data().setCaseFadeTicks(ticks);
         System.out.println("Transition ticks set to " + ticks);
         return true;
     }

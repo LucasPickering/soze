@@ -27,13 +27,14 @@ public class CommandFadeSetSave extends AbstractCommand {
     public boolean execute(String[] args) {
         if (args.length >= 1) {
             final Data data = CaseControl.data();
-            if (data.caseFadeColors.isEmpty()) {
+            if (data.getCaseFadeColors().isEmpty()) {
                 System.out.println("Fade list is empty, nothing saved");
             } else if (args.length == 0) {
                 return false;
             } else {
                 final String name = args[0];
-                data.savedFades.put(name, new LinkedList<>(data.caseFadeColors));
+                // Copy the fade colors and save the copy list
+                data.getSavedFades().put(name, new LinkedList<>(data.getCaseFadeColors()));
                 System.out.println("Saved current fade set under " + name);
             }
             return true;

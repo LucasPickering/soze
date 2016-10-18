@@ -1,5 +1,8 @@
 package me.lucaspickering.casecontrol.command.caseled.fade;
 
+import java.awt.Color;
+import java.util.List;
+
 import me.lucaspickering.casecontrol.CaseControl;
 import me.lucaspickering.casecontrol.Data;
 import me.lucaspickering.casecontrol.command.AbstractCommand;
@@ -33,8 +36,9 @@ public class CommandFadeColorDel extends AbstractCommand {
                 return false;
             }
             Data data = CaseControl.data();
-            if (0 <= index && index < data.caseFadeColors.size()) {
-                data.caseFadeColors.remove(index);
+            final List<Color> fadeColors = data.getCaseFadeColors();
+            if (0 <= index && index < fadeColors.size()) {
+                fadeColors.remove(index);
                 System.out.printf("Case fade color at %d removed\n", index);
             } else {
                 System.out.println("Invalid index: " + index);
