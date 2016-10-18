@@ -128,8 +128,7 @@ public final class SerialThread extends Thread {
      */
     private void writeText(Data data) throws SerialPortException {
         if (!Arrays.equals(lastLcdText, data.lcdText) || timeToUpdate(lastLcdTextUpdateTime)) {
-            serialPort
-                .writeByte((byte) PacketTag.LCD_TEXT.tag); // Tell the Arduino words are coming
+            serialPort.writeByte((byte) PacketTag.LCD_TEXT.tag); // Tell the Arduino what's coming
 
             // For each line in the text...
             for (String line : data.lcdText) {
@@ -160,13 +159,13 @@ public final class SerialThread extends Thread {
      *
      * Under windows-1232 encoding, it works fine because it encodes characters into bytes exactly
      * according to the literal codes they're defined with, i.e. "\u00ff" will be decoded into 255
-     * (or more accurately, 0b11111111, which will print as -1 for a signed byte). BUT, under UTF-8,
-     * any character with a code 128+ will be encoded as 2+ bytes, so when a string containing that
-     * character gets decoded, that character will be represented by multiple bytes in the
-     * array/buffer/etc. {@link SerialPort#writeString} uses {@link String#getBytes} and treats each
-     * byte in the array as one character (why wouldn't it). Unfortunately, for any character with
-     * code 128+ (not typically relevant because ASCII only goes to 127), it will start screwing up
-     * and everything will get offset by one byte (or more). I could make {@link
+     * (or more accurately, 0b11111111, which would print as -1 for a signed byte). BUT, under
+     * UTF-8, any character with a code 128+ will be encoded as 2+ bytes, so when a string
+     * containing that character gets decoded, that character will be represented by multiple bytes
+     * in the array/buffer/etc. {@link SerialPort#writeString} uses {@link String#getBytes} and
+     * treats each byte in the array as one character (why wouldn't it). Unfortunately, for any
+     * character with code 128+ (not typically relevant because ASCII only goes to 127), it will
+     * start screwing up and everything will get offset by one byte (or more). I could make {@link
      * SerialPort#writeString} work by forcing the default encoding to windows-1232, but I'm not
      * sure how portable that is (will Linux like that?) and as far as I can tell, the only way to
      * do that is with a VM flag (-Dfile.encoding=windows-1232) when the program starts, and having
