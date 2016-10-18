@@ -44,9 +44,9 @@ public final class CaseControl {
         run = false;
     }
 
-    public static void restartCaseTimer() {
+    public static void restartCaseTimer(String... modeArgs) {
         caseControl.caseModeTimer.cancel(); // Stop the old timer
-        caseControl.startCaseTimer(data()); // Start the new timer
+        caseControl.startCaseTimer(data(), modeArgs); // Start the new timer
     }
 
     public static void restartLcdTimer(String... modeArgs) {
@@ -125,7 +125,7 @@ public final class CaseControl {
      *
      * @param data the current data state
      */
-    private void startCaseTimer(Data data) {
+    private void startCaseTimer(Data data, String... modeArgs) {
         final EnumCaseMode caseModeType = data.getCaseMode();
         final CaseMode caseMode = caseModeType.instantiateMode();
 

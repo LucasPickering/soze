@@ -32,8 +32,12 @@ public class CommandCaseMode extends AbstractCommand {
             final String mode = args[0];
             for (EnumCaseMode caseMode : EnumCaseMode.values()) {
                 if (mode.equals(caseMode.name)) {
+                    // Copy all args but the first into a new array to be passed to the mode
+                    final String[] modeArgs = new String[args.length - 1]; // args.length >= 1
+                    System.arraycopy(args, 1, modeArgs, 0, args.length - 1);
+
                     CaseControl.data().setCaseMode(caseMode);
-                    CaseControl.restartCaseTimer(); // Restart the timer for the case mode
+                    CaseControl.restartCaseTimer(modeArgs); // Restart the timer for the case mode
                     System.out.printf("Case LED mode set to %s\n", caseMode.name);
                     return true; // Succesfully completed
                 }

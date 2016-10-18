@@ -8,6 +8,10 @@ abstract class AbstractCaseMode implements CaseMode {
         this.caseMode = caseMode;
     }
 
+    public void init(String... args) {
+        // Do nothing by default
+    }
+
     @Override
     public final EnumCaseMode getMode() {
         return caseMode;
