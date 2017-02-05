@@ -18,3 +18,5 @@ out/
 *.MF
 *.txt
 *.lnk
+src/main/resources/
+target/
