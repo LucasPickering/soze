@@ -1,10 +1,9 @@
 package me.lucaspickering.casecontrol;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,15 +28,23 @@ import me.lucaspickering.casecontrol.mode.lcd.LcdMode;
 
 public final class CaseControl {
 
-    private static CaseControl caseControl;
-    private static boolean run = true;
-
-    // Configure command line options
-    private static final Options options = new Options();
+    // Argument parser
+    private static final ArgumentParser ARG_PARSER =
+        ArgumentParsers.newArgumentParser("Case-Control")
+            .defaultHelp(true)
+            .description("Control LEDs and LCD over a serial connection");
+    // Argument names
+    private static final String PORT_OPT = "port";
 
     static {
-        options.addOption("p", "-port", true, "set serial port to use");
+        // Create command line arguments
+        ARG_PARSER.addArgument("-p", "--port")
+            .required(true)
+            .help("the serial port to communicate over");
     }
+
+    private static CaseControl caseControl;
+    private static boolean run = true;
 
     private Timer caseModeTimer;
     private Timer lcdModeTimer;
@@ -46,17 +53,19 @@ public final class CaseControl {
     private final Map<String, Command> commands = new HashMap<>();
 
     public static void main(String[] args) {
-        // Parse the command line arguments
-        final CommandLineParser parser = new DefaultParser();
-        final CommandLine cmdLine;
+        // Parse command line arguments
+        final Namespace nameSpace;
         try {
-            cmdLine = parser.parse(options, args);
-        } catch (ParseException e) {
+            nameSpace = ARG_PARSER.parseArgs(args);
+        } catch (ArgumentParserException e) {
             throw new RuntimeException("Error parsing arguments", e);
         }
 
-        caseControl = new CaseControl(cmdLine.getOptionValue("-port"));
-        // Start the main loop
+        // Access arguments
+        final String serialPortName = nameSpace.getString(PORT_OPT);
+
+        // Init the program and start the main loop
+        caseControl = new CaseControl(serialPortName);
         caseControl.inputLoop();
     }
 
