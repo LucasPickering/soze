@@ -5,8 +5,6 @@ The LCD is a WH2004A-CFH-JT# with an HD44780-compatible driver. The LCD is used 
 
 By default, the serial buffer on an Arduino Uno is only 64 bytes, which isn't enough for us. The file HardwareSerial.h is modified to increase the buffer to 128 bytes. Drop that file into "C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores" (or something like that) to make it work.
 
-Uses the [jSSC library](https://code.google.com/p/java-simple-serial-connector/) for serial connections.
-
 ### Arduino Pin Layout
 This lays out what each used pin on the Arduino is connected to.
 

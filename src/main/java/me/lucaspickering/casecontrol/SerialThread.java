@@ -17,7 +17,7 @@ public final class SerialThread extends Thread {
     private static final int STOP_BITS = 1;
     private static final int PARITY = 0;
 
-    private final SerialPort serialPort = new SerialPort("COM3");
+    private final SerialPort serialPort;
     private boolean runLoop;
 
     // These hold the last values sent to the Arduino. New values are only sent when they differ from
@@ -37,6 +37,10 @@ public final class SerialThread extends Thread {
         PacketTag(char tag) {
             this.tag = tag;
         }
+    }
+
+    public SerialThread(String portName) {
+        serialPort = new SerialPort(portName);
     }
 
     @Override

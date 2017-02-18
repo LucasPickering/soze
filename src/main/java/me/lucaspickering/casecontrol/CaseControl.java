@@ -1,5 +1,11 @@
 package me.lucaspickering.casecontrol;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -23,17 +29,39 @@ import me.lucaspickering.casecontrol.mode.lcd.LcdMode;
 
 public final class CaseControl {
 
-    private static final CaseControl caseControl = new CaseControl();
+    private static CaseControl caseControl;
     private static boolean run = true;
+
+    // Configure command line options
+    private static final Options options = new Options();
+
+    static {
+        options.addOption("p", "-port", true, "set serial port to use");
+    }
 
     private Timer caseModeTimer;
     private Timer lcdModeTimer;
-    private final SerialThread serialThread = new SerialThread();
+    private final SerialThread serialThread;
     private Data data = new Data();
     private final Map<String, Command> commands = new HashMap<>();
 
     public static void main(String[] args) {
+        // Parse the command line arguments
+        final CommandLineParser parser = new DefaultParser();
+        final CommandLine cmdLine;
+        try {
+            cmdLine = parser.parse(options, args);
+        } catch (ParseException e) {
+            throw new RuntimeException("Error parsing arguments", e);
+        }
+
+        caseControl = new CaseControl(cmdLine.getOptionValue("-port"));
+        // Start the main loop
         caseControl.inputLoop();
+    }
+
+    private CaseControl(String serialPortName) {
+        serialThread = new SerialThread(serialPortName);
     }
 
     public static Data data() {
