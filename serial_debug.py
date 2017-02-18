@@ -1,6 +1,11 @@
 import os
 import pty
 import serial
+import sys
+
+
+def read_byte(master):
+    return int.from_bytes(os.read(master, 1), byteorder='big')
 
 
 def main():
@@ -12,8 +17,18 @@ def main():
     # Create serial port
     ser = serial.Serial(s_name)
 
-    # To read from the device
-    print(os.read(master, 1000).decode())
+    # Read from the device
+    state = None
+    while True:
+        state = read_byte(master)
+        if state == ord('c'):
+            red = read_byte(master)
+            green = read_byte(master)
+            blue = read_byte(master)
+            sys.stdout.write("\rRed: {}; Green: {}; Blue: {}     ".format(red, green, blue))
+        else:
+            pass
+
 
 if __name__ == '__main__':
     main()
