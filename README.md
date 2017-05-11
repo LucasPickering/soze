@@ -24,7 +24,7 @@ Pin #|Purpose
 13|LCD Data 7
 
 ### LCD Pin Layout
-This lays out what each pin on the LCD is connected to on the Arduino. They are in left-toright order when looking at the LCD from the back.
+This lays out what each pin on the LCD is connected to on the Arduino. They are in left-to-right order when looking at the LCD from the back.
 
 LCD|Arduino
 ---|---
