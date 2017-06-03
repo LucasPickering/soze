@@ -79,7 +79,7 @@ public final class Funcs {
      */
     public static Color getColor(String... strs) {
         String s = String.join(" ", (CharSequence[]) strs);
-        String[] rgbSet = s.split("/|-| |,");
+        String[] rgbSet = s.split("[/\\- ,]");
 
         if (rgbSet.length == 1) {
             try {
