@@ -20,3 +20,7 @@ out/
 *.lnk
 src/main/resources/
 target/
+
+# Python
+*/__pycache__
+*.pyc
