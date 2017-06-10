@@ -1,6 +1,5 @@
-#!/usr/bin/python3
-
 import serial
+import time
 from enum import Enum
 
 
@@ -46,21 +45,19 @@ class Lcd:
 
     def __write__(self, data):
         """
-        @brief      Converts the given int or str to bytes and writes it to the serial connection.
+        @brief      Writes the given bytes to the serial stream. The given data must be a bytes-like
+                    object.
 
         @param      self  The object
-        @param      data  The data (must be int or str)
+        @param      data  The data (must be bytes-like)
 
         @return     the number of bytes written
         """
-        if type(data) is int:
-            data_bytes = bytes([data])
-        elif type(data) is str:
-            data_bytes = data.encode()
-        else:
-            raise ValueError("Can only send int and str")
-
-        return self.ser.write(data_bytes)
+        import binascii
+        print("Writing {}".format(binascii.hexlify(data)))
+        num = self.ser.write(data)
+        print("Wrote {} bytes".format(num))
+        return num
 
     def __send_command__(self, command, *args):
         """
@@ -72,11 +69,9 @@ class Lcd:
 
         @return     None
         """
-        self.__write__(self.SIG_COMMAND)
-        self.__write__(command)
-        for arg in args:
-            self.__write__(arg)
-        self.ser.flush()  # Wait for all the serial signals to be sent
+        data_bytes = bytes([self.SIG_COMMAND, command]) + bytes(args)
+        self.__write__(data_bytes)
+        time.sleep(0.01)  # Wait for all the serial signals to be sent
 
     def clear(self):
         """
@@ -96,7 +91,8 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command__(self.CMD_BACKLIGHT_ON)
+        # The on command takes an arg for how long to stay on, but it's actually ignored.
+        self.__send_command__(self.CMD_BACKLIGHT_ON, 0)
 
     def off(self):
         """
@@ -107,7 +103,6 @@ class Lcd:
         @return     None
         """
         self.__send_command__(self.CMD_BACKLIGHT_OFF)
-        self.clear()
 
     def set_size(self, width, height):
         """
@@ -234,7 +229,7 @@ class Lcd:
 
         @return     None
         """
-        self.__write__(text)
+        self.__write__(text.encode())
 
     def close(self):
         """
