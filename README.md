@@ -1,48 +1,41 @@
 # Case-Control-CLI
-CLI to control the LEDs and LCD in my computer case. Interfaces with an Arduino Uno over a serial connection.
+CLI to control the LEDs and LCD in my computer case. Interfaces with a Raspberry Pi Zero over an
+Ethernet connection, which is established via USB. The PC's program is in Java, and the Pi's is
+in Python. They communicate over a socket.
 
-The LCD is a WH2004A-CFH-JT# with an HD44780-compatible driver. The LCD is used in 4-bit mode, meaning only 4 of the 8 data lines are used (see the charts below).
+## Hardware
+* [Raspberry Pi Zero](https://www.raspberrypi.org/products/pi-zero/)
+* [Adafruit RGB Backlight 20x4 Character LCD](https://www.adafruit.com/product/498)
+* [Adafruit LCD Backpack](https://www.adafruit.com/product/781)
+* [RGB LED Strip](https://www.adafruit.com/product/346)
 
-By default, the serial buffer on an Arduino Uno is only 64 bytes, which isn't enough for us. The file HardwareSerial.h is modified to increase the buffer to 128 bytes. Drop that file into "C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores" (or something like that) to make it work.
+## Connections
+The PC is connected to the RPi via a USB cable, which goes from the motherboard's internal
+5-pin USB header to the Pi's USB data port. This provides both power and data.  
 
-### Arduino Pin Layout
-This lays out what each used pin on the Arduino is connected to.
+The RPi is connected to the LCD backpack with a 3-pin connector that carries 5V, GND, and TX.
+The RPi sends commands and data to the backpack with a serial connection. The serial settings are:
+* 9600 baud rate
+* 8 bits
+* 1 stop bit
+* No parity
+Note that the backpack is meant to take 5V input on the data line, but the RPi only puts out 3.3V
+on its GPIO pins. Fortunately, 3.3V is high enough for the backpack to recognize as logical high,
+so no level converter is needed.  
 
+The RPi is connected to the LEDs via a small board I made, which contains 3 MOSFETs. Each MOSFET
+corresponds to one color in RGB. The gate of each MOSFET is connected to its respective GPIO pin
+on the RPi. Each source is connected to its respective color on the LED strip, and each drain is
+connected to GND from the PSU. The LED strip has one common cathode, which is powered with 12V from
+the PSU.
+
+
+## Raspberry Pi Pin Layout
 Pin #|Purpose
 :---:|---
-2 |LCD RS
-3 |LCD Red
-4 |LCD EN
-5 |LCD Green
-6 |LCD Blue
-7 |LCD Data 4
-8 |LCD Data 5
-9 |LED Red
-10|LED Green
-11|LED Blue
-12|LCD Data 6
-13|LCD Data 7
-
-### LCD Pin Layout
-This lays out what each pin on the LCD is connected to on the Arduino. They are in left-to-right order when looking at the LCD from the back.
-
-LCD|Arduino
----|---
-GND|GND
-5V|5V
-Constrast|GND
-RS|Pin 2
-R/W|GND
-EN|Pin 4
-Data 0|-
-Data 1|-
-Data 2|-
-Data 3|-
-Data 4|Pin 7
-Data 5|Pin 8
-Data 6|Pin 12
-Data 7|Pin 13
-Backlight +|5V
-Backlight Red|Pin 3
-Backlight Green|Pin 5
-Backlight Blue|Pin 6
+3 |LED Red
+4 |LCD 5V
+5 |LED Green
+6 |LCD GND
+7 |LED Blue
+8 |LCD TX
