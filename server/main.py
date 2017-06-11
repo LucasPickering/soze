@@ -73,7 +73,7 @@ class Main:
         self.socket_handler.close()
 
     def lcd_thread(self):
-
+        
 
 
 def main():
