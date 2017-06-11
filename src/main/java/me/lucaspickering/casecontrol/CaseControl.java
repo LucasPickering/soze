@@ -34,13 +34,17 @@ public final class CaseControl {
             .defaultHelp(true)
             .description("Control LEDs and LCD over a serial connection");
     // Argument names
+    private static final String ADDR_OPT = "addr";
     private static final String PORT_OPT = "port";
 
     static {
         // Create command line arguments
+        ARG_PARSER.addArgument("-a", "--addr")
+            .required(true)
+            .help("the address of the client to communicate with");
         ARG_PARSER.addArgument("-p", "--port")
             .required(true)
-            .help("the serial port to communicate over");
+            .help("the port on which to communicate with the client");
     }
 
     private static CaseControl caseControl;
@@ -48,7 +52,7 @@ public final class CaseControl {
 
     private Timer caseModeTimer;
     private Timer lcdModeTimer;
-    private final SerialThread serialThread;
+    private final CommunicationThread commThread;
     private Data data = new Data();
     private final Map<String, Command> commands = new HashMap<>();
 
@@ -62,15 +66,16 @@ public final class CaseControl {
         }
 
         // Access arguments
-        final String serialPortName = nameSpace.getString(PORT_OPT);
+        final String clientAddr = nameSpace.getString(ADDR_OPT);
+        final int clientPort = Integer.parseInt(nameSpace.getString(PORT_OPT));
 
         // Init the program and start the main loop
-        caseControl = new CaseControl(serialPortName);
+        caseControl = new CaseControl(clientAddr, clientPort);
         caseControl.inputLoop();
     }
 
-    private CaseControl(String serialPortName) {
-        serialThread = new SerialThread(serialPortName);
+    private CaseControl(String clientAddr, int clientPort) {
+        commThread = new CommunicationThread(clientAddr, clientPort);
     }
 
     public static Data data() {
@@ -95,12 +100,12 @@ public final class CaseControl {
      * Constantly receives input from the user. Main loop of the program.
      */
     private void inputLoop() {
-        Runtime.getRuntime().addShutdownHook(serialThread); // Tell the serial thread when we stop
+        Runtime.getRuntime().addShutdownHook(commThread); // Tell the serial thread when we stop
         loadData(); // Load saved data (if possible)
 
         startCaseTimer(data); // Spawn a thread to periodically update the case data
         startLcdTimer(data); // Spawn a thread to periodically update the LCD data
-        serialThread.start(); // Start the thread that communicates over the serial port
+        commThread.start(); // Start the thread that communicates over the serial port
 
         // Register all top-level commands
         for (EnumCommand command : EnumCommand.values()) {
@@ -116,7 +121,7 @@ public final class CaseControl {
         // Stop the timers/threads
         caseModeTimer.cancel();
         lcdModeTimer.cancel();
-        serialThread.terminate();
+        commThread.terminate();
 
         System.out.println("Exiting...");
     }
