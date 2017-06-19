@@ -31,11 +31,12 @@ the PSU.
 
 
 ## Raspberry Pi Pin Layout
-Pin #|Purpose
-:---:|---
-3 |LED Red
-4 |LCD 5V
-5 |LED Green
-6 |LCD GND
-7 |LED Blue
-8 |LCD TX
+Specified pin numbers use the hardware pin numbering system.
+Purpose|Pin #
+---|---
+LED Red|5
+LED Green|3
+LED Blue|7
+LCD 5V|4
+LCD GND|6
+LCD TX|8
