@@ -32,6 +32,7 @@ the PSU.
 
 ## Raspberry Pi Pin Layout
 Specified pin numbers use the hardware pin numbering system.
+
 Purpose|Pin #
 ---|---
 LED Red|5
