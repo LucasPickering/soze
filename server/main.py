@@ -6,18 +6,18 @@ import threading
 import time
 from lcd import Lcd
 from led import Led
-from model import Model
+from model import Color, Settings
 
 
 class Main:
 
-    LED_THREAD_PAUSE = 0.05
-    LCD_THREAD_PAUSE = 0.05
+    LED_THREAD_PAUSE = 0.01
+    LCD_THREAD_PAUSE = 0.01
 
     def __init__(self, args):
-        self.run = True
+        self.keep_running = True
         self.debug = args.debug
-        self.model = Model()
+        self.settings = Settings(Color(255, 255, 0), Color(0, 0, 0), '')
 
         # Init the case LED handler
         self.led = Led()
@@ -30,24 +30,33 @@ class Main:
         self.lcd.clear()
         self.lcd_thread = threading.Thread(target=self.lcd_thread)
 
-    def start(self):
+    def run(self):
         # Start the helper threads, then launch the REST API
         self.led_thread.start()
         self.lcd_thread.start()
-        rest.run(self.model)
+        try:
+            rest.run(self.settings, debug=self.debug)
+        finally:
+            # When flask receives Ctrl-C and stops, this runs to shut down the other threads
+            self.stop()
 
     def stop(self):
-        self.run = False
+        self.keep_running = False
+        self.led_thread.join()
+        self.lcd_thread.join()
 
     def led_thread(self):
-        while self.run:
-            color = self.model.led_color
+        while self.keep_running:
+            color = self.settings.led_color
             self.led.set_color(color.red, color.green, color.blue)
             time.sleep(self.LED_THREAD_PAUSE)
+        self.led.stop()
 
     def lcd_thread(self):
-        while self.run:
+        while self.keep_running:
+            # TODO
             time.sleep(self.LCD_THREAD_PAUSE)
+        self.lcd.stop()
 
 
 def main():
@@ -58,7 +67,7 @@ def main():
     args = parser.parse_args()
 
     main = Main(args)
-    main.start()
+    main.run()
 
 
 if __name__ == '__main__':

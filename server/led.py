@@ -25,9 +25,17 @@ class Led:
         self.red_pwm = GPIO.PWM(self.RED_PIN, self.PWM_FREQ)
         self.green_pwm = GPIO.PWM(self.GREEN_PIN, self.PWM_FREQ)
         self.blue_pwm = GPIO.PWM(self.BLUE_PIN, self.PWM_FREQ)
+
         self.red_pwm.start(0)
         self.green_pwm.start(0)
         self.blue_pwm.start(0)
+
+    def stop(self):
+        self.off()
+        self.red_pwm.stop()
+        self.green_pwm.stop()
+        self.blue_pwm.stop()
+        GPIO.cleanup()
 
     def set_color(self, red, green, blue):
         def to_duty_cycle(color_val):
@@ -38,13 +46,6 @@ class Led:
 
     def off(self):
         self.set_color(0, 0, 0)
-
-    def stop(self):
-        self.off()
-        self.red_pwm.stop()
-        self.green_pwm.stop()
-        self.blue_pwm.stop()
-        GPIO.cleanup()
 
 
 def main():

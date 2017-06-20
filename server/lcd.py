@@ -280,7 +280,7 @@ class Lcd:
                     self.move_cursor_forward()
         self.lines = lines
 
-    def close(self):
+    def stop(self):
         """
         @brief      Closes the serial connection with the LCD.
 

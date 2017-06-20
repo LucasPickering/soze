@@ -1,6 +1,15 @@
+import model
 from flask import Flask
+from flask import request
 
 app = Flask(__name__)
+
+
+def get_color(data):
+    if type(data) is list and len(data) == 3:
+        # Data is in a list, unpack the list into a color tuple
+        return model.Color(*data)
+    raise ValueError("Invalid format for color data: {}".format(data))
 
 
 @app.route('/')
@@ -11,6 +20,26 @@ def root():
 @app.route('/xkcd')
 def xkcd():
     return 'https://c.xkcd.com/random/comic\n'
+
+
+@app.route('/led/')
+def led():
+    # TODO return LED info
+    pass
+
+
+@app.route('/led/color', methods=['GET', 'POST'])
+def led_color():
+    if request.method == 'POST':
+        data = request.get_json()
+        try:
+            color = get_color(data['color'])
+        except KeyError:
+            return "Missing attribute 'color'\n"
+        settings.led_color = color
+        return "Set LED color to {}\n".format(color)
+    else:
+        return settings.led_color
 
 
 @app.route('/lcd/')
@@ -31,7 +60,8 @@ def lcd_text():
     pass
 
 
-def run(mdl, debug=False):
-    global model
-    model = mdl
+def run(stngs, debug=False):
+    # GLOBALS ARE GREAT STYLE
+    global settings
+    settings = stngs
     app.run(debug=debug, host='0.0.0.0')
