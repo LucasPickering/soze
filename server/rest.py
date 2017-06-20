@@ -4,24 +4,18 @@ app = Flask(__name__)
 
 
 @app.route('/')
-def hello_world():
-    return 'This is my home: https://github.com/LucasPickering/Case-Control-CLI'
+def root():
+    return 'This is my home: https://github.com/LucasPickering/Case-Control-CLI\n'
 
 
 @app.route('/xkcd')
 def xkcd():
-    return 'https://xkcd.com/random/comic'
+    return 'https://c.xkcd.com/random/comic\n'
 
 
 @app.route('/lcd/')
 def lcd():
     # TODO return LCD info
-    pass
-
-
-@app.route('/lcd/text')
-def lcd_text():
-    # TODO set LCD text
     pass
 
 
@@ -31,5 +25,13 @@ def lcd_color():
     pass
 
 
-if __name__ == '__main__':
-    app.run()
+@app.route('/lcd/text')
+def lcd_text():
+    # TODO set LCD text
+    pass
+
+
+def run(mdl, debug=False):
+    global model
+    model = mdl
+    app.run(debug=debug, host='0.0.0.0')
