@@ -36,10 +36,10 @@ def led_color():
             color = get_color(data['color'])
         except KeyError:
             return "Missing attribute 'color'\n"
-        settings.led_color = color
+        user_settings.led_static_color = color
         return "Set LED color to {}\n".format(color)
     else:
-        return settings.led_color
+        return user_settings.led_static_color
 
 
 @app.route('/lcd/')
@@ -60,8 +60,8 @@ def lcd_text():
     pass
 
 
-def run(stngs, debug=False):
-    # GLOBALS ARE GREAT STYLE
-    global settings
-    settings = stngs
+def run(settings, debug=False):
+    # GLOBALS ARE GREAT
+    global user_settings
+    user_settings = settings
     app.run(debug=debug, host='0.0.0.0')

@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
 
 import argparse
+import model
 import rest
 import threading
 import time
 from lcd import Lcd
 from led import Led
-from model import Color, Settings
 
 
 class Main:
 
     LED_THREAD_PAUSE = 0.01
     LCD_THREAD_PAUSE = 0.01
+    SETTINGS_THREAD_PAUSE = 0.05
 
     def __init__(self, args):
         self.keep_running = True
         self.debug = args.debug
-        self.settings = Settings(Color(255, 255, 0), Color(0, 0, 0), '')
+        self.user_settings = model.UserSettings()
+        self.derived_settings = model.DerivedSettings()
 
         # Init the case LED handler
         self.led = Led()
+
+        # This thread constantly reads the derived settings and updates the LEDs accordingly
         self.led_thread = threading.Thread(target=self.led_thread)
 
         # Init the LCD handler
@@ -28,7 +32,12 @@ class Main:
         self.lcd.set_autoscroll(False)
         self.lcd.on()
         self.lcd.clear()
+
+        # This thread constantly reads the derived settings and updates the LCD accordingly
         self.lcd_thread = threading.Thread(target=self.lcd_thread)
+
+        # This thread constantly re-computes the derived settings from the user settings
+        self.settings_thread = threading.Thread(target=self.settings_thread, daemon=True)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -46,6 +55,14 @@ class Main:
         self.lcd_thread.join()
 
     def led_thread(self):
+        """
+        @brief      A thread that periodically updates the case LEDs based on the current
+                    derived settings.
+
+        @param      self  The object
+
+        @return     None
+        """
         while self.keep_running:
             color = self.settings.led_color
             self.led.set_color(color.red, color.green, color.blue)
@@ -53,10 +70,31 @@ class Main:
         self.led.stop()
 
     def lcd_thread(self):
+        """
+        @brief      A thread that periodically updates the case LEDs based on the current
+                    derived settings.
+
+        @param      self  The object
+
+        @return     None
+        """
         while self.keep_running:
             # TODO
             time.sleep(self.LCD_THREAD_PAUSE)
         self.lcd.stop()
+
+    def settings_thread(self):
+        """
+        @brief      A thread that periodically re-calculates the derived settings. These settings
+                    are calculated from the user settings.
+
+        @param      self  The object
+
+        @return     None
+        """
+        while self.keep_running:
+            self.user_settings.update()
+            time.sleep(self.SETTINGS_THREAD_PAUSE)
 
 
 def main():
