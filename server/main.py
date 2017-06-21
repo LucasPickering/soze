@@ -19,7 +19,7 @@ class Main:
         self.keep_running = True
         self.debug = args.debug
         self.user_settings = model.UserSettings()
-        self.derived_settings = model.DerivedSettings()
+        self.derived_settings = model.DerivedSettings(self.user_settings)
 
         # Init the case LED handler
         self.led = Led()
@@ -43,8 +43,9 @@ class Main:
         # Start the helper threads, then launch the REST API
         self.led_thread.start()
         self.lcd_thread.start()
+        self.settings_thread.start()
         try:
-            rest.run(self.settings, debug=self.debug)
+            rest.run(self.user_settings, debug=self.debug)
         finally:
             # When flask receives Ctrl-C and stops, this runs to shut down the other threads
             self.stop()
@@ -64,7 +65,7 @@ class Main:
         @return     None
         """
         while self.keep_running:
-            color = self.settings.led_color
+            color = self.derived_settings.led_color
             self.led.set_color(color.red, color.green, color.blue)
             time.sleep(self.LED_THREAD_PAUSE)
         self.led.stop()
@@ -93,7 +94,7 @@ class Main:
         @return     None
         """
         while self.keep_running:
-            self.user_settings.update()
+            self.derived_settings.update()
             time.sleep(self.SETTINGS_THREAD_PAUSE)
 
 
