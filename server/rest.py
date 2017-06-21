@@ -1,4 +1,4 @@
-import model
+from color import Color
 from flask import Flask
 from flask import request
 
@@ -7,8 +7,7 @@ app = Flask(__name__)
 
 def get_color(data):
     if type(data) is list and len(data) == 3:
-        # Data is in a list, unpack the list into a color tuple
-        return model.Color(*data)
+        return Color(*data)  # Data is in a list, unpack the list into a color tuple
     raise ValueError("Invalid format for color data: {}".format(data))
 
 
@@ -22,41 +21,23 @@ def xkcd():
     return 'https://c.xkcd.com/random/comic\n'
 
 
-@app.route('/led/')
+@app.route('/led', methods=['GET', 'POST'])
 def led():
-    # TODO return LED info
-    pass
-
-
-@app.route('/led/color', methods=['GET', 'POST'])
-def led_color():
     if request.method == 'POST':
         data = request.get_json()
-        try:
-            color = get_color(data['color'])
-        except KeyError:
-            return "Missing attribute 'color'\n"
-        user_settings.led_static_color = color
-        return "Set LED color to {}\n".format(color)
+        if 'mode' in data:
+            user_settings.set_led_mode(data['mode'])
+        if 'static_color' in data:
+            color = get_color(data['static_color'])
+            user_settings.led_static_color = color
+        return "Success\n"
     else:
-        return user_settings.led_static_color
+        return "GOOD SHIT GOOD SHIT\n"  # TODO print LED info
 
 
-@app.route('/lcd/')
+@app.route('/lcd', methods=['GET', 'POST'])
 def lcd():
     # TODO return LCD info
-    pass
-
-
-@app.route('/lcd/color')
-def lcd_color():
-    # TODO set LCD color
-    pass
-
-
-@app.route('/lcd/text')
-def lcd_text():
-    # TODO set LCD text
     pass
 
 

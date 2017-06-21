@@ -1,6 +1,6 @@
-from collections import namedtuple
-
-Color = namedtuple('Color', 'red green blue')
+from color import Color
+import led_mode
+import lcd_mode
 
 
 class UserSettings:
@@ -11,10 +11,16 @@ class UserSettings:
 """
 
     def __init__(self):
-        self.led_mode = None
+        self.led_mode = led_mode.LedModeOff(self)
         self.led_static_color = Color(0, 0, 0)
-        self.lcd_mode = None
-        self.lcd_color = None
+        self.lcd_mode = lcd_mode.LcdModeOff(self)
+        self.lcd_color = Color(0, 0, 0)
+
+    def set_led_mode(self, mode_name):
+        pass
+
+    def set_lcd_mode(self, mode_name):
+        pass
 
 
 class DerivedSettings:
@@ -40,4 +46,5 @@ class DerivedSettings:
         @return     None
         """
         self.led_color = self.user_settings.led_static_color
-        self.lcd_color = self.user_settings.lcd_color
+        self.lcd_color = self.user_settings.lcd_mode.get_color()
+        self.lcd_text = self.user_settings.lcd_mode.get_text()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import model
+import settings
 import rest
 import threading
 import time
@@ -18,8 +18,8 @@ class Main:
     def __init__(self, args):
         self.keep_running = True
         self.debug = args.debug
-        self.user_settings = model.UserSettings()
-        self.derived_settings = model.DerivedSettings(self.user_settings)
+        self.user_settings = settings.UserSettings()
+        self.derived_settings = settings.DerivedSettings(self.user_settings)
 
         # Init the case LED handler
         self.led = Led()
