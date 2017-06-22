@@ -17,10 +17,16 @@ class UserSettings:
         self.lcd_color = Color(0, 0, 0)
 
     def set_led_mode(self, mode_name):
-        pass
+        self.led_mode = led_mode.get_by_name(mode_name, self)
+
+    def set_led_static_color(self, color):
+        self.led_static_color = color
 
     def set_lcd_mode(self, mode_name):
-        pass
+        self.lcd_mode = lcd_mode.get_by_name(mode_name, self)
+
+    def set_lcd_color(self, color):
+        self.lcd_color = color
 
 
 class DerivedSettings:

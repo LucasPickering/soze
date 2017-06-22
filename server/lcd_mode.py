@@ -36,4 +36,17 @@ class LcdModeClock(LcdMode):
         return self.user_settings.lcd_color
 
     def get_text(self):
-        return ''
+        return 'CLOCK'
+
+
+_names = {
+    'off': LcdModeOff,
+    'clock': LcdModeClock
+}
+
+
+def get_by_name(name, user_settings):
+    try:
+        return _names[name](user_settings)
+    except KeyError:
+        raise ValueError("Invalid name: {}. Valid names are: {}".format(name, _names.keys()))

@@ -80,7 +80,7 @@ class Main:
         @return     None
         """
         while self.keep_running:
-            # TODO
+            self.lcd.set_color
             time.sleep(self.LCD_THREAD_PAUSE)
         self.lcd.stop()
 

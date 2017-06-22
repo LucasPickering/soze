@@ -29,7 +29,7 @@ def led():
             user_settings.set_led_mode(data['mode'])
         if 'static_color' in data:
             color = get_color(data['static_color'])
-            user_settings.led_static_color = color
+            user_settings.set_led_static_color(color)
         return "Success\n"
     else:
         return "GOOD SHIT GOOD SHIT\n"  # TODO print LED info
@@ -37,8 +37,16 @@ def led():
 
 @app.route('/lcd', methods=['GET', 'POST'])
 def lcd():
-    # TODO return LCD info
-    pass
+    if request.method == 'POST':
+        data = request.get_json()
+        if 'mode' in data:
+            user_settings.set_lcd_mode(data['mode'])
+        if 'color' in data:
+            color = get_color(data['color'])
+            user_settings.set_lcd_color(color)
+        return "Success\n"
+    else:
+        return "GOOD SHIT GOOD SHIT\n"  # TODO print LCD info
 
 
 def run(settings, debug=False):
