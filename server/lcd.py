@@ -38,6 +38,11 @@ class Lcd:
     CMD_CURSOR_POS = 0x47
     CMD_CURSOR_FWD = 0x4d
     CMD_CURSOR_BACK = 0x4c
+    CMD_CREATE_CHAR = 0x4e
+    CMD_SAVE_CUSTOM_CHARS = 0xc1
+
+    HBR = '\x00'  # Half-bottom right
+    HBL = '\x01'
 
     def __init__(self, serial_port, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
         self.width = width
@@ -246,6 +251,12 @@ class Lcd:
         """
         self.__send_command(self.CMD_CURSOR_BACK)
 
+    def create_char(self, index, char_bytes):
+        self.__send_command(self.CMD_CREATE_CHAR, index, *char_bytes)
+
+    def save_custom_chars(self):
+        self.__send_command(self.CMD_SAVE_CUSTOM_CHARS)
+
     def set_text(self, text):
         """
         @brief      Sets the text on the LCD. Only the characters on the LCD that need to change
@@ -262,15 +273,15 @@ class Lcd:
                 line = lines[y]
                 if x < len(line):
                     return line[x]
-            return ''
+            return ' '
 
         lines = [line[:self.width] for line in text.splitlines()[:self.height]]
 
         self.cursor_home()  # Move the cursor to (1,1) before we start writing
         for y in range(self.height):
             for x in range(self.width):
-                old_char = self.__get_char_at(self.lines, x, y)
-                new_char = self.__get_char_at(lines, x, y)
+                old_char = __get_char_at(self.lines, x, y)
+                new_char = __get_char_at(lines, x, y)
 
                 # If this char changed, update it. Otherwise, just advance to the next one.
                 if old_char != new_char:
@@ -279,6 +290,54 @@ class Lcd:
                 else:
                     self.move_cursor_forward()
         self.lines = lines
+
+    def make_big_text(self, text):
+        """
+        @brief      Converts the given string into "big text". Big text is text that is three lines
+                    high. The return value will be a three-line string reprsenting the given text
+                    in "big form."
+
+        @param      self  The object
+        @param      text  The text to make big
+
+        @return     The big text.
+        """
+
+        def __get_big_char(self, char):
+            if char == '0':
+                pass
+            elif char == '1':
+                pass
+            elif char == '2':
+                pass
+            elif char == '3':
+                pass
+            elif char == '4':
+                pass
+            elif char == '5':
+                pass
+            elif char == '6':
+                pass
+            elif char == '7':
+                pass
+            elif char == '8':
+                pass
+            elif char == '9':
+                pass
+            elif char == ':':
+                pass
+            elif char == ' ':
+                pass
+            raise ValueError("Unrecognized big character: {}".format(char))
+
+        def __make_big_line(self, line):
+            big_chars = [__get_big_char(c) for c in line]
+            line_tuples = zip(*big_chars)
+            big_lines = [''.join(t) for t in line_tuples]
+            return '\n'.join(big_lines)
+
+        lines = text.splitlines()
+        return [__make_big_line(line) for line in lines]
 
     def stop(self):
         """
