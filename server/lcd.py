@@ -41,8 +41,65 @@ class Lcd:
     CMD_CREATE_CHAR = 0x4e
     CMD_SAVE_CUSTOM_CHARS = 0xc1
 
-    HBR = '\x00'  # Half-bottom right
-    HBL = '\x01'
+    # Identifiers for the characters used to make big characters
+    HBR = '\u0000'  # Half-bottom right
+    HBL = '\u0001'  # Half-bottom left
+    BOT = '\u0002'  # Half-bottom
+    FBR = '\u0003'  # Full-bottom right
+    FBL = '\u0004'  # Full-bottom left
+    FUL = '\u00ff'  # Full rectangle
+    EMT = '\u0020'  # Empty (space)
+
+    # Character arrays for big characters
+    BIG_CHARS = {
+        '0': [HBR + BOT + HBL,
+              FUL + EMT + FUL,
+              FBR + BOT + FBL],
+
+        '1': [BOT + HBL + EMT,
+              EMT + FUL + EMT,
+              BOT + FUL + BOT],
+
+        '2': [HBR + BOT + HBL,
+              HBR + BOT + FBL,
+              FBR + BOT + BOT],
+
+        '3': [HBR + BOT + HBL,
+              EMT + BOT + FUL,
+              BOT + BOT + FBL],
+
+        '4': [BOT + EMT + BOT,
+              FBR + BOT + FUL,
+              EMT + EMT + FUL],
+
+        '5': [BOT + BOT + BOT,
+              FUL + BOT + HBL,
+              BOT + BOT + FBL],
+
+        '6': [HBR + BOT + HBL,
+              FUL + BOT + HBL,
+              FBR + BOT + FBL],
+
+        '7': [BOT + BOT + BOT,
+              EMT + HBR + FBL,
+              EMT + FUL + EMT],
+
+        '8': [HBR + BOT + HBL,
+              FUL + BOT + FUL,
+              FBR + BOT + FBL],
+
+        '9': [HBR + BOT + HBL,
+              FBR + BOT + FUL,
+              EMT + EMT + FUL],
+
+        ':': [FUL,
+              EMT,
+              FUL],
+
+        ' ': [EMT,
+              EMT,
+              EMT]
+    }
 
     def __init__(self, serial_port, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
         self.width = width
@@ -57,17 +114,23 @@ class Lcd:
         self.clear()
         self.lines = [''] * height  # Screen starts blank
 
-    def __write(self, data):
+    def __write(self, data, flush=True):
         """
         @brief      Writes the given bytes to the serial stream. The given data must be a bytes-like
                     object.
 
-        @param      self  The object
-        @param      data  The data (must be bytes-like)
+        @param      self   The object
+        @param      data   The data (must be bytes-like)
+        @param      flush  Whether or not to flush the serial buffer after writing the data
 
         @return     the number of bytes written
         """
-        return self.ser.write(data)
+        if len(data) > 5:
+            print(data)
+        rv = self.ser.write(data)
+        if flush:
+            self.ser.flush()
+        return rv
 
     def __send_command(self, command, *args):
         """
@@ -79,9 +142,19 @@ class Lcd:
 
         @return     None
         """
-        data_bytes = bytes([self.SIG_COMMAND, command]) + bytes(args)
-        self.__write(data_bytes)
-        # self.ser.flush()  # Wait for all the serial signals to be sent
+        def __to_bytes(d):
+            if type(d) is int:
+                return bytes([d])
+            elif type(d) is str:
+                return d.encode()
+            elif type(d) is bytes:
+                return d
+            return b''
+
+        arg_bytes_list = [__to_bytes(arg) for arg in args]
+        joined_bytes = b''.join(arg_bytes_list)
+        all_bytes = bytes([self.SIG_COMMAND, command]) + joined_bytes
+        self.__write(all_bytes)
 
     def clear(self):
         """
@@ -252,10 +325,7 @@ class Lcd:
         self.__send_command(self.CMD_CURSOR_BACK)
 
     def create_char(self, index, char_bytes):
-        self.__send_command(self.CMD_CREATE_CHAR, index, *char_bytes)
-
-    def save_custom_chars(self):
-        self.__send_command(self.CMD_SAVE_CUSTOM_CHARS)
+        self.__send_command(self.CMD_CREATE_CHAR, 1, index, *char_bytes)
 
     def set_text(self, text):
         """
@@ -286,7 +356,7 @@ class Lcd:
                 # If this char changed, update it. Otherwise, just advance to the next one.
                 if old_char != new_char:
                     # print("{}@({},{})".format(new_char, x, y))
-                    self.__write(new_char.encode())
+                    self.__write(new_char.encode(), flush=False)
                 else:
                     self.move_cursor_forward()
         self.lines = lines
@@ -304,31 +374,10 @@ class Lcd:
         """
 
         def __get_big_char(self, char):
-            if char == '0':
-                pass
-            elif char == '1':
-                pass
-            elif char == '2':
-                pass
-            elif char == '3':
-                pass
-            elif char == '4':
-                pass
-            elif char == '5':
-                pass
-            elif char == '6':
-                pass
-            elif char == '7':
-                pass
-            elif char == '8':
-                pass
-            elif char == '9':
-                pass
-            elif char == ':':
-                pass
-            elif char == ' ':
-                pass
-            raise ValueError("Unrecognized big character: {}".format(char))
+            try:
+                return self.BIG_CHARS[char]
+            except KeyError:
+                raise ValueError("Unrecognized big character: {}".format(char))
 
         def __make_big_line(self, line):
             big_chars = [__get_big_char(c) for c in line]
