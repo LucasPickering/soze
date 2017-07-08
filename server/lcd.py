@@ -125,8 +125,6 @@ class Lcd:
 
         @return     the number of bytes written
         """
-        if len(data) > 5:
-            print(data)
         rv = self.ser.write(data)
         if flush:
             self.ser.flush()
@@ -355,7 +353,6 @@ class Lcd:
 
                 # If this char changed, update it. Otherwise, just advance to the next one.
                 if old_char != new_char:
-                    # print("{}@({},{})".format(new_char, x, y))
                     self.__write(new_char.encode(), flush=False)
                 else:
                     self.move_cursor_forward()

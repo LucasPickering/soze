@@ -37,7 +37,7 @@ def main():
         lcd.set_size(width, height)
 
     if args.splash:
-        if width and height:
+        if args.size:
             size = width * height  # Total size of the LCD
             splash = ' '.join(args.splash)[:size]  # Join the words with spaces and cut down to size
             print("Setting splash text to '{}'".format(splash))
