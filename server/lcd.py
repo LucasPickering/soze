@@ -41,7 +41,17 @@ class Lcd:
     CMD_CREATE_CHAR = 0x4e
     CMD_SAVE_CUSTOM_CHARS = 0xc1
 
-    # Identifiers for the characters used to make big characters
+    # Custom chars (e.g. the small blocks used to make big chars) are defined here
+    # Each character box is 5x8, represented as 8 5-bit lines
+    CUSTOM_CHARS = {
+        0: [0b00000, 0b00000, 0b00000, 0b00000, 0b00011, 0b01111, 0b01111, 0b11111],
+        1: [0b00000, 0b00000, 0b00000, 0b00000, 0b11000, 0b11110, 0b11110, 0b11111],
+        2: [0b00000, 0b00000, 0b00000, 0b00000, 0b11111, 0b11111, 0b11111, 0b11111],
+        3: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b01111, 0b01111, 0b00011],
+        4: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11110, 0b11110, 0b11000]
+    }
+
+    # Aliases for the small characters used to make big characters
     HBR = '\u0000'  # Half-bottom right
     HBL = '\u0001'  # Half-bottom left
     BOT = '\u0002'  # Half-bottom
@@ -113,6 +123,10 @@ class Lcd:
         self.set_size(width, height)
         self.clear()
         self.lines = [''] * height  # Screen starts blank
+
+        # Register custom characters
+        for index, char in self.CUSTOM_CHARS.items():
+            self.create_char(index, char)
 
     def __write(self, data, flush=True):
         """

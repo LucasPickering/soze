@@ -32,7 +32,8 @@ class Main:
         self.led_thread = threading.Thread(target=self.led_thread)
 
         # Init the LCD handler
-        self.lcd = Lcd(self.config.lcd_serial_device)
+        self.lcd = Lcd(self.config.lcd_serial_device, self.config.lcd_width,
+                       self.config.lcd_height)
         self.lcd.set_autoscroll(False)
         self.lcd.on()
         self.lcd.clear()
@@ -57,7 +58,8 @@ class Main:
         ch.setLevel(logging.DEBUG if self.debug else logging.WARNING)
 
         # Setup formatter
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('{asctime} - {levelname} - {message}',
+                                      datefmt='%Y-%m-%d %H:%M:%S', style='{')
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
 

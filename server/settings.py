@@ -39,7 +39,6 @@ class UserSettings:
 """
 
     def __init__(self, logger, config):
-        print(self)
         self.logger = logger
         self.config = config
         self.set_led_mode('off')
