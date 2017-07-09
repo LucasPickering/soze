@@ -231,7 +231,7 @@ class Lcd:
         """
         self.__send_command(self.CMD_CONTRAST, contrast)
 
-    def set_color(self, red, green, blue):
+    def set_color(self, color):
         """
         @brief      Sets the color of the LCD.
 
@@ -242,7 +242,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_COLOR, red, green, blue)
+        self.__send_command(self.CMD_COLOR, color.red, color.green, color.blue)
 
     def set_autoscroll(self, enabled):
         """

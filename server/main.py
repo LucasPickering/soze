@@ -49,7 +49,7 @@ class Main:
         self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
         # Logging file handler
-        fh = logging.FileHandler(log_file)
+        fh = logging.FileHandler(log_file, mode='w')
         fh.setLevel(logging.DEBUG)
 
         # Logging console handler
@@ -106,7 +106,8 @@ class Main:
         @return     None
         """
         while self.keep_running:
-            self.lcd.set_color
+            self.lcd.set_color(self.derived_settings.lcd_color)
+            self.lcd.set_text(self.derived_settings.lcd_text)
             time.sleep(self.LCD_THREAD_PAUSE)
         self.lcd.stop()
 

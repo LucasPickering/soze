@@ -18,7 +18,7 @@ class Config:
         config.read(cfg_file_name)
 
         # Print loaded values
-        cfg_dict = {sct: config.items(sct) for sct in config.sections()}
+        cfg_dict = {sct: dict(config.items(sct)) for sct in config.sections()}
         logger.info("Loaded config: {}".format(cfg_dict))
 
         # Load values
@@ -39,12 +39,13 @@ class UserSettings:
 """
 
     def __init__(self, logger, config):
+        print(self)
         self.logger = logger
         self.config = config
-        self.led_mode = led_mode.LedModeOff(config, self)
-        self.led_static_color = Color(0, 0, 0)
-        self.lcd_mode = lcd_mode.LcdModeOff(config, self)
-        self.lcd_color = Color(0, 0, 0)
+        self.set_led_mode('off')
+        self.set_led_static_color(Color(0, 0, 0))
+        self.set_lcd_mode('off')
+        self.set_lcd_color(Color(0, 0, 0))
 
     def set_led_mode(self, mode_name):
         self.led_mode = led_mode.get_by_name(mode_name, self.config, self)

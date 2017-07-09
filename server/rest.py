@@ -53,4 +53,5 @@ def run(settings, debug=False):
     # GLOBALS ARE GREAT
     global user_settings
     user_settings = settings
-    app.run(debug=debug, host='0.0.0.0')
+    # app.run(debug=debug, host='0.0.0.0')
+    app.run(host='0.0.0.0')
