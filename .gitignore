@@ -25,5 +25,6 @@ target/
 */__pycache__
 *.pyc
 
+*.log
 *.ini
 !default.ini

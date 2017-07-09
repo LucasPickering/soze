@@ -9,7 +9,9 @@ class Config:
 
     DEFAULT_CFG_FILE = 'default.ini'
 
-    def __init__(self, cfg_file_name):
+    def __init__(self, logger, cfg_file_name):
+        self.logger = logger
+
         # Read config values from default file, then user file
         config = configparser.SafeConfigParser()
         config.read(self.DEFAULT_CFG_FILE)
@@ -17,7 +19,7 @@ class Config:
 
         # Print loaded values
         cfg_dict = {sct: config.items(sct) for sct in config.sections()}
-        print("Loaded config: {}".format(cfg_dict))
+        logger.info("Loaded config: {}".format(cfg_dict))
 
         # Load values
         self.lcd_serial_device = config.get('lcd', 'serial_device')
@@ -36,7 +38,8 @@ class UserSettings:
             LCD mode are examples of user settings.
 """
 
-    def __init__(self, config):
+    def __init__(self, logger, config):
+        self.logger = logger
         self.config = config
         self.led_mode = led_mode.LedModeOff(config, self)
         self.led_static_color = Color(0, 0, 0)
@@ -45,15 +48,19 @@ class UserSettings:
 
     def set_led_mode(self, mode_name):
         self.led_mode = led_mode.get_by_name(mode_name, self.config, self)
+        self.logger.info("Setting LED mode to {}".format(mode_name))
 
     def set_led_static_color(self, color):
         self.led_static_color = color
+        self.logger.info("Setting LED static color to {}".format(color))
 
     def set_lcd_mode(self, mode_name):
         self.lcd_mode = lcd_mode.get_by_name(mode_name, self.config, self)
+        self.logger.info("Setting LCD mode to {}".format(mode_name))
 
     def set_lcd_color(self, color):
         self.lcd_color = color
+        self.logger.info("Setting LCD color to {}".format(color))
 
 
 class DerivedSettings:
@@ -64,7 +71,8 @@ class DerivedSettings:
             the current user settings, by a dedicated thread.
 """
 
-    def __init__(self, user_settings):
+    def __init__(self, logger, user_settings):
+        self.logger = logger
         self.user_settings = user_settings
         self.led_color = Color(0, 0, 0)
         self.lcd_color = Color(0, 0, 0)

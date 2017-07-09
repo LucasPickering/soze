@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import logging
 import settings
 import rest
 import threading
@@ -18,9 +19,11 @@ class Main:
     def __init__(self, args):
         self.keep_running = True
         self.debug = args.debug
-        self.config = settings.Config(args.config)
-        self.user_settings = settings.UserSettings(self.config)
-        self.derived_settings = settings.DerivedSettings(self.user_settings)
+        self.init_logging(args.log)
+
+        self.config = settings.Config(self.logger, args.config)
+        self.user_settings = settings.UserSettings(self.logger, self.config)
+        self.derived_settings = settings.DerivedSettings(self.logger, self.user_settings)
 
         # Init the case LED handler
         self.led = Led()
@@ -39,6 +42,28 @@ class Main:
 
         # This thread constantly re-computes the derived settings from the user settings
         self.settings_thread = threading.Thread(target=self.settings_thread, daemon=True)
+
+    def init_logging(self, log_file):
+        # Init logging
+        self.logger = logging.getLogger('case-control')
+        self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
+
+        # Logging file handler
+        fh = logging.FileHandler(log_file)
+        fh.setLevel(logging.DEBUG)
+
+        # Logging console handler
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG if self.debug else logging.WARNING)
+
+        # Setup formatter
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
+        ch.setFormatter(formatter)
+
+        # Register handlers
+        self.logger.addHandler(fh)
+        self.logger.addHandler(ch)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -103,6 +128,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
+    parser.add_argument('-l', '--log', default='out.log', help="Specify the log file")
     args = parser.parse_args()
 
     main = Main(args)
