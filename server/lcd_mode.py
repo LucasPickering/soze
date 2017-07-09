@@ -28,12 +28,11 @@ class LcdModeOff(LcdMode):
 
 class LcdModeClock(LcdMode):
 
-    SECONDS_SIZE = 3
     LONG_DAY_FORMAT = '%A, %B %d'
     SHORT_DAY_FORMAT = '%A, %b %d'
-    SECONDS_FORMAT = '%S'
+    SECONDS_FORMAT = ' %S'
     HM_FORMAT = '%I:%M'
-    FIRST_LINE_FORMAT = '{} {:>20}'
+    FIRST_LINE_FORMAT = '{} {}'
 
     def get_color(self):
         return self.user_settings.lcd_color
@@ -41,12 +40,17 @@ class LcdModeClock(LcdMode):
     def get_text(self):
         now = datetime.now()
         day_str = now.strftime(self.LONG_DAY_FORMAT)
-        if len(day_str) > 20 - self.SECONDS_SIZE:
-            day_str = now.strftime(self.SHORT_DAY_FORMAT)
         seconds_str = now.strftime(self.SECONDS_FORMAT)
-        first_line = self.FIRST_LINE_FORMAT.format(day_str, seconds_str)
+
+        # If the line is too long, use a shorter version
+        if len(day_str) + len(seconds_str) > self.config.lcd_width:
+            day_str = now.strftime(self.SHORT_DAY_FORMAT)
+
+        # Pad the day string with spaces to make it the right length
+        day_str = day_str.ljust(self.config.lcd_width - len(seconds_str))
+        first_line = day_str + seconds_str
+
         return first_line
-        return 'CLOCK'
 
 
 _names = {

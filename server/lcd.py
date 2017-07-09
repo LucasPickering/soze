@@ -128,7 +128,7 @@ class Lcd:
         for index, char in self.CUSTOM_CHARS.items():
             self.create_char(index, char)
 
-    def __write(self, data, flush=True):
+    def __write(self, data, flush=False):
         """
         @brief      Writes the given bytes to the serial stream. The given data must be a bytes-like
                     object.
@@ -141,10 +141,10 @@ class Lcd:
         """
         rv = self.ser.write(data)
         if flush:
-            self.ser.flush()
+            self.flush_serial()
         return rv
 
-    def __send_command(self, command, *args):
+    def __send_command(self, command, *args, flush=False):
         """
         @brief      Sends the given command to the LCD, with the given arguments.
 
@@ -166,7 +166,17 @@ class Lcd:
         arg_bytes_list = [__to_bytes(arg) for arg in args]
         joined_bytes = b''.join(arg_bytes_list)
         all_bytes = bytes([self.SIG_COMMAND, command]) + joined_bytes
-        self.__write(all_bytes)
+        self.__write(all_bytes, flush)
+
+    def flush_serial(self):
+        """
+        @brief      Flushes the serial buffer, i.e. waits until everything in the buffer sends.
+
+        @param      self  The object
+
+        @return     None
+        """
+        self.ser.flush()
 
     def clear(self):
         """
@@ -367,7 +377,7 @@ class Lcd:
 
                 # If this char changed, update it. Otherwise, just advance to the next one.
                 if old_char != new_char:
-                    self.__write(new_char.encode(), flush=False)
+                    self.__write(new_char.encode())
                 else:
                     self.move_cursor_forward()
         self.lines = lines
