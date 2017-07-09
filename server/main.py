@@ -18,7 +18,8 @@ class Main:
     def __init__(self, args):
         self.keep_running = True
         self.debug = args.debug
-        self.user_settings = settings.UserSettings()
+        self.config = settings.Config(args.config)
+        self.user_settings = settings.UserSettings(self.config)
         self.derived_settings = settings.DerivedSettings(self.user_settings)
 
         # Init the case LED handler
@@ -28,7 +29,7 @@ class Main:
         self.led_thread = threading.Thread(target=self.led_thread)
 
         # Init the LCD handler
-        self.lcd = Lcd(args.serial)
+        self.lcd = Lcd(self.config.lcd_serial_device)
         self.lcd.set_autoscroll(False)
         self.lcd.on()
         self.lcd.clear()
@@ -100,9 +101,8 @@ class Main:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--serial', default='/dev/ttyAMA0',
-                        help="Serial port to communicate with the LCD on")
-    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
+    parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
     args = parser.parse_args()
 
     main = Main(args)

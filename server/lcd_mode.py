@@ -3,7 +3,8 @@ from color import Color
 
 class LcdMode:
 
-    def __init__(self, user_settings):
+    def __init__(self, config, user_settings):
+        self.config = config
         self.user_settings = user_settings
 
     def get_color(self):
@@ -17,9 +18,6 @@ class LcdModeOff(LcdMode):
 
     BLACK = Color(0, 0, 0)
 
-    def __init__(self, user_settings):
-        super(LcdModeOff, self).__init__(user_settings)
-
     def get_color(self):
         return self.BLACK
 
@@ -28,9 +26,6 @@ class LcdModeOff(LcdMode):
 
 
 class LcdModeClock(LcdMode):
-
-    def __init__(self, user_settings):
-        super(LcdModeClock, self).__init__(user_settings)
 
     def get_color(self):
         return self.user_settings.lcd_color
@@ -45,8 +40,8 @@ _names = {
 }
 
 
-def get_by_name(name, user_settings):
+def get_by_name(name, config, user_settings):
     try:
-        return _names[name](user_settings)
+        return _names[name](config, user_settings)
     except KeyError:
         raise ValueError("Invalid name: {}. Valid names are: {}".format(name, _names.keys()))

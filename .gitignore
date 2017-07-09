@@ -24,3 +24,6 @@ target/
 # Python
 */__pycache__
 *.pyc
+
+*.ini
+!default.ini
