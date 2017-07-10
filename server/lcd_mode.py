@@ -1,5 +1,7 @@
-from color import Color
 from datetime import datetime
+
+import lcd
+from color import Color
 
 
 class LcdMode:
@@ -31,13 +33,13 @@ class LcdModeClock(LcdMode):
     LONG_DAY_FORMAT = '%A, %B %d'
     SHORT_DAY_FORMAT = '%A, %b %d'
     SECONDS_FORMAT = ' %S'
-    HM_FORMAT = '%I:%M'
-    FIRST_LINE_FORMAT = '{} {}'
+    TIME_FORMAT = ' %I:%M'
 
     def get_color(self):
         return self.user_settings.lcd_color
 
     def get_text(self):
+
         now = datetime.now()
         day_str = now.strftime(self.LONG_DAY_FORMAT)
         seconds_str = now.strftime(self.SECONDS_FORMAT)
@@ -50,7 +52,10 @@ class LcdModeClock(LcdMode):
         day_str = day_str.ljust(self.config.lcd_width - len(seconds_str))
         first_line = day_str + seconds_str
 
-        return first_line
+        time_str = now.strftime(self.TIME_FORMAT)
+        time_lines = lcd.make_big_text(time_str)
+
+        return '\n'.join([first_line] + time_lines)
 
 
 _names = {

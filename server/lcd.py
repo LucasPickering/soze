@@ -4,6 +4,113 @@ import argparse
 import serial
 from enum import Enum
 
+# Custom chars (e.g. the small blocks used to make big chars) are defined here
+# Each character box is 5x8, represented as 8 5-bit lines
+CUSTOM_CHARS = {
+    0: [0b00000, 0b00000, 0b00000, 0b00000, 0b00011, 0b01111, 0b01111, 0b11111],
+    1: [0b00000, 0b00000, 0b00000, 0b00000, 0b11000, 0b11110, 0b11110, 0b11111],
+    2: [0b00000, 0b00000, 0b00000, 0b00000, 0b11111, 0b11111, 0b11111, 0b11111],
+    3: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b01111, 0b01111, 0b00011],
+    4: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11110, 0b11110, 0b11000],
+}
+
+# Aliases for the small characters used to make big characters
+HBR = '\x00'  # Half-bottom right
+HBL = '\x01'  # Half-bottom left
+BOT = '\x02'  # Half-bottom
+FBR = '\x03'  # Full-bottom right
+FBL = '\x04'  # Full-bottom left
+FUL = '\xff'  # Full rectangle
+EMT = ' '     # Empty (space)
+
+# Character arrays for big characters
+BIG_CHARS = {
+    '0': [HBR + BOT + HBL,
+          FUL + EMT + FUL,
+          FBR + BOT + FBL],
+
+    '1': [BOT + HBL + EMT,
+          EMT + FUL + EMT,
+          BOT + FUL + BOT],
+
+    '2': [HBR + BOT + HBL,
+          HBR + BOT + FBL,
+          FBR + BOT + BOT],
+
+    '3': [HBR + BOT + HBL,
+          EMT + BOT + FUL,
+          BOT + BOT + FBL],
+
+    '4': [BOT + EMT + BOT,
+          FBR + BOT + FUL,
+          EMT + EMT + FUL],
+
+    '5': [BOT + BOT + BOT,
+          FUL + BOT + HBL,
+          BOT + BOT + FBL],
+
+    '6': [HBR + BOT + HBL,
+          FUL + BOT + HBL,
+          FBR + BOT + FBL],
+
+    '7': [BOT + BOT + BOT,
+          EMT + HBR + FBL,
+          EMT + FUL + EMT],
+
+    '8': [HBR + BOT + HBL,
+          FUL + BOT + FUL,
+          FBR + BOT + FBL],
+
+    '9': [HBR + BOT + HBL,
+          FBR + BOT + FUL,
+          EMT + EMT + FUL],
+
+    ':': [FUL,
+          EMT,
+          FUL],
+
+    ' ': [EMT,
+          EMT,
+          EMT]
+}
+
+
+def make_big_text(text):
+    """
+    @brief      Converts the given string into "big text". Big text is text that is three lines
+                high. The return value will be a three-line string reprsenting the given text
+                in "big form."
+
+    @param      text  The text to make big
+
+    @return     The big text.
+    """
+
+    def __get_big_char(char):
+        try:
+            return BIG_CHARS[char]
+        except KeyError:
+            raise ValueError("Unsupported big character: {}".format(char))
+
+    def __add_spaces(line):
+        # Add a space after every character, except for spaces (don't double them up)
+        result = ''
+        for c in line:
+            if c != ' ':
+                result += c
+            result += ' '
+        return result
+
+    def __make_big_line(line):
+        line = __add_spaces(line)  # Add some spaces to the line to make it look nicer
+        big_chars = [__get_big_char(c) for c in line]
+        line_tuples = zip(*big_chars)
+        big_lines = [''.join(t) for t in line_tuples]
+        return '\n'.join(big_lines)
+
+    lines = text.splitlines()
+    return [__make_big_line(line) for line in lines]
+
 
 class CursorMode(Enum):
     off = 1
@@ -39,77 +146,8 @@ class Lcd:
     CMD_CURSOR_FWD = 0x4d
     CMD_CURSOR_BACK = 0x4c
     CMD_CREATE_CHAR = 0x4e
-    CMD_SAVE_CUSTOM_CHARS = 0xc1
-
-    # Custom chars (e.g. the small blocks used to make big chars) are defined here
-    # Each character box is 5x8, represented as 8 5-bit lines
-    CUSTOM_CHARS = {
-        0: [0b00000, 0b00000, 0b00000, 0b00000, 0b00011, 0b01111, 0b01111, 0b11111],
-        1: [0b00000, 0b00000, 0b00000, 0b00000, 0b11000, 0b11110, 0b11110, 0b11111],
-        2: [0b00000, 0b00000, 0b00000, 0b00000, 0b11111, 0b11111, 0b11111, 0b11111],
-        3: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b01111, 0b01111, 0b00011],
-        4: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11110, 0b11110, 0b11000]
-    }
-
-    # Aliases for the small characters used to make big characters
-    HBR = '\u0000'  # Half-bottom right
-    HBL = '\u0001'  # Half-bottom left
-    BOT = '\u0002'  # Half-bottom
-    FBR = '\u0003'  # Full-bottom right
-    FBL = '\u0004'  # Full-bottom left
-    FUL = '\u00ff'  # Full rectangle
-    EMT = '\u0020'  # Empty (space)
-
-    # Character arrays for big characters
-    BIG_CHARS = {
-        '0': [HBR + BOT + HBL,
-              FUL + EMT + FUL,
-              FBR + BOT + FBL],
-
-        '1': [BOT + HBL + EMT,
-              EMT + FUL + EMT,
-              BOT + FUL + BOT],
-
-        '2': [HBR + BOT + HBL,
-              HBR + BOT + FBL,
-              FBR + BOT + BOT],
-
-        '3': [HBR + BOT + HBL,
-              EMT + BOT + FUL,
-              BOT + BOT + FBL],
-
-        '4': [BOT + EMT + BOT,
-              FBR + BOT + FUL,
-              EMT + EMT + FUL],
-
-        '5': [BOT + BOT + BOT,
-              FUL + BOT + HBL,
-              BOT + BOT + FBL],
-
-        '6': [HBR + BOT + HBL,
-              FUL + BOT + HBL,
-              FBR + BOT + FBL],
-
-        '7': [BOT + BOT + BOT,
-              EMT + HBR + FBL,
-              EMT + FUL + EMT],
-
-        '8': [HBR + BOT + HBL,
-              FUL + BOT + FUL,
-              FBR + BOT + FBL],
-
-        '9': [HBR + BOT + HBL,
-              FBR + BOT + FUL,
-              EMT + EMT + FUL],
-
-        ':': [FUL,
-              EMT,
-              FUL],
-
-        ' ': [EMT,
-              EMT,
-              EMT]
-    }
+    CMD_SAVE_CUSTOM_CHAR = 0xc1
+    CMD_LOAD_CHAR_BANK = 0xc0
 
     def __init__(self, serial_port, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
         self.width = width
@@ -125,8 +163,9 @@ class Lcd:
         self.lines = [''] * height  # Screen starts blank
 
         # Register custom characters
-        for index, char in self.CUSTOM_CHARS.items():
-            self.create_char(index, char)
+        for index, char in CUSTOM_CHARS.items():
+            self.create_char(0, index, char)
+        self.load_char_bank(0)
 
     def __write(self, data, flush=False):
         """
@@ -346,8 +385,11 @@ class Lcd:
         """
         self.__send_command(self.CMD_CURSOR_BACK)
 
-    def create_char(self, index, char_bytes):
-        self.__send_command(self.CMD_CREATE_CHAR, 1, index, *char_bytes)
+    def create_char(self, bank, index, char_bytes):
+        self.__send_command(self.CMD_SAVE_CUSTOM_CHAR, bank, index, *char_bytes)
+
+    def load_char_bank(self, bank):
+        self.__send_command(self.CMD_LOAD_CHAR_BANK, bank)
 
     def set_text(self, text):
         """
@@ -377,37 +419,10 @@ class Lcd:
 
                 # If this char changed, update it. Otherwise, just advance to the next one.
                 if old_char != new_char:
-                    self.__write(new_char.encode())
+                    self.__write(bytes([ord(new_char)]))
                 else:
                     self.move_cursor_forward()
         self.lines = lines
-
-    def make_big_text(self, text):
-        """
-        @brief      Converts the given string into "big text". Big text is text that is three lines
-                    high. The return value will be a three-line string reprsenting the given text
-                    in "big form."
-
-        @param      self  The object
-        @param      text  The text to make big
-
-        @return     The big text.
-        """
-
-        def __get_big_char(self, char):
-            try:
-                return self.BIG_CHARS[char]
-            except KeyError:
-                raise ValueError("Unrecognized big character: {}".format(char))
-
-        def __make_big_line(self, line):
-            big_chars = [__get_big_char(c) for c in line]
-            line_tuples = zip(*big_chars)
-            big_lines = [''.join(t) for t in line_tuples]
-            return '\n'.join(big_lines)
-
-        lines = text.splitlines()
-        return [__make_big_line(line) for line in lines]
 
     def stop(self):
         """
@@ -417,7 +432,7 @@ class Lcd:
 
         @return     None
         """
-        self.ser.flush()
+        self.flush_serial()
         self.ser.close()
 
 
