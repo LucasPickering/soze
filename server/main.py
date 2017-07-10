@@ -112,6 +112,7 @@ class Main:
             self.lcd.set_text(self.derived_settings.lcd_text)
             # self.lcd.flush_serial()  # Maybe uncomment this if we have problems?
         self.lcd.off()
+        self.lcd.clear()
         self.lcd.stop()
 
     def settings_thread(self):
