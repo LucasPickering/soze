@@ -22,7 +22,7 @@ class Main:
         self.init_logging(args.log)
 
         self.config = settings.Config(self.logger, args.config)
-        self.user_settings = settings.UserSettings(self.logger, self.config)
+        self.user_settings = settings.UserSettings(args.settings, self.logger, self.config)
         self.derived_settings = settings.DerivedSettings(self.logger, self.user_settings)
 
         # Init the case LED handler
@@ -134,6 +134,8 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
     parser.add_argument('-l', '--log', default='out.log', help="Specify the log file")
+    parser.add_argument('-s', '--settings', default='settings.json',
+                        help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()
 
     main = Main(args)
