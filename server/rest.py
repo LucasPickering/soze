@@ -49,9 +49,10 @@ def lcd():
         return "GOOD SHIT GOOD SHIT\n"  # TODO print LCD info
 
 
-def run(settings, debug=False):
+def run(logger, settings, debug=False):
     # GLOBALS ARE GREAT
     global user_settings
     user_settings = settings
+    app.logger = logger
     # app.run(debug=debug, host='0.0.0.0')
     app.run(host='0.0.0.0')

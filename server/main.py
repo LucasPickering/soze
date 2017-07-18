@@ -3,11 +3,61 @@
 import argparse
 import logging
 import settings
-import rest
 import threading
 import time
+from flask import Flask
+from flask import request
+
+from color import Color
 from lcd import Lcd
 from led import Led
+
+app = Flask(__name__)
+user_settings = None  # Will be initialized in Main constructor
+
+
+def get_color(data):
+    if type(data) is list and len(data) == 3:
+        return Color(*data)  # Data is in a list, unpack the list into a color tuple
+    raise ValueError("Invalid format for color data: {}".format(data))
+
+
+@app.route('/')
+def root():
+    return 'This is my home: https://github.com/LucasPickering/Case-Control-CLI\n'
+
+
+@app.route('/xkcd')
+def xkcd():
+    return 'https://c.xkcd.com/random/comic\n'
+
+
+@app.route('/led', methods=['GET', 'POST'])
+def led():
+    if request.method == 'POST':
+        data = request.get_json()
+        if 'mode' in data:
+            user_settings.set_led_mode(data['mode'])
+        if 'static_color' in data:
+            color = get_color(data['static_color'])
+            user_settings.set_led_static_color(color)
+        return "Success\n"
+    else:
+        return "GOOD SHIT GOOD SHIT\n"  # TODO print LED info
+
+
+@app.route('/lcd', methods=['GET', 'POST'])
+def lcd():
+    if request.method == 'POST':
+        data = request.get_json()
+        if 'mode' in data:
+            user_settings.set_lcd_mode(data['mode'])
+        if 'color' in data:
+            color = get_color(data['color'])
+            user_settings.set_lcd_color(color)
+        return "Success\n"
+    else:
+        return "GOOD SHIT GOOD SHIT\n"  # TODO print LCD info
 
 
 class Main:
@@ -24,6 +74,9 @@ class Main:
         self.config = settings.Config(self.logger, args.config)
         self.user_settings = settings.UserSettings(args.settings, self.logger, self.config)
         self.derived_settings = settings.DerivedSettings(self.logger, self.user_settings)
+
+        global user_settings  # GLOBALS ARE GREAT
+        user_settings = self.user_settings
 
         # Init the case LED handler
         self.led = Led()
@@ -46,12 +99,12 @@ class Main:
 
     def init_logging(self, log_file):
         # Init logging
-        self.logger = logging.getLogger('case-control')
-        self.logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
+        self.logger = app.logger
+        self.logger.setLevel(logging.DEBUG)
 
         # Logging file handler
         fh = logging.FileHandler(log_file, mode='w')
-        fh.setLevel(logging.DEBUG)
+        fh.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
         # Logging console handler
         ch = logging.StreamHandler()
@@ -73,7 +126,8 @@ class Main:
         self.lcd_thread.start()
         self.settings_thread.start()
         try:
-            rest.run(self.user_settings, debug=self.debug)
+            # app.run(debug=self.debug, host='0.0.0.0')
+            app.run(host='0.0.0.0')
         finally:
             # When flask receives Ctrl-C and stops, this runs to shut down the other threads
             self.stop()
@@ -129,7 +183,7 @@ class Main:
             time.sleep(self.SETTINGS_THREAD_PAUSE)
 
 
-def main():
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
@@ -140,7 +194,3 @@ def main():
 
     main = Main(args)
     main.run()
-
-
-if __name__ == '__main__':
-    main()
