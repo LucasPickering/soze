@@ -8,18 +8,12 @@ import time
 from flask import Flask
 from flask import request
 
-from color import Color
+from color import unpack_color
 from lcd import Lcd
 from led import Led
 
 app = Flask(__name__)
 user_settings = None  # Will be initialized in Main constructor
-
-
-def get_color(data):
-    if type(data) is list and len(data) == 3:
-        return Color(*data)  # Data is in a list, unpack the list into a color tuple
-    raise ValueError("Invalid format for color data: {}".format(data))
 
 
 @app.route('/')
@@ -39,7 +33,7 @@ def led():
         if 'mode' in data:
             user_settings.set_led_mode(data['mode'])
         if 'static_color' in data:
-            color = get_color(data['static_color'])
+            color = unpack_color(data['static_color'])
             user_settings.set_led_static_color(color)
         return "Success\n"
     else:
@@ -53,7 +47,7 @@ def lcd():
         if 'mode' in data:
             user_settings.set_lcd_mode(data['mode'])
         if 'color' in data:
-            color = get_color(data['color'])
+            color = unpack_color(data['color'])
             user_settings.set_lcd_color(color)
         return "Success\n"
     else:

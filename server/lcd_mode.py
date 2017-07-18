@@ -17,6 +17,8 @@ class LcdMode(json.JSONEncoder):
 
 class LcdModeOff(LcdMode):
 
+    NAME = 'off'
+
     BLACK = Color(0, 0, 0)
 
     def get_color(self):
@@ -27,6 +29,8 @@ class LcdModeOff(LcdMode):
 
 
 class LcdModeClock(LcdMode):
+
+    NAME = 'clock'
 
     LONG_DAY_FORMAT = '%A, %B %d'
     SHORT_DAY_FORMAT = '%A, %b %d'
@@ -56,10 +60,8 @@ class LcdModeClock(LcdMode):
         return '\n'.join([first_line] + time_lines)
 
 
-_names = {
-    'off': LcdModeOff,
-    'clock': LcdModeClock
-}
+_classes = [LcdModeOff, LcdModeClock]
+_names = {cls.NAME: cls for cls in _classes}
 
 
 def get_by_name(name, config, user_settings):

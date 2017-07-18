@@ -1,9 +1,9 @@
 import configparser
 import json
 
-from color import Color
 import led_mode
 import lcd_mode
+from color import Color, unpack_color
 
 
 class Config:
@@ -20,7 +20,7 @@ class Config:
 
         # Print loaded values
         cfg_dict = {sct: dict(config.items(sct)) for sct in config.sections()}
-        logger.info("Loaded config: {}".format(cfg_dict))
+        self.logger.info("Loaded config: {}".format(cfg_dict))
 
         # Load values
         self.lcd_serial_device = config.get('lcd', 'serial_device')
@@ -44,16 +44,21 @@ class UserSettings:
         self.logger = logger
         self.config = config
 
-        # Try to load from settings, if that fails, just use default values
+        # Init default values
+        self.set_led_mode('off', save=False)
+        self.set_led_static_color(Color(0, 0, 0), save=False)
+        self.set_lcd_mode('off', save=False)
+        self.set_lcd_color(Color(0, 0, 0), save=False)
+
+        # Try to load from settings, if that fails, the default values stay
         try:
             self.load()
-        except Exception:
-            self.logger.warning("Failed to load from settings file '{}'".format(settings_file))
-            self.set_led_mode('off', save=False)
-            self.set_led_static_color(Color(0, 0, 0), save=False)
-            self.set_lcd_mode('off', save=False)
-            self.set_lcd_color(Color(0, 0, 0), save=False)
-            self.save()
+        except Exception as e:
+            raise(e)  # TODO remove
+            self.logger.warning("Failed to load from settings file '{}': {}".format(settings_file,
+                                                                                    e))
+
+        self.save()  # Save everything now
 
     def __setting_changed(self, setting, value, save):
         self.logger.info("Setting '{}' to '{}'".format(setting, value))
@@ -65,6 +70,8 @@ class UserSettings:
         self.__setting_changed("LED mode", mode_name, save)
 
     def set_led_static_color(self, color, save=True):
+        if type(color) is not Color:
+            color = unpack_color(color)
         self.led_static_color = color
         self.__setting_changed("LED static color", color, save)
 
@@ -73,6 +80,8 @@ class UserSettings:
         self.__setting_changed("LCD mode", mode_name, save)
 
     def set_lcd_color(self, color, save=True):
+        if type(color) is not Color:
+            color = unpack_color(color)
         self.lcd_color = color
         self.__setting_changed("LCD color", color, save)
 
@@ -87,9 +96,24 @@ class UserSettings:
         d = dict()
         d['led_mode'] = self.led_mode.NAME
         d['led_static_color'] = self.led_static_color
-        # d['lcd_mode'] = self.lcd_mode.to_dict()
+        d['lcd_mode'] = self.lcd_mode.NAME
         d['lcd_color'] = self.lcd_color
         return d
+
+    __SETTINGS = {
+        'led_mode': set_led_mode,
+        'led_static_color': set_led_static_color,
+        'lcd_mode': set_lcd_mode,
+        'lcd_color': set_lcd_color
+    }
+
+    def load(self):
+        # Load the dict from a file
+        with open(self.settings_file, 'r') as f:
+            cfg_dict = json.load(f)
+        for k, v in cfg_dict.items():
+            setter = self.__SETTINGS[k]
+            setter(self, v, save=False)
 
     def save(self):
         # Copy this object's dict and delete the fields we don't want to save
@@ -99,15 +123,6 @@ class UserSettings:
         self.logger.debug("Saving settings to '{}'".format(self.settings_file))
         with open(self.settings_file, 'w') as f:
             json.dump(d, f, indent=4)
-
-    def load(self):
-        # Load the dict from a file
-        with open(self.settings_file, 'r') as f:
-            d = json.load(f)
-        self.set_led_mode(d['led_mode'])
-        self.set_led_static_color(d['led_static_color'])
-        self.set_lcd_mode(d['lcd_mode'])
-        self.set_lcd_color(d['lcd_color'])
 
 
 class DerivedSettings:
