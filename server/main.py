@@ -8,7 +8,6 @@ import time
 from flask import Flask
 from flask import request
 
-from color import unpack_color
 from lcd import Lcd
 from led import Led
 
@@ -33,8 +32,7 @@ def led():
         if 'mode' in data:
             user_settings.set_led_mode(data['mode'])
         if 'static_color' in data:
-            color = unpack_color(data['static_color'])
-            user_settings.set_led_static_color(color)
+            user_settings.set_led_static_color(data['static_color'])
         return "Success\n"
     else:
         return "GOOD SHIT GOOD SHIT\n"  # TODO print LED info
@@ -47,8 +45,7 @@ def lcd():
         if 'mode' in data:
             user_settings.set_lcd_mode(data['mode'])
         if 'color' in data:
-            color = unpack_color(data['color'])
-            user_settings.set_lcd_color(color)
+            user_settings.set_lcd_color(data['color'])
         return "Success\n"
     else:
         return "GOOD SHIT GOOD SHIT\n"  # TODO print LCD info

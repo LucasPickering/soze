@@ -1,5 +1,6 @@
 import configparser
 import json
+from collections import namedtuple
 
 import led_mode
 import lcd_mode
@@ -44,85 +45,75 @@ class UserSettings:
         self.logger = logger
         self.config = config
 
-        # Init default values
-        self.set_led_mode('off', save=False)
-        self.set_led_static_color(Color(0, 0, 0), save=False)
-        self.set_lcd_mode('off', save=False)
-        self.set_lcd_color(Color(0, 0, 0), save=False)
+        self.setup_finished = False
+        self.load()  # Load from the config file
+        self.save()  # Write the whole config file to make sure it's up to date
+        self.setup_finished = True
 
-        # Try to load from settings, if that fails, the default values stay
-        try:
-            self.load()
-        except Exception as e:
-            raise(e)  # TODO remove
-            self.logger.warning("Failed to load from settings file '{}': {}".format(settings_file,
-                                                                                    e))
-
-        self.save()  # Save everything now
-
-    def __setting_changed(self, setting, value, save):
+    def __setting_changed(self, setting, value):
         self.logger.info("Setting '{}' to '{}'".format(setting, value))
-        if save:
+        if self.setup_finished:  # We don't want to save during setup because it causes problemos
             self.save()
 
-    def set_led_mode(self, mode_name, save=True):
+    def set_led_mode(self, mode_name):
         self.led_mode = led_mode.get_by_name(mode_name, self.config, self)
-        self.__setting_changed("LED mode", mode_name, save)
+        self.__setting_changed("LED mode", mode_name)
 
-    def set_led_static_color(self, color, save=True):
+    def set_led_static_color(self, color):
         if type(color) is not Color:
             color = unpack_color(color)
         self.led_static_color = color
-        self.__setting_changed("LED static color", color, save)
+        self.__setting_changed("LED static color", color)
 
-    def set_lcd_mode(self, mode_name, save=True):
+    def set_lcd_mode(self, mode_name):
         self.lcd_mode = lcd_mode.get_by_name(mode_name, self.config, self)
-        self.__setting_changed("LCD mode", mode_name, save)
+        self.__setting_changed("LCD mode", mode_name)
 
-    def set_lcd_color(self, color, save=True):
+    def set_lcd_color(self, color):
         if type(color) is not Color:
             color = unpack_color(color)
         self.lcd_color = color
-        self.__setting_changed("LCD color", color, save)
+        self.__setting_changed("LCD color", color)
 
-    def __make_settings_dict(self):
-        """
-        @brief      Puts all of this object's settings in a dict
-
-        @param      self  The object
-
-        @return     a dict containing this object's settings
-        """
-        d = dict()
-        d['led_mode'] = self.led_mode.NAME
-        d['led_static_color'] = self.led_static_color
-        d['lcd_mode'] = self.lcd_mode.NAME
-        d['lcd_color'] = self.lcd_color
-        return d
-
+    Setting = namedtuple('Setting', 'default_value getter setter')
+    __BLACK = Color(0, 0, 0)
     __SETTINGS = {
-        'led_mode': set_led_mode,
-        'led_static_color': set_led_static_color,
-        'lcd_mode': set_lcd_mode,
-        'lcd_color': set_lcd_color
+        'led_mode': Setting('off',
+                            lambda self: self.led_mode.NAME,
+                            set_led_mode),
+        'led_static_color': Setting(__BLACK,
+                                    lambda self: self.led_static_color,
+                                    set_led_static_color),
+        'lcd_mode': Setting('off',
+                            lambda self: self.lcd_mode.NAME,
+                            set_lcd_mode),
+        'lcd_color': Setting(__BLACK,
+                             lambda self: self.lcd_color,
+                             set_lcd_color)
     }
 
     def load(self):
         # Load the dict from a file
-        with open(self.settings_file, 'r') as f:
-            cfg_dict = json.load(f)
-        for k, v in cfg_dict.items():
-            setter = self.__SETTINGS[k]
-            setter(self, v, save=False)
+        try:
+            with open(self.settings_file, 'r') as f:
+                settings_dict = json.load(f)
+        except Exception as e:
+            self.logger.warning("Failed to load settings from '{}': {}".format(self.settings_file,
+                                                                               e))
+            settings_dict = dict()
+
+        # Try to read each setting from the config dict, or use default value
+        for setting_name, setting in self.__SETTINGS.items():
+            setting.setter(self, settings_dict.get(setting_name, setting.default_value))
 
     def save(self):
-        # Copy this object's dict and delete the fields we don't want to save
-        d = self.__make_settings_dict()
+        # Read all setting values into a dict
+        settings_dict = {name: setting.getter(self) for name, setting in self.__SETTINGS.items()}
 
         # Save the dict to a file
         self.logger.debug("Saving settings to '{}'".format(self.settings_file))
         with open(self.settings_file, 'w') as f:
-            json.dump(d, f, indent=4)
+            json.dump(settings_dict, f, indent=4)
 
 
 class DerivedSettings:
