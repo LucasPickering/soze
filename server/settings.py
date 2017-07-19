@@ -78,19 +78,31 @@ class UserSettings:
     Setting = namedtuple('Setting', 'default_value getter setter')
     __BLACK = Color(0, 0, 0)
     __SETTINGS = {
-        'led_mode': Setting('off',
-                            lambda self: self.led_mode.NAME,
-                            set_led_mode),
-        'led_static_color': Setting(__BLACK,
-                                    lambda self: self.led_static_color,
-                                    set_led_static_color),
-        'lcd_mode': Setting('off',
-                            lambda self: self.lcd_mode.NAME,
-                            set_lcd_mode),
-        'lcd_color': Setting(__BLACK,
-                             lambda self: self.lcd_color,
-                             set_lcd_color)
+        'led': {
+            'led_mode': Setting('off',
+                                lambda self: self.led_mode.NAME,
+                                set_led_mode),
+            'led_static_color': Setting(__BLACK,
+                                        lambda self: self.led_static_color,
+                                        set_led_static_color),
+        },
+        'lcd': {
+            'lcd_mode': Setting('off',
+                                lambda self: self.lcd_mode.NAME,
+                                set_lcd_mode),
+            'lcd_color': Setting(__BLACK,
+                                 lambda self: self.lcd_color,
+                                 set_lcd_color)
+        }
     }
+
+    def to_dict(self):
+        # Create a dict for each section, then put all those sections into one big ol' dict
+        d = dict()
+        for section_name, section in self.__SETTINGS.items():
+            # Make a dict for this section
+            d[section_name] = {name: setting.getter(self) for name, setting in section.items()}
+        return d
 
     def load(self):
         # Load the dict from a file
@@ -102,18 +114,18 @@ class UserSettings:
                                                                                e))
             settings_dict = dict()
 
-        # Try to read each setting from the config dict, or use default value
-        for setting_name, setting in self.__SETTINGS.items():
-            setting.setter(self, settings_dict.get(setting_name, setting.default_value))
+        # Try to read each section from the settings file. For each setting in each section, try to
+        # read that setting from the section. If it isn't in the settings file, use the default.
+        for section_name, section in self.__SETTINGS.items():
+            section_vals = settings_dict.get(section_name, dict())
+            for setting_name, setting in section.items():
+                setting.setter(self, section_vals.get(setting_name, setting.default_value))
 
     def save(self):
-        # Read all setting values into a dict
-        settings_dict = {name: setting.getter(self) for name, setting in self.__SETTINGS.items()}
-
-        # Save the dict to a file
+        # Save settings to a file
         self.logger.debug("Saving settings to '{}'".format(self.settings_file))
         with open(self.settings_file, 'w') as f:
-            json.dump(settings_dict, f, indent=4)
+            json.dump(self.to_dict(), f, indent=4)
 
 
 class DerivedSettings:

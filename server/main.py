@@ -5,8 +5,7 @@ import logging
 import settings
 import threading
 import time
-from flask import Flask
-from flask import request
+from flask import Flask, json, request
 
 from lcd import Lcd
 from led import Led
@@ -15,9 +14,15 @@ app = Flask(__name__)
 user_settings = None  # Will be initialized in Main constructor
 
 
+def to_json(data):
+    if 'pretty' in request.args:
+        return json.dumps(data, indent=4) + '\n'
+    return json.dumps(data)
+
+
 @app.route('/')
 def root():
-    return 'This is my home: https://github.com/LucasPickering/Case-Control-CLI'
+    return to_json(user_settings.to_dict())
 
 
 @app.route('/xkcd')
@@ -27,28 +32,28 @@ def xkcd():
 
 @app.route('/led', methods=['GET', 'POST'])
 def led():
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return to_json(user_settings.to_dict()['led'])
+    elif request.method == 'POST':
         data = request.get_json()
         if 'mode' in data:
             user_settings.set_led_mode(data['mode'])
         if 'static_color' in data:
             user_settings.set_led_static_color(data['static_color'])
         return "Success"
-    else:
-        return "GOOD SHIT GOOD SHIT"  # TODO print LED info
 
 
 @app.route('/lcd', methods=['GET', 'POST'])
 def lcd():
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return to_json(user_settings.to_dict()['lcd'])
+    elif request.method == 'POST':
         data = request.get_json()
         if 'mode' in data:
             user_settings.set_lcd_mode(data['mode'])
         if 'color' in data:
             user_settings.set_lcd_color(data['color'])
         return "Success"
-    else:
-        return "GOOD SHIT GOOD SHIT"  # TODO print LCD info
 
 
 class Main:
