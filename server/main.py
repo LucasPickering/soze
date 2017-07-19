@@ -17,12 +17,12 @@ user_settings = None  # Will be initialized in Main constructor
 
 @app.route('/')
 def root():
-    return 'This is my home: https://github.com/LucasPickering/Case-Control-CLI\n'
+    return 'This is my home: https://github.com/LucasPickering/Case-Control-CLI'
 
 
 @app.route('/xkcd')
 def xkcd():
-    return 'https://c.xkcd.com/random/comic\n'
+    return 'https://c.xkcd.com/random/comic'
 
 
 @app.route('/led', methods=['GET', 'POST'])
@@ -33,9 +33,9 @@ def led():
             user_settings.set_led_mode(data['mode'])
         if 'static_color' in data:
             user_settings.set_led_static_color(data['static_color'])
-        return "Success\n"
+        return "Success"
     else:
-        return "GOOD SHIT GOOD SHIT\n"  # TODO print LED info
+        return "GOOD SHIT GOOD SHIT"  # TODO print LED info
 
 
 @app.route('/lcd', methods=['GET', 'POST'])
@@ -46,9 +46,9 @@ def lcd():
             user_settings.set_lcd_mode(data['mode'])
         if 'color' in data:
             user_settings.set_lcd_color(data['color'])
-        return "Success\n"
+        return "Success"
     else:
-        return "GOOD SHIT GOOD SHIT\n"  # TODO print LCD info
+        return "GOOD SHIT GOOD SHIT"  # TODO print LCD info
 
 
 class Main:
