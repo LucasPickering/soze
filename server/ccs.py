@@ -3,6 +3,7 @@
 import argparse
 import logging
 import settings
+import subprocess
 import threading
 import time
 from flask import Flask, json, request
@@ -61,9 +62,11 @@ class Main:
     LED_THREAD_PAUSE = 0.01
     LCD_THREAD_PAUSE = 0.01
     SETTINGS_THREAD_PAUSE = 0.05
+    PING_THREAD_PAUSE = 1.0
 
     def __init__(self, args):
         self.keep_running = True
+        self.keepalive_up = True
         self.debug = args.debug
         self.init_logging(args.log)
 
@@ -78,7 +81,7 @@ class Main:
         self.led = Led()
 
         # This thread constantly reads the derived settings and updates the LEDs accordingly
-        self.led_thread = threading.Thread(target=self.led_thread)
+        self.led_thrd = threading.Thread(target=self.led_thread)
 
         # Init the LCD handler
         self.lcd = Lcd(self.config.lcd_serial_device, self.config.lcd_width,
@@ -88,10 +91,12 @@ class Main:
         self.lcd.clear()
 
         # This thread constantly reads the derived settings and updates the LCD accordingly
-        self.lcd_thread = threading.Thread(target=self.lcd_thread)
+        self.lcd_thrd = threading.Thread(target=self.lcd_thread)
 
         # This thread constantly re-computes the derived settings from the user settings
-        self.settings_thread = threading.Thread(target=self.settings_thread, daemon=True)
+        self.settings_thrd = threading.Thread(target=self.settings_thread, daemon=True)
+
+        self.ping_thrd = threading.Thread(target=self.ping_thread, daemon=True)
 
     def init_logging(self, log_file):
         # Init logging
@@ -104,7 +109,7 @@ class Main:
 
         # Logging console handler
         ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG if self.debug else logging.WARNING)
+        ch.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
         # Setup formatter
         formatter = logging.Formatter('{asctime} - {levelname} - {message}',
@@ -118,9 +123,10 @@ class Main:
 
     def run(self):
         # Start the helper threads, then launch the REST API
-        self.led_thread.start()
-        self.lcd_thread.start()
-        self.settings_thread.start()
+        self.led_thrd.start()
+        self.lcd_thrd.start()
+        self.settings_thrd.start()
+        self.ping_thrd.start()
         try:
             # app.run(debug=self.debug, host='0.0.0.0')
             app.run(host='0.0.0.0')
@@ -130,8 +136,8 @@ class Main:
 
     def stop(self):
         self.keep_running = False
-        self.led_thread.join()
-        self.lcd_thread.join()
+        self.led_thrd.join()
+        self.lcd_thrd.join()
 
     def led_thread(self):
         """
@@ -142,11 +148,15 @@ class Main:
 
         @return     None
         """
-        while self.keep_running:
-            color = self.derived_settings.led_color
-            self.led.set_color(color.red, color.green, color.blue)
-            time.sleep(self.LED_THREAD_PAUSE)
+        try:
+            while self.keep_running:
+                color = self.derived_settings.led_color
+                self.led.set_color(color.red, color.green, color.blue)
+                time.sleep(self.LED_THREAD_PAUSE)
+        except Exception as e:
+            self.logger.error(e)
         self.led.stop()
+        self.logger.info("LED thread stopped")
 
     def lcd_thread(self):
         """
@@ -164,6 +174,7 @@ class Main:
         self.lcd.off()
         self.lcd.clear()
         self.lcd.stop()
+        self.logger.info("LCD thread stopped")
 
     def settings_thread(self):
         """
@@ -178,8 +189,27 @@ class Main:
             self.derived_settings.update()
             time.sleep(self.SETTINGS_THREAD_PAUSE)
 
+    def ping_thread(self):
+        """
+        @brief      A thread that periodically pings the keepalive host. If the host doesn't repond,
+                    the LED and LCD are shut off. If there is no host set, it is assumed to be up.
 
-if __name__ == '__main__':
+        @param      self  The object
+
+        @return     None
+        """
+        while self.keep_running:
+            time.sleep(self.PING_THREAD_PAUSE)
+            if self.config.keepalive_host:
+                exit_code = subprocess.call(['ping', '-n', '1', self.config.keepalive_host],
+                                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                if exit_code:
+                    self.keepalive_up = False
+                    continue
+            self.keepalive_up = True
+
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
@@ -190,3 +220,7 @@ if __name__ == '__main__':
 
     main = Main(args)
     main.run()
+
+
+if __name__ == '__main__':
+    main()

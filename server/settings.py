@@ -24,6 +24,7 @@ class Config:
         self.logger.info("Loaded config: {}".format(cfg_dict))
 
         # Load values
+        self.keepalive_host = config.get('main', 'keepalive_host')
         self.lcd_serial_device = config.get('lcd', 'serial_device')
         self.lcd_width = config.getint('lcd', 'width')
         self.lcd_height = config.getint('lcd', 'height')

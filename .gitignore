@@ -29,3 +29,5 @@ target/
 *.ini
 !default.ini
 settings.json
+
+server/ccs.egg-info/
