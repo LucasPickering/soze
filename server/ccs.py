@@ -10,6 +10,9 @@ from flask import Flask, json, request
 
 from lcd import Lcd
 from led import Led
+from color import Color
+
+BLACK = Color(0, 0, 0)
 
 app = Flask(__name__)
 user_settings = None  # Will be initialized in Main constructor
@@ -35,6 +38,19 @@ def xkcd():
 def led():
     if request.method == 'GET':
         return to_json(user_settings.to_dict()['led'])
+    elif request.method == 'POST':
+        data = request.get_json()
+        if 'mode' in data:
+            user_settings.set_led_mode(data['mode'])
+        if 'static_color' in data:
+            user_settings.set_led_static_color(data['static_color'])
+        return "Success"
+
+
+@app.route('/led/fade', methods=['GET', 'POST'])
+def led_fade():
+    if request.method == 'GET':
+        return to_json(user_settings.to_dict()['led']['fade'])
     elif request.method == 'POST':
         data = request.get_json()
         if 'mode' in data:
@@ -135,6 +151,7 @@ class Main:
             self.stop()
 
     def stop(self):
+        self.logger.info("Stopping...")
         self.keep_running = False
         self.led_thrd.join()
         self.lcd_thrd.join()
@@ -150,7 +167,7 @@ class Main:
         """
         try:
             while self.keep_running:
-                color = self.derived_settings.led_color
+                color = self.derived_settings.led_color if self.keepalive_up else BLACK
                 self.led.set_color(color.red, color.green, color.blue)
                 time.sleep(self.LED_THREAD_PAUSE)
         except Exception as e:
@@ -168,9 +185,15 @@ class Main:
         @return     None
         """
         while self.keep_running:
-            self.lcd.set_color(self.derived_settings.lcd_color)
-            self.lcd.set_text(self.derived_settings.lcd_text)
-            # self.lcd.flush_serial()  # Maybe uncomment this if we have problems?
+            if self.keepalive_up:
+                color = self.derived_settings.lcd_color
+                text = self.derived_settings.lcd_text
+            else:
+                color = BLACK
+                text = ''
+            self.lcd.set_color(color)
+            self.lcd.set_text(text)
+            # self.lcd.flush_serial()  # Maybe uncomment this if we have problems?`
         self.lcd.off()
         self.lcd.clear()
         self.lcd.stop()
@@ -201,11 +224,15 @@ class Main:
         while self.keep_running:
             time.sleep(self.PING_THREAD_PAUSE)
             if self.config.keepalive_host:
-                exit_code = subprocess.call(['ping', '-n', '1', self.config.keepalive_host],
+                exit_code = subprocess.call(['ping', '-c', '1', self.config.keepalive_host],
                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 if exit_code:
+                    if self.keepalive_up:
+                        self.logger.debug("Keepalive down")
                     self.keepalive_up = False
                     continue
+            if not self.keepalive_up:
+                self.logger.log(logging.DEBUG, "Keepalive up")
             self.keepalive_up = True
 
 
