@@ -152,7 +152,6 @@ class Lcd:
     def __init__(self, serial_port, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
         self.width = width
         self.height = height
-        self.serial_port = serial_port
         self.ser = serial.Serial(serial_port,
                                  baudrate=self.BAUD_RATE,
                                  bytesize=serial.EIGHTBITS,

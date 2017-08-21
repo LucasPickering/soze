@@ -8,14 +8,13 @@ import threading
 import time
 from flask import Flask, json, request
 
-from lcd import Lcd
-from led import Led
 from color import Color
 
 BLACK = Color(0, 0, 0)
 
 app = Flask(__name__)
 user_settings = None  # Will be initialized in Main constructor
+logger = app.logger
 
 
 def to_json(data):
@@ -86,12 +85,19 @@ class Main:
         self.debug = args.debug
         self.init_logging(args.log)
 
-        self.config = settings.Config(self.logger, args.config)
-        self.user_settings = settings.UserSettings(args.settings, self.logger, self.config)
-        self.derived_settings = settings.DerivedSettings(self.logger, self.user_settings)
+        self.config = settings.Config(logger, args.config)
+        self.user_settings = settings.UserSettings(args.settings, logger, self.config)
+        self.derived_settings = settings.DerivedSettings(logger, self.user_settings)
 
         global user_settings  # GLOBALS ARE GREAT
         user_settings = self.user_settings
+
+        # Import LCD/LED handles based on whether or not we are mocking
+        if args.mock:
+            from mock import MockedLcd as Lcd, MockedLed as Led
+        else:
+            from lcd import Lcd
+            from led import Led
 
         # Init the case LED handler
         self.led = Led()
@@ -100,8 +106,8 @@ class Main:
         self.led_thrd = threading.Thread(target=self.led_thread)
 
         # Init the LCD handler
-        self.lcd = Lcd(self.config.lcd_serial_device, self.config.lcd_width,
-                       self.config.lcd_height)
+        self.lcd = Lcd(self.config.lcd_serial_device,
+                       self.config.lcd_width, self.config.lcd_height)
         self.lcd.set_autoscroll(False)
         self.lcd.on()
         self.lcd.clear()
@@ -116,8 +122,7 @@ class Main:
 
     def init_logging(self, log_file):
         # Init logging
-        self.logger = app.logger
-        self.logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG)
 
         # Logging file handler
         fh = logging.FileHandler(log_file, mode='w')
@@ -134,8 +139,8 @@ class Main:
         ch.setFormatter(formatter)
 
         # Register handlers
-        self.logger.addHandler(fh)
-        self.logger.addHandler(ch)
+        logger.addHandler(fh)
+        logger.addHandler(ch)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -151,7 +156,7 @@ class Main:
             self.stop()
 
     def stop(self):
-        self.logger.info("Stopping...")
+        logger.info("Stopping...")
         self.keep_running = False
         self.led_thrd.join()
         self.lcd_thrd.join()
@@ -171,9 +176,9 @@ class Main:
                 self.led.set_color(color.red, color.green, color.blue)
                 time.sleep(self.LED_THREAD_PAUSE)
         except Exception as e:
-            self.logger.error(e)
+            logger.error(e)
         self.led.stop()
-        self.logger.info("LED thread stopped")
+        logger.info("LED thread stopped")
 
     def lcd_thread(self):
         """
@@ -197,7 +202,7 @@ class Main:
         self.lcd.off()
         self.lcd.clear()
         self.lcd.stop()
-        self.logger.info("LCD thread stopped")
+        logger.info("LCD thread stopped")
 
     def settings_thread(self):
         """
@@ -228,11 +233,11 @@ class Main:
                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 if exit_code:
                     if self.keepalive_up:
-                        self.logger.debug("Keepalive down")
+                        logger.debug("Keepalive down")
                     self.keepalive_up = False
                     continue
             if not self.keepalive_up:
-                self.logger.log(logging.DEBUG, "Keepalive up")
+                logger.debug("Keepalive up")
             self.keepalive_up = True
 
 
@@ -241,6 +246,8 @@ def main():
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
     parser.add_argument('-l', '--log', default='out.log', help="Specify the log file")
+    parser.add_argument('-m', '--mock', action='store_const', default=False, const=True,
+                        help="Run in mocking mode, for testing without all the hardware")
     parser.add_argument('-s', '--settings', default='settings.json',
                         help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()
