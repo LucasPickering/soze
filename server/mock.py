@@ -33,7 +33,7 @@ class MockedLed:
         self.off()
 
     def set_color(self, red, green, blue):
-        pass  # TODO something real
+        self.red = red
 
     def off(self):
         self.set_color(0, 0, 0)

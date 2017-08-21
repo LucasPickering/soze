@@ -21,7 +21,7 @@ class Config:
 
         # Print loaded values
         cfg_dict = {sct: dict(config.items(sct)) for sct in config.sections()}
-        self.logger.info("Loaded config: {}".format(cfg_dict))
+        self.logger.info("Loaded config: {cfg_dict}")
 
         # Load values
         self.keepalive_host = config.get('main', 'keepalive_host')
@@ -52,7 +52,7 @@ class UserSettings:
         self.setup_finished = True
 
     def __setting_changed(self, setting, value):
-        self.logger.info("Setting '{}' to '{}'".format(setting, value))
+        self.logger.info(f"Setting '{setting}' to '{value}'")
         if self.setup_finished:  # We don't want to save during setup because it causes problemos
             self.save()
 
@@ -111,8 +111,7 @@ class UserSettings:
             with open(self.settings_file, 'r') as f:
                 settings_dict = json.load(f)
         except Exception as e:
-            self.logger.warning("Failed to load settings from '{}': {}".format(self.settings_file,
-                                                                               e))
+            self.logger.warning(f"Failed to load settings from '{self.settings_file}': {e}")
             settings_dict = dict()
 
         # Try to read each section from the settings file. For each setting in each section, try to
@@ -124,7 +123,7 @@ class UserSettings:
 
     def save(self):
         # Save settings to a file
-        self.logger.debug("Saving settings to '{}'".format(self.settings_file))
+        self.logger.debug(f"Saving settings to '{self.settings_file}'")
         with open(self.settings_file, 'w') as f:
             json.dump(self.to_dict(), f, indent=4)
 

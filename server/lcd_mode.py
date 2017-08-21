@@ -68,4 +68,5 @@ def get_by_name(name, config, user_settings):
     try:
         return _names[name](config, user_settings, name)
     except KeyError:
-        raise ValueError("Invalid name: {}. Valid names are: {}".format(name, _names.keys()))
+        valid_names = list(_names.keys())
+        raise ValueError(f"Invalid name: {name}. Valid names are: {valid_names}")

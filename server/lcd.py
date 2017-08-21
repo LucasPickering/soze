@@ -90,7 +90,7 @@ def make_big_text(text):
         try:
             return BIG_CHARS[char]
         except KeyError:
-            raise ValueError("Unsupported big character: {}".format(char))
+            raise ValueError(f"Unsupported big character: {char}")
 
     def __add_spaces(line):
         # Add a space after every character, except for spaces (don't double them up)
