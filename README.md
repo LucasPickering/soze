@@ -11,7 +11,7 @@ in Python. They communicate over a socket.
 
 ## Connections
 The PC is connected to the RPi via a USB cable, which goes from the motherboard's internal
-5-pin USB header to the Pi's USB data port. This provides both power and data.  
+5-pin USB header to the Pi's USB data port. This provides both power and data.
 
 The RPi is connected to the LCD backpack with a 3-pin connector that carries 5V, GND, and TX.
 The RPi sends commands and data to the backpack with a serial connection. The serial settings are:
@@ -19,9 +19,10 @@ The RPi sends commands and data to the backpack with a serial connection. The se
 * 8 bits
 * 1 stop bit
 * No parity
+
 Note that the backpack is meant to take 5V input on the data line, but the RPi only puts out 3.3V
 on its GPIO pins. Fortunately, 3.3V is high enough for the backpack to recognize as logical high,
-so no level converter is needed.  
+so no level converter is needed.
 
 The RPi is connected to the LEDs via a small board I made, which contains 3 MOSFETs. Each MOSFET
 corresponds to one color in RGB. The gate of each MOSFET is connected to its respective GPIO pin
