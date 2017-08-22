@@ -1,4 +1,4 @@
-from color import Color
+from ccs.core.color import Color
 
 _BLACK = Color(0, 0, 0)
 

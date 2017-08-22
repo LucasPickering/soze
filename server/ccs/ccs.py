@@ -2,13 +2,14 @@
 
 import argparse
 import logging
-import settings
 import subprocess
 import threading
 import time
+
 from flask import Flask, json, request
 
-from color import Color
+from .core import settings
+from .core.color import Color
 
 BLACK = Color(0, 0, 0)
 
@@ -72,7 +73,7 @@ def lcd():
         return "Success"
 
 
-class Main:
+class CaseControlServer:
 
     LED_THREAD_PAUSE = 0.01
     LCD_THREAD_PAUSE = 0.01
@@ -94,10 +95,10 @@ class Main:
 
         # Import LCD/LED handles based on whether or not we are mocking
         if args.mock:
-            from mock import MockedLcd as Lcd, MockedLed as Led
+            from .core.mock import MockedLcd as Lcd, MockedLed as Led
         else:
-            from lcd import Lcd
-            from led import Led
+            from .lcd.lcd import Lcd
+            from .led.led import Led
 
         # Init the case LED handler
         self.led = Led()
@@ -241,7 +242,7 @@ class Main:
             self.keepalive_up = True
 
 
-def main():
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
@@ -252,9 +253,5 @@ def main():
                         help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()
 
-    main = Main(args)
-    main.run()
-
-
-if __name__ == '__main__':
-    main()
+    c = CaseControlServer(args)
+    c.run()

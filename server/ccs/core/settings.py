@@ -2,9 +2,9 @@ import configparser
 import json
 from collections import namedtuple
 
-import led_mode
-import lcd_mode
-from color import Color, unpack_color
+from .color import Color, unpack_color
+from ccs.lcd import lcd_mode
+from ccs.led import led_mode
 
 
 class Config:

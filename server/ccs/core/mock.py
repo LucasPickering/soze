@@ -1,4 +1,4 @@
-from lcd import Lcd
+from ccs.lcd.lcd import Lcd
 
 
 class MockedSerial:

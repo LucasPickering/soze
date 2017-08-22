@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
 
-import lcd
-from color import Color
+from . import lcd
+from ccs.core.color import Color
 
 
 class LcdMode(json.JSONEncoder):
