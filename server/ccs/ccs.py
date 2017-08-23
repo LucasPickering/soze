@@ -17,19 +17,21 @@ class CaseControlServer:
     PING_THREAD_PAUSE = 1.0
 
     def __init__(self, args):
-        self.keep_running = True
-        self.keepalive_up = True
-        self.debug = args.debug
+        self._keep_running = True
+        self._keepalive_up = True
+        self._debug = args.debug
 
-        if self.debug:
+        if self._debug:
             logger.setLevel(logging.DEBUG)
 
         # Init config/settings
-        self.config = settings.Config()
-        self.config.init(args.config)
-        self.user_settings = settings.UserSettings()
-        self.user_settings.init(args.settings)
-        self.derived_settings = settings.DerivedSettings()
+        config = settings.Config()
+        config.init(args.config)
+        self._user_settings = settings.UserSettings()
+        self._user_settings.init(args.settings)
+        self._derived_settings = settings.DerivedSettings()
+
+        self._threads = []  # List of background threads to run
 
         # Import LCD/LED handles based on whether or not we are mocking
         if args.mock:
@@ -38,46 +40,43 @@ class CaseControlServer:
             from .lcd.lcd import Lcd
             from .led.led import Led
 
-        # Init the case LED handler
-        self.led = Led()
-
-        # This thread constantly reads the derived settings and updates the LEDs accordingly
-        self.led_thrd = threading.Thread(target=self.led_thread)
-
         # Init the LCD handler
-        self.lcd = Lcd(self.config.lcd_serial_device,
-                       self.config.lcd_width, self.config.lcd_height)
-        self.lcd.set_autoscroll(False)
-        self.lcd.on()
-        self.lcd.clear()
+        self._lcd = Lcd(config.lcd_serial_device, config.lcd_width, config.lcd_height)
 
-        # This thread constantly reads the derived settings and updates the LCD accordingly
-        self.lcd_thrd = threading.Thread(target=self.lcd_thread)
+        # Init the LED handler
+        self._led = Led()
 
-        # This thread constantly re-computes the derived settings from the user settings
-        self.settings_thrd = threading.Thread(target=self.settings_thread, daemon=True)
+        # Add background threads to be run
+        self._add_thread(self._led_thread)
+        self._add_thread(self._lcd_thread)
+        self._add_thread(self._settings_thread, daemon=True)
+        self._add_thread(self._ping_thread, args=(config.keepalive_host,), daemon=True)
 
-        self.ping_thrd = threading.Thread(target=self.ping_thread, daemon=True)
+    def _add_thread(self, target, **kwargs):
+        thread = threading.Thread(target=target, **kwargs)
+        self._threads.append(thread)
 
     def run(self):
         # Start the helper threads, then launch the REST API
-        self.led_thrd.start()
-        self.lcd_thrd.start()
-        self.settings_thrd.start()
-        self.ping_thrd.start()
+        for thread in self._threads:
+            thread.start()
         try:
-            app.run(host='0.0.0.0', debug=self.debug, use_reloader=False)
+            app.run(host='0.0.0.0', debug=self._debug, use_reloader=False)
         finally:
             # When flask receives Ctrl-C and stops, this runs to shut down the other threads
-            self.stop()
+            self._stop()
 
-    def stop(self):
+    def _stop(self):
         logger.info("Stopping...")
-        self.keep_running = False
-        self.led_thrd.join()
-        self.lcd_thrd.join()
+        self._keep_running = False
 
-    def led_thread(self):
+        # Wait for all blocking (i.e. non-daemon) threads to terminate
+        logger.debug("Waiting for threads to stop...")
+        for thread in self._threads:
+            if not thread.daemon:
+                thread.join()
+
+    def _led_thread(self):
         """
         @brief      A thread that periodically updates the case LEDs based on the current
                     derived settings.
@@ -87,16 +86,16 @@ class CaseControlServer:
         @return     None
         """
         try:
-            while self.keep_running:
-                color = self.derived_settings.led_color if self.keepalive_up else BLACK
-                self.led.set_color(color.red, color.green, color.blue)
+            while self._keep_running:
+                color = self._derived_settings.led_color if self._keepalive_up else BLACK
+                self._led.set_color(color.red, color.green, color.blue)
                 time.sleep(self.LED_THREAD_PAUSE)
         except Exception as e:
             logger.error(e)
-        self.led.stop()
-        logger.info("LED thread stopped")
+        self._led.stop()
+        logger.debug("LED thread stopped")
 
-    def lcd_thread(self):
+    def _lcd_thread(self):
         """
         @brief      A thread that periodically updates the case LEDs based on the current
                     derived settings.
@@ -105,22 +104,22 @@ class CaseControlServer:
 
         @return     None
         """
-        while self.keep_running:
-            if self.keepalive_up:
-                color = self.derived_settings.lcd_color
-                text = self.derived_settings.lcd_text
+        while self._keep_running:
+            if self._keepalive_up:
+                color = self._derived_settings.lcd_color
+                text = self._derived_settings.lcd_text
             else:
                 color = BLACK
                 text = ''
-            self.lcd.set_color(color)
-            self.lcd.set_text(text)
-            # self.lcd.flush_serial()  # Maybe uncomment this if we have problems?`
-        self.lcd.off()
-        self.lcd.clear()
-        self.lcd.stop()
-        logger.info("LCD thread stopped")
+            self._lcd.set_color(color)
+            self._lcd.set_text(text)
+            # self._lcd.flush_serial()  # Maybe uncomment this if we have problems?`
+        self._lcd.off()
+        self._lcd.clear()
+        self._lcd.stop()
+        logger.debug("LCD thread stopped")
 
-    def settings_thread(self):
+    def _settings_thread(self):
         """
         @brief      A thread that periodically re-calculates the derived settings. These settings
                     are calculated from the user settings.
@@ -129,11 +128,11 @@ class CaseControlServer:
 
         @return     None
         """
-        while self.keep_running:
-            self.derived_settings.update()
+        while self._keep_running:
+            self._derived_settings.update()
             time.sleep(self.SETTINGS_THREAD_PAUSE)
 
-    def ping_thread(self):
+    def _ping_thread(self, keepalive_host):
         """
         @brief      A thread that periodically pings the keepalive host. If the host doesn't repond,
                     the LED and LCD are shut off. If there is no host set, it is assumed to be up.
@@ -142,19 +141,19 @@ class CaseControlServer:
 
         @return     None
         """
-        while self.keep_running:
+        while self._keep_running:
             time.sleep(self.PING_THREAD_PAUSE)
-            if self.config.keepalive_host:
-                exit_code = subprocess.call(['ping', '-c', '1', self.config.keepalive_host],
+            if keepalive_host:
+                exit_code = subprocess.call(['ping', '-c', '1', keepalive_host],
                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 if exit_code:
-                    if self.keepalive_up:
+                    if self._keepalive_up:
                         logger.debug("Keepalive down")
-                    self.keepalive_up = False
+                    self._keepalive_up = False
                     continue
-            if not self.keepalive_up:
+            if not self._keepalive_up:
                 logger.debug("Keepalive up")
-            self.keepalive_up = True
+            self._keepalive_up = True
 
 
 if __name__ == '__main__':

@@ -1,4 +1,3 @@
-import argparse
 import serial
 from enum import Enum
 
@@ -157,6 +156,8 @@ class Lcd:
                                  stopbits=serial.STOPBITS_ONE)
         self.set_size(width, height)
         self.clear()
+        self.set_autoscroll(False)  # Fugg that
+        self.on()
         self.lines = [''] * height  # Screen starts blank
 
         # Register custom characters
@@ -431,16 +432,3 @@ class Lcd:
         """
         self.flush_serial()
         self.ser.close()
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('port', help="Serial port for the LCD")
-    args = parser.parse_args()
-
-    lcd = Lcd(args.port)
-    # TODO implement debugging stuff here
-
-
-if __name__ == '__main__':
-    main()
