@@ -1,13 +1,14 @@
-from ccs.core.color import Color
-
-_BLACK = Color(0, 0, 0)
+from ccs.core.color import BLACK
 
 
 class LedMode:
 
-    def __init__(self, config, user_settings, mode_name):
-        self.config = config
-        self.user_settings = user_settings
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     def get_color(self):
         return None
@@ -21,7 +22,7 @@ class LedModeOff(LedMode):
         return 'off'
 
     def get_color(self):
-        return _BLACK
+        return BLACK
 
 
 class LedModeStatic(LedMode):
@@ -29,16 +30,17 @@ class LedModeStatic(LedMode):
     NAME = 'static'
 
     def get_color(self):
-        return self.user_settings.led_static_color
+        from ccs.core import user_settings  # Workaround!!
+        return user_settings.led_static_color
 
 
 _classes = [LedModeOff, LedModeStatic]
 _names = {cls.NAME: cls for cls in _classes}
 
 
-def get_by_name(name, config, user_settings):
+def get_by_name(name):
     try:
-        return _names[name](config, user_settings, name)
+        return _names[name](name)
     except KeyError:
         valid_names = list(_names.keys())
         raise ValueError(f"Invalid name: {name}. Valid names are: {valid_names}")

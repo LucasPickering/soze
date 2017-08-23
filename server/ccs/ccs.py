@@ -5,7 +5,7 @@ import threading
 import time
 
 from ccs import app, logger
-from .core import settings
+from .core import config, user_settings, derived_settings
 from .core.color import BLACK
 
 
@@ -25,11 +25,8 @@ class CaseControlServer:
             logger.setLevel(logging.DEBUG)
 
         # Init config/settings
-        config = settings.Config()
         config.init(args.config)
-        self._user_settings = settings.UserSettings()
-        self._user_settings.init(args.settings)
-        self._derived_settings = settings.DerivedSettings()
+        user_settings.init(args.settings)
 
         self._threads = []  # List of background threads to run
 
@@ -85,13 +82,10 @@ class CaseControlServer:
 
         @return     None
         """
-        try:
-            while self._keep_running:
-                color = self._derived_settings.led_color if self._keepalive_up else BLACK
-                self._led.set_color(color.red, color.green, color.blue)
-                time.sleep(self.LED_THREAD_PAUSE)
-        except Exception as e:
-            logger.error(e)
+        while self._keep_running:
+            color = derived_settings.led_color if self._keepalive_up else BLACK
+            self._led.set_color(color.red, color.green, color.blue)
+            time.sleep(self.LED_THREAD_PAUSE)
         self._led.stop()
         logger.debug("LED thread stopped")
 
@@ -106,8 +100,8 @@ class CaseControlServer:
         """
         while self._keep_running:
             if self._keepalive_up:
-                color = self._derived_settings.lcd_color
-                text = self._derived_settings.lcd_text
+                color = derived_settings.lcd_color
+                text = derived_settings.lcd_text
             else:
                 color = BLACK
                 text = ''
@@ -129,7 +123,7 @@ class CaseControlServer:
         @return     None
         """
         while self._keep_running:
-            self._derived_settings.update()
+            derived_settings.update()
             time.sleep(self.SETTINGS_THREAD_PAUSE)
 
     def _ping_thread(self, keepalive_host):
@@ -162,7 +156,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
     parser.add_argument('-m', '--mock', action='store_const', default=False, const=True,
                         help="Run in mocking mode, for testing without all the hardware")
-    parser.add_argument('-s', '--settings', default='settings.json',
+    parser.add_argument('-s', '--settings', default='settings.p',
                         help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()
 

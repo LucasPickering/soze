@@ -1,6 +1,6 @@
 import configparser
 import json
-from collections import namedtuple
+import pickle
 
 from .. import logger
 from .color import Color, unpack_color, BLACK
@@ -51,87 +51,77 @@ class UserSettings(metaclass=Singleton):
         # This is separate from the constructor so that anyone can use get this instance via the
         # constructor without having to initialize the class
 
-        self.settings_file = settings_file
-        self.config = Config()
+        self._settings_file = settings_file
 
-        self.load()  # Load from the settings file
-        self.save()  # Write the whole settings file to make sure it's up to date
+        # Init default values for fields
+        self.led_mode = 'off'
+        self.led_static_color = BLACK
+        self.lcd_mode = 'off'
+        self.lcd_color = BLACK
+
+        self._load()  # Load from the settings file
+        self._save()  # Write the whole settings file to make sure it's up to date
         self._init = True
 
-    def _setting_changed(self, setting, value):
-        logger.info(f"Setting '{setting}' to '{value}'")
-        if self._init:  # We don't want to save during setup because it causes problemos
-            self.save()
+    def __setattr__(self, attr, value):
+        super().__setattr__(attr, value)
+        if attr[0] != '_':  # GREAT CODE
+            logger.info(f"Setting '{attr}' to '{value}'")
+            if self._init:  # We don't want to save during setup because it causes problemos
+                self._save()
 
-    def set_led_mode(self, mode_name):
-        self.led_mode = led_mode.get_by_name(mode_name, self.config, self)
-        self._setting_changed("LED mode", mode_name)
+    @property
+    def led_mode(self):
+        return self._led_mode
 
-    def set_led_static_color(self, color):
+    @led_mode.setter
+    def led_mode(self, mode_name):
+        self._led_mode = led_mode.get_by_name(mode_name)
+
+    @property
+    def led_static_color(self):
+        return self._led_static_color
+
+    @led_static_color.setter
+    def led_static_color(self, color):
         if type(color) is not Color:
             color = unpack_color(color)
-        self.led_static_color = color
-        self._setting_changed("LED static color", color)
+        self._led_static_color = color
 
-    def set_lcd_mode(self, mode_name):
-        self.lcd_mode = lcd_mode.get_by_name(mode_name, self.config, self)
-        self._setting_changed("LCD mode", mode_name)
+    @property
+    def lcd_mode(self):
+        return self._lcd_mode
 
-    def set_lcd_color(self, color):
+    @lcd_mode.setter
+    def lcd_mode(self, mode_name):
+        self._lcd_mode = lcd_mode.get_by_name(mode_name)
+
+    @property
+    def lcd_color(self):
+        return self._lcd_color
+
+    @lcd_color.setter
+    def lcd_color(self, color):
         if type(color) is not Color:
             color = unpack_color(color)
-        self.lcd_color = color
-        self._setting_changed("LCD color", color)
+        self._lcd_color = color
 
-    Setting = namedtuple('Setting', 'default_value getter setter')
-    _SETTINGS = {
-        'led': {
-            'led_mode': Setting('off',
-                                lambda self: self.led_mode.NAME,
-                                set_led_mode),
-            'led_static_color': Setting(BLACK,
-                                        lambda self: self.led_static_color,
-                                        set_led_static_color),
-        },
-        'lcd': {
-            'lcd_mode': Setting('off',
-                                lambda self: self.lcd_mode.NAME,
-                                set_lcd_mode),
-            'lcd_color': Setting(BLACK,
-                                 lambda self: self.lcd_color,
-                                 set_lcd_color)
-        }
-    }
-
-    def to_dict(self):
-        # Create a dict for each section, then put all those sections into one big ol' dict
-        d = dict()
-        for section_name, section in self._SETTINGS.items():
-            # Make a dict for this section
-            d[section_name] = {name: setting.getter(self) for name, setting in section.items()}
-        return d
-
-    def load(self):
+    def _load(self):
         # Load the dict from a file
         try:
-            with open(self.settings_file, 'r') as f:
-                settings_dict = json.load(f)
+            with open(self._settings_file, 'rb') as f:
+                settings_dict = pickle.load(f)
         except Exception as e:
-            logger.warning(f"Failed to load settings from '{self.settings_file}': {e}")
+            logger.warning(f"Failed to load settings from '{self._settings_file}': {e}")
             settings_dict = dict()
 
-        # Try to read each section from the settings file. For each setting in each section, try to
-        # read that setting from the section. If it isn't in the settings file, use the default.
-        for section_name, section in self._SETTINGS.items():
-            section_vals = settings_dict.get(section_name, dict())
-            for setting_name, setting in section.items():
-                setting.setter(self, section_vals.get(setting_name, setting.default_value))
+        self.__dict__.update(settings_dict)
 
-    def save(self):
+    def _save(self):
         # Save settings to a file
-        logger.debug(f"Saving settings to '{self.settings_file}'")
-        with open(self.settings_file, 'w') as f:
-            json.dump(self.to_dict(), f, indent=4)
+        logger.debug(f"Saving settings to '{self._settings_file}'")
+        with open(self._settings_file, 'wb') as f:
+            pickle.dump(vars(self), f)
 
 
 class DerivedSettings(metaclass=Singleton):

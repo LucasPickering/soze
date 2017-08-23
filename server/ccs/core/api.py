@@ -1,9 +1,7 @@
 from flask import json, request
 
 from .. import app
-from .settings import UserSettings
-
-user_settings = UserSettings()  # Will be initialized in Main constructor
+from . import user_settings
 
 
 def to_json(data):
