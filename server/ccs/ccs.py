@@ -1,76 +1,12 @@
-#!/usr/bin/env python3
-
 import argparse
 import logging
 import subprocess
 import threading
 import time
 
-from flask import Flask, json, request
-
+from ccs import app, logger
 from .core import settings
-from .core.color import Color
-
-BLACK = Color(0, 0, 0)
-
-app = Flask(__name__)
-user_settings = None  # Will be initialized in Main constructor
-logger = app.logger
-
-
-def to_json(data):
-    if 'pretty' in request.args:
-        return json.dumps(data, indent=4) + '\n'
-    return json.dumps(data)
-
-
-@app.route('/')
-def root():
-    return to_json(user_settings.to_dict())
-
-
-@app.route('/xkcd')
-def xkcd():
-    return 'https://c.xkcd.com/random/comic'
-
-
-@app.route('/led', methods=['GET', 'POST'])
-def led():
-    if request.method == 'GET':
-        return to_json(user_settings.to_dict()['led'])
-    elif request.method == 'POST':
-        data = request.get_json()
-        if 'mode' in data:
-            user_settings.set_led_mode(data['mode'])
-        if 'static_color' in data:
-            user_settings.set_led_static_color(data['static_color'])
-        return "Success"
-
-
-@app.route('/led/fade', methods=['GET', 'POST'])
-def led_fade():
-    if request.method == 'GET':
-        return to_json(user_settings.to_dict()['led']['fade'])
-    elif request.method == 'POST':
-        data = request.get_json()
-        if 'mode' in data:
-            user_settings.set_led_mode(data['mode'])
-        if 'static_color' in data:
-            user_settings.set_led_static_color(data['static_color'])
-        return "Success"
-
-
-@app.route('/lcd', methods=['GET', 'POST'])
-def lcd():
-    if request.method == 'GET':
-        return to_json(user_settings.to_dict()['lcd'])
-    elif request.method == 'POST':
-        data = request.get_json()
-        if 'mode' in data:
-            user_settings.set_lcd_mode(data['mode'])
-        if 'color' in data:
-            user_settings.set_lcd_color(data['color'])
-        return "Success"
+from .core.color import BLACK
 
 
 class CaseControlServer:
@@ -86,12 +22,11 @@ class CaseControlServer:
         self.debug = args.debug
         self.init_logging(args.log)
 
-        self.config = settings.Config(logger, args.config)
-        self.user_settings = settings.UserSettings(args.settings, logger, self.config)
-        self.derived_settings = settings.DerivedSettings(logger, self.user_settings)
-
-        global user_settings  # GLOBALS ARE GREAT
-        user_settings = self.user_settings
+        self.config = settings.Config()
+        self.config.init(args.config)
+        self.user_settings = settings.UserSettings()
+        self.user_settings.init(args.settings)
+        self.derived_settings = settings.DerivedSettings()
 
         # Import LCD/LED handles based on whether or not we are mocking
         if args.mock:
@@ -123,15 +58,13 @@ class CaseControlServer:
 
     def init_logging(self, log_file):
         # Init logging
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
         # Logging file handler
         fh = logging.FileHandler(log_file, mode='w')
-        fh.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
         # Logging console handler
         ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG if self.debug else logging.INFO)
 
         # Setup formatter
         formatter = logging.Formatter('{asctime} - {levelname} - {message}',
@@ -150,8 +83,7 @@ class CaseControlServer:
         self.settings_thrd.start()
         self.ping_thrd.start()
         try:
-            # app.run(debug=self.debug, host='0.0.0.0')
-            app.run(host='0.0.0.0')
+            app.run(host='0.0.0.0', debug=self.debug, use_reloader=False)
         finally:
             # When flask receives Ctrl-C and stops, this runs to shut down the other threads
             self.stop()

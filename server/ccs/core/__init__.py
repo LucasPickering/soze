@@ -1,1 +1,1 @@
-__all__ = ['color', 'mock', 'settings']
+from . import api  # Just to get the functions to initialize
