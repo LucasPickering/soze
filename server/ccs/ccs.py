@@ -20,8 +20,11 @@ class CaseControlServer:
         self.keep_running = True
         self.keepalive_up = True
         self.debug = args.debug
-        self.init_logging(args.log)
 
+        if self.debug:
+            logger.setLevel(logging.DEBUG)
+
+        # Init config/settings
         self.config = settings.Config()
         self.config.init(args.config)
         self.user_settings = settings.UserSettings()
@@ -55,26 +58,6 @@ class CaseControlServer:
         self.settings_thrd = threading.Thread(target=self.settings_thread, daemon=True)
 
         self.ping_thrd = threading.Thread(target=self.ping_thread, daemon=True)
-
-    def init_logging(self, log_file):
-        # Init logging
-        logger.setLevel(logging.DEBUG if self.debug else logging.INFO)
-
-        # Logging file handler
-        fh = logging.FileHandler(log_file, mode='w')
-
-        # Logging console handler
-        ch = logging.StreamHandler()
-
-        # Setup formatter
-        formatter = logging.Formatter('{asctime} - {levelname} - {message}',
-                                      datefmt='%Y-%m-%d %H:%M:%S', style='{')
-        fh.setFormatter(formatter)
-        ch.setFormatter(formatter)
-
-        # Register handlers
-        logger.addHandler(fh)
-        logger.addHandler(ch)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -178,7 +161,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
-    parser.add_argument('-l', '--log', default='out.log', help="Specify the log file")
     parser.add_argument('-m', '--mock', action='store_const', default=False, const=True,
                         help="Run in mocking mode, for testing without all the hardware")
     parser.add_argument('-s', '--settings', default='settings.json',
