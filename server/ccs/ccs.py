@@ -156,7 +156,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
     parser.add_argument('-m', '--mock', action='store_const', default=False, const=True,
                         help="Run in mocking mode, for testing without all the hardware")
-    parser.add_argument('-s', '--settings', default='settings.p',
+    parser.add_argument('-s', '--settings', default='settings.json',
                         help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()
 

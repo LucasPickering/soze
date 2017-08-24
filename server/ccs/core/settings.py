@@ -1,6 +1,5 @@
 import configparser
 import json
-import pickle
 
 from .. import logger
 from .color import Color, unpack_color, BLACK
@@ -75,8 +74,8 @@ class UserSettings(metaclass=Singleton):
         return self._led_mode
 
     @led_mode.setter
-    def led_mode(self, mode_name):
-        self._led_mode = led_mode.get_by_name(mode_name)
+    def led_mode(self, led_mode):
+        self._led_mode = led_mode.lower()
 
     @property
     def led_static_color(self):
@@ -93,8 +92,8 @@ class UserSettings(metaclass=Singleton):
         return self._lcd_mode
 
     @lcd_mode.setter
-    def lcd_mode(self, mode_name):
-        self._lcd_mode = lcd_mode.get_by_name(mode_name)
+    def lcd_mode(self, lcd_mode):
+        self._lcd_mode = lcd_mode.lower()
 
     @property
     def lcd_color(self):
@@ -109,8 +108,8 @@ class UserSettings(metaclass=Singleton):
     def _load(self):
         # Load the dict from a file
         try:
-            with open(self._settings_file, 'rb') as f:
-                settings_dict = pickle.load(f)
+            with open(self._settings_file, 'r') as f:
+                settings_dict = json.load(f)
         except Exception as e:
             logger.warning(f"Failed to load settings from '{self._settings_file}': {e}")
             settings_dict = dict()
@@ -120,8 +119,8 @@ class UserSettings(metaclass=Singleton):
     def _save(self):
         # Save settings to a file
         logger.debug(f"Saving settings to '{self._settings_file}'")
-        with open(self._settings_file, 'wb') as f:
-            pickle.dump(vars(self), f)
+        with open(self._settings_file, 'w') as f:
+            json.dump(vars(self), f, indent=4)
 
 
 class DerivedSettings(metaclass=Singleton):
@@ -146,6 +145,5 @@ class DerivedSettings(metaclass=Singleton):
 
         @return     None
         """
-        self.led_color = self.user_settings.led_static_color
-        self.lcd_color = self.user_settings.lcd_mode.get_color()
-        self.lcd_text = self.user_settings.lcd_mode.get_text()
+        self.led_color = led_mode.get_color(self.user_settings.led_mode)
+        self.lcd_color, self.lcd_text = lcd_mode.get_color_and_text(self.user_settings.lcd_mode)

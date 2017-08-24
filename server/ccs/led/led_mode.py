@@ -1,46 +1,31 @@
 from ccs.core.color import BLACK
 
 
-class LedMode:
-
-    def __init__(self, name):
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
-
-    def get_color(self):
-        return None
+def _get_static_color():
+    from ccs.core import user_settings  # Workaround!!
+    return user_settings.led_static_color
 
 
-class LedModeOff(LedMode):
-
-    NAME = 'off'
-
-    def get_name(self):
-        return 'off'
-
-    def get_color(self):
-        return BLACK
+# Maybe not the prettiest solution but it's definitely terse
+_MODE_DICT = {
+    'off': lambda: BLACK,
+    'static': _get_static_color,
+}
 
 
-class LedModeStatic(LedMode):
+def get_color(mode):
+    """
+    @brief      Gets the current color for the LEDs.
 
-    NAME = 'static'
+    @param      mode  The current LED mode, as a string
 
-    def get_color(self):
-        from ccs.core import user_settings  # Workaround!!
-        return user_settings.led_static_color
+    @return     The current LED color, based on mode and other relevant settings.
 
-
-_classes = [LedModeOff, LedModeStatic]
-_names = {cls.NAME: cls for cls in _classes}
-
-
-def get_by_name(name):
+    @raises     ValueError if the given LED mode is unknown
+    """
     try:
-        return _names[name](name)
+        mode_func = _MODE_DICT[mode]  # Get the function used for this mode
     except KeyError:
-        valid_names = list(_names.keys())
-        raise ValueError(f"Invalid name: {name}. Valid names are: {valid_names}")
+        valid_modes = _MODE_DICT.keys()
+        raise ValueError(f"Invalid mode '{mode}'. Valid modes are {valid_modes}")
+    return mode_func()
