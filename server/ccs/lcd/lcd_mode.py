@@ -17,6 +17,8 @@ def _get_lcd_color():
 def _get_clock_text():
     from ccs.core import config  # Workaround!!
 
+    lines = []  # This will we populated as we go along
+
     now = datetime.now()
     day_str = now.strftime(_LONG_DAY_FORMAT)
     seconds_str = now.strftime(_SECONDS_FORMAT)
@@ -27,12 +29,12 @@ def _get_clock_text():
 
     # Pad the day string with spaces to make it the right length
     day_str = day_str.ljust(config.lcd_width - len(seconds_str))
-    first_line = day_str + seconds_str
+    lines.append(day_str + seconds_str)  # First line
 
     time_str = now.strftime(_TIME_FORMAT)
-    time_lines = lcd.make_big_text(time_str)
+    lines += lcd.make_big_text(time_str)  # Rest of the fucking lines
 
-    return '\n'.join([first_line] + time_lines)
+    return '\n'.join(lines)
 
 
 _MODE_DICT = {
