@@ -3,19 +3,27 @@ import logging
 import subprocess
 import threading
 import time
+from collections import namedtuple
 
 from ccs import app, logger
-from .core import config, user_settings, derived_settings
+from .core.config import Config
+from .core.settings import Settings
 from .core.color import BLACK
+from .lcd import lcd_mode
+from .led import led_mode
+
+HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
+
+_LED_THREAD_PAUSE = 0.01
+_LCD_THREAD_PAUSE = 0.01
+_HW_DATA_THREAD_PAUSE = 0.05
+_PING_THREAD_PAUSE = 1.0
+
+_CONFIG = Config()
+_SETTINGS = Settings()
 
 
 class CaseControlServer:
-
-    LED_THREAD_PAUSE = 0.01
-    LCD_THREAD_PAUSE = 0.01
-    SETTINGS_THREAD_PAUSE = 0.05
-    PING_THREAD_PAUSE = 1.0
-
     def __init__(self, args):
         self._keep_running = True
         self._keepalive_up = True
@@ -25,9 +33,10 @@ class CaseControlServer:
             logger.setLevel(logging.DEBUG)
 
         # Init config/settings
-        config.init(args.config)
-        user_settings.init(args.settings)
+        _CONFIG.init(args.config)
+        _SETTINGS.init(args.settings)
 
+        self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
         self._threads = []  # List of background threads to run
 
         # Import LCD/LED handles based on whether or not we are mocking
@@ -38,7 +47,7 @@ class CaseControlServer:
             from .led.led import Led
 
         # Init the LCD handler
-        self._lcd = Lcd(config.lcd_serial_device, config.lcd_width, config.lcd_height)
+        self._lcd = Lcd(_CONFIG.lcd_serial_device, _CONFIG.lcd_width, _CONFIG.lcd_height)
 
         # Init the LED handler
         self._led = Led()
@@ -46,8 +55,8 @@ class CaseControlServer:
         # Add background threads to be run
         self._add_thread(self._led_thread)
         self._add_thread(self._lcd_thread)
-        self._add_thread(self._settings_thread, daemon=True)
-        self._add_thread(self._ping_thread, args=(config.keepalive_host,), daemon=True)
+        self._add_thread(self._hw_data_thread, daemon=True)
+        self._add_thread(self._ping_thread, args=(_CONFIG.keepalive_host,), daemon=True)
 
     def _add_thread(self, target, **kwargs):
         thread = threading.Thread(target=target, **kwargs)
@@ -83,9 +92,9 @@ class CaseControlServer:
         @return     None
         """
         while self._keep_running:
-            color = derived_settings.led_color if self._keepalive_up else BLACK
+            color = self._hw_data.led_color if self._keepalive_up else BLACK
             self._led.set_color(color.red, color.green, color.blue)
-            time.sleep(self.LED_THREAD_PAUSE)
+            time.sleep(_LED_THREAD_PAUSE)
         self._led.stop()
         logger.debug("LED thread stopped")
 
@@ -100,8 +109,8 @@ class CaseControlServer:
         """
         while self._keep_running:
             if self._keepalive_up:
-                color = derived_settings.lcd_color
-                text = derived_settings.lcd_text
+                color = self._hw_data.lcd_color
+                text = self._hw_data.lcd_text
             else:
                 color = BLACK
                 text = ''
@@ -113,18 +122,20 @@ class CaseControlServer:
         self._lcd.stop()
         logger.debug("LCD thread stopped")
 
-    def _settings_thread(self):
+    def _hw_data_thread(self):
         """
-        @brief      A thread that periodically re-calculates the derived settings. These settings
-                    are calculated from the user settings.
+        @brief      A thread that periodically re-calculates the hardware data from the settings.
 
         @param      self  The object
 
         @return     None
         """
         while self._keep_running:
-            derived_settings.update()
-            time.sleep(self.SETTINGS_THREAD_PAUSE)
+            # Compute new values and store them
+            led_color = led_mode.get_color(_SETTINGS.led_mode)
+            lcd_color, lcd_text = lcd_mode.get_color_and_text(_SETTINGS.lcd_mode)
+            self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
+            time.sleep(_HW_DATA_THREAD_PAUSE)
 
     def _ping_thread(self, keepalive_host):
         """
@@ -136,18 +147,18 @@ class CaseControlServer:
         @return     None
         """
         while self._keep_running:
-            time.sleep(self.PING_THREAD_PAUSE)
-            if keepalive_host:
+            success = True  # Assume true until we have a failing ping
+            if keepalive_host:  # If a host was specified...
                 exit_code = subprocess.call(['ping', '-c', '1', keepalive_host],
                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                if exit_code:
-                    if self._keepalive_up:
-                        logger.debug("Keepalive down")
-                    self._keepalive_up = False
-                    continue
-            if not self._keepalive_up:
-                logger.debug("Keepalive up")
-            self._keepalive_up = True
+                success = not exit_code
+
+            # If the value changed, log it
+            if success != self._keepalive_up:
+                logger.debug(f"Keepalive up: {success}")
+            self._keepalive_up = success
+
+            time.sleep(_PING_THREAD_PAUSE)  # Until we meet again...
 
 
 if __name__ == '__main__':

@@ -1,9 +1,11 @@
 from ccs.core.color import BLACK
+from ccs.core.settings import Settings
+
+_SETTINGS = Settings()
 
 
 def _get_static_color():
-    from ccs.core import user_settings  # Workaround!!
-    return user_settings.led_static_color
+    return _SETTINGS.led_static_color
 
 
 # Maybe not the prettiest solution but it's definitely terse

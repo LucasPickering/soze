@@ -2,16 +2,18 @@ from datetime import datetime
 
 from . import lcd
 from ccs.core.color import BLACK
+from ccs.core.settings import Settings
 
 _LONG_DAY_FORMAT = '%A, %B %d'
 _SHORT_DAY_FORMAT = '%A, %b %d'
 _SECONDS_FORMAT = ' %S'
 _TIME_FORMAT = ' %I:%M'
 
+_SETTINGS = Settings()
+
 
 def _get_lcd_color():
-    from ccs.core import user_settings  # Workaround!!
-    return user_settings.lcd_color
+    return _SETTINGS.lcd_color
 
 
 def _get_clock_text():

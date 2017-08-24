@@ -1,10 +1,3 @@
-from . import color, settings
+from . import api, color, settings  # Import api just to get the functions to initialize
 
 __all__ = ['color', 'settings']
-
-# Global singletons
-config = settings.Config()
-user_settings = settings.UserSettings()
-derived_settings = settings.DerivedSettings()
-
-from . import api  # Just to get the functions to initialize

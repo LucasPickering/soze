@@ -1,45 +1,14 @@
-import configparser
 import json
 
 from .. import logger
 from .color import Color, unpack_color, BLACK
 from .singleton import Singleton
-from ccs.lcd import lcd_mode
-from ccs.led import led_mode
 
 
-class Config(metaclass=Singleton):
-
-    DEFAULT_CFG_FILE = 'default.ini'
-
-    def init(self, cfg_file):
-        # This is separate from the constructor so that anyone can use get this instance via the
-        # constructor without having to initialize the class
-
-        # Read config values from default file, then user file
-        config = configparser.SafeConfigParser()
-        config.read(self.DEFAULT_CFG_FILE)
-        config.read(cfg_file)
-
-        # Print loaded values
-        cfg_dict = {sct: dict(config.items(sct)) for sct in config.sections()}
-        logger.info(f"Loaded config: {cfg_dict}")
-
-        # Load values
-        self.keepalive_host = config.get('main', 'keepalive_host')
-        self.lcd_serial_device = config.get('lcd', 'serial_device')
-        self.lcd_width = config.getint('lcd', 'width')
-        self.lcd_height = config.getint('lcd', 'height')
-
-        # Save the config back to the file
-        with open(cfg_file, 'w') as f:
-            config.write(f)
-
-
-class UserSettings(metaclass=Singleton):
+class Settings(metaclass=Singleton):
     """
-    @brief      User settings are (unsurprisingly) the settings directly determined by the user.
-                These are all set from the API. They are used to calculatate the derived settings.
+    @brief      The settings directly determined by the user. These are all set from the API.
+                They are used to calculatate the data sent to the hardware.
                 LED and LCD mode are examples of user settings.
     """
 
@@ -121,29 +90,3 @@ class UserSettings(metaclass=Singleton):
         logger.debug(f"Saving settings to '{self._settings_file}'")
         with open(self._settings_file, 'w') as f:
             json.dump(vars(self), f, indent=4)
-
-
-class DerivedSettings(metaclass=Singleton):
-    """
-    @brief      Derived settings are the settings that are calulacted from the user settings.
-                These are the settings that actually get pushed to the LEDs and LCD. These are NOT
-                directly modifiable by the user. They are regularly (many times per second) updated
-                based on the current user settings, by a dedicated thread.
-    """
-
-    def __init__(self):
-        self.user_settings = UserSettings()
-        self.led_color = BLACK
-        self.lcd_color = BLACK
-        self.lcd_text = ''
-
-    def update(self):
-        """
-        @brief      Recalculates the derived settings based on the current user settings.
-
-        @param      self  The object
-
-        @return     None
-        """
-        self.led_color = led_mode.get_color(self.user_settings.led_mode)
-        self.lcd_color, self.lcd_text = lcd_mode.get_color_and_text(self.user_settings.lcd_mode)
