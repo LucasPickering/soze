@@ -71,6 +71,35 @@ BIG_CHARS = {
           EMT]
 }
 
+BAUD_RATE = 9600
+
+DEFAULT_WIDTH = 20
+DEFAULT_HEIGHT = 4
+
+# Special signals for the controller
+SIG_COMMAND = 0xfe
+CMD_CLEAR = 0x58
+CMD_BACKLIGHT_ON = 0x42
+CMD_BACKLIGHT_OFF = 0x46
+CMD_SIZE = 0xd1
+CMD_SPLASH_TEXT = 0x40
+CMD_BRIGHTNESS = 0x98
+CMD_CONTRAST = 0x91
+CMD_COLOR = 0xd0
+CMD_AUTOSCROLL_ON = 0x51
+CMD_AUTOSCROLL_OFF = 0x52
+CMD_UNDERLINE_CURSOR_ON = 0x4a
+CMD_UNDERLINE_CURSOR_OFF = 0x4b
+CMD_BLOCK_CURSOR_ON = 0x53
+CMD_BLOCK_CURSOR_OFF = 0x54
+CMD_CURSOR_HOME = 0x48
+CMD_CURSOR_POS = 0x47
+CMD_CURSOR_FWD = 0x4d
+CMD_CURSOR_BACK = 0x4c
+CMD_CREATE_CHAR = 0x4e
+CMD_SAVE_CUSTOM_CHAR = 0xc1
+CMD_LOAD_CHAR_BANK = 0xc0
+
 
 def make_big_text(text):
     """
@@ -83,13 +112,13 @@ def make_big_text(text):
     @return     The big text.
     """
 
-    def __get_big_char(char):
+    def _get_big_char(char):
         try:
             return BIG_CHARS[char]
         except KeyError:
             raise ValueError(f"Unsupported big character: {char}")
 
-    def __add_spaces(line):
+    def _add_spaces(line):
         # Add a space after every character, except for spaces (don't double them up)
         result = ''
         for c in line:
@@ -98,15 +127,15 @@ def make_big_text(text):
             result += ' '
         return result
 
-    def __make_big_line(line):
-        line = __add_spaces(line)  # Add some spaces to the line to make it look nicer
-        big_chars = [__get_big_char(c) for c in line]
+    def _make_big_line(line):
+        line = _add_spaces(line)  # Add some spaces to the line to make it look nicer
+        big_chars = [_get_big_char(c) for c in line]
         line_tuples = zip(*big_chars)
         big_lines = [''.join(t) for t in line_tuples]
         return '\n'.join(big_lines)
 
     lines = text.splitlines()
-    return [__make_big_line(line) for line in lines]
+    return [_make_big_line(line) for line in lines]
 
 
 class CursorMode(Enum):
@@ -117,55 +146,26 @@ class CursorMode(Enum):
 
 class Lcd:
 
-    BAUD_RATE = 9600
-
-    DEFAULT_WIDTH = 20
-    DEFAULT_HEIGHT = 4
-
-    # Special signals for the controller
-    SIG_COMMAND = 0xfe
-    CMD_CLEAR = 0x58
-    CMD_BACKLIGHT_ON = 0x42
-    CMD_BACKLIGHT_OFF = 0x46
-    CMD_SIZE = 0xd1
-    CMD_SPLASH_TEXT = 0x40
-    CMD_BRIGHTNESS = 0x98
-    CMD_CONTRAST = 0x91
-    CMD_COLOR = 0xd0
-    CMD_AUTOSCROLL_ON = 0x51
-    CMD_AUTOSCROLL_OFF = 0x52
-    CMD_UNDERLINE_CURSOR_ON = 0x4a
-    CMD_UNDERLINE_CURSOR_OFF = 0x4b
-    CMD_BLOCK_CURSOR_ON = 0x53
-    CMD_BLOCK_CURSOR_OFF = 0x54
-    CMD_CURSOR_HOME = 0x48
-    CMD_CURSOR_POS = 0x47
-    CMD_CURSOR_FWD = 0x4d
-    CMD_CURSOR_BACK = 0x4c
-    CMD_CREATE_CHAR = 0x4e
-    CMD_SAVE_CUSTOM_CHAR = 0xc1
-    CMD_LOAD_CHAR_BANK = 0xc0
-
     def __init__(self, serial_port, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
-        self.width = width
-        self.height = height
-        self.ser = serial.Serial(serial_port,
-                                 baudrate=self.BAUD_RATE,
-                                 bytesize=serial.EIGHTBITS,
-                                 parity=serial.PARITY_NONE,
-                                 stopbits=serial.STOPBITS_ONE)
+        self._width = width
+        self._height = height
+        self._ser = serial.Serial(serial_port,
+                                  baudrate=BAUD_RATE,
+                                  bytesize=serial.EIGHTBITS,
+                                  parity=serial.PARITY_NONE,
+                                  stopbits=serial.STOPBITS_ONE)
         self.set_size(width, height)
         self.clear()
         self.set_autoscroll(False)  # Fugg that
         self.on()
-        self.lines = [''] * height  # Screen starts blank
+        self._lines = [''] * height  # Screen starts blank
 
         # Register custom characters
         for index, char in CUSTOM_CHARS.items():
             self.create_char(0, index, char)
         self.load_char_bank(0)
 
-    def __write(self, data, flush=False):
+    def _write(self, data, flush=False):
         """
         @brief      Writes the given bytes to the serial stream. The given data must be a bytes-like
                     object.
@@ -176,12 +176,12 @@ class Lcd:
 
         @return     the number of bytes written
         """
-        rv = self.ser.write(data)
+        rv = self._ser.write(data)
         if flush:
             self.flush_serial()
         return rv
 
-    def __send_command(self, command, *args, flush=False):
+    def _send_command(self, command, *args, flush=False):
         """
         @brief      Sends the given command to the LCD, with the given arguments.
 
@@ -191,7 +191,7 @@ class Lcd:
 
         @return     None
         """
-        def __to_bytes(d):
+        def _to_bytes(d):
             if type(d) is int:
                 return bytes([d])
             elif type(d) is str:
@@ -200,10 +200,10 @@ class Lcd:
                 return d
             return b''
 
-        arg_bytes_list = [__to_bytes(arg) for arg in args]
+        arg_bytes_list = [_to_bytes(arg) for arg in args]
         joined_bytes = b''.join(arg_bytes_list)
-        all_bytes = bytes([self.SIG_COMMAND, command]) + joined_bytes
-        self.__write(all_bytes, flush)
+        all_bytes = bytes([SIG_COMMAND, command]) + joined_bytes
+        self._write(all_bytes, flush)
 
     def flush_serial(self):
         """
@@ -213,7 +213,7 @@ class Lcd:
 
         @return     None
         """
-        self.ser.flush()
+        self._ser.flush()
 
     def clear(self):
         """
@@ -223,7 +223,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_CLEAR)
+        self._send_command(CMD_CLEAR)
 
     def on(self):
         """
@@ -234,7 +234,7 @@ class Lcd:
         @return     None
         """
         # The on command takes an arg for how long to stay on, but it's actually ignored.
-        self.__send_command(self.CMD_BACKLIGHT_ON, 0)
+        self._send_command(CMD_BACKLIGHT_ON, 0)
 
     def off(self):
         """
@@ -244,7 +244,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_BACKLIGHT_OFF)
+        self._send_command(CMD_BACKLIGHT_OFF)
 
     def set_size(self, width, height):
         """
@@ -257,7 +257,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_SIZE, width, height)
+        self._send_command(CMD_SIZE, width, height)
 
     def set_splash_text(self, splash_text):
         """
@@ -268,7 +268,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_SPLASH_TEXT, splash_text)
+        self._send_command(CMD_SPLASH_TEXT, splash_text)
 
     def set_brightness(self, brightness):
         """
@@ -279,7 +279,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_BRIGHTNESS, brightness)
+        self._send_command(CMD_BRIGHTNESS, brightness)
 
     def set_contrast(self, contrast):
         """
@@ -290,7 +290,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_CONTRAST, contrast)
+        self._send_command(CMD_CONTRAST, contrast)
 
     def set_color(self, color):
         """
@@ -303,7 +303,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_COLOR, color.red, color.green, color.blue)
+        self._send_command(CMD_COLOR, color.red, color.green, color.blue)
 
     def set_autoscroll(self, enabled):
         """
@@ -316,9 +316,9 @@ class Lcd:
         @return     None
         """
         if enabled:
-            self.__send_command(self.CMD_AUTOSCROLL_ON)
+            self._send_command(CMD_AUTOSCROLL_ON)
         else:
-            self.__send_command(self.CMD_AUTOSCROLL_OFF)
+            self._send_command(CMD_AUTOSCROLL_OFF)
 
     def set_cursor_mode(self, cursor_mode):
         """
@@ -331,12 +331,12 @@ class Lcd:
         @return     None
         """
         if cursor_mode == CursorMode.off:
-            self.__send_command(self.CMD_UNDERLINE_CURSOR_OFF)
-            self.__send_command(self.CMD_BLOCK_CURSOR_OFF)
+            self._send_command(CMD_UNDERLINE_CURSOR_OFF)
+            self._send_command(CMD_BLOCK_CURSOR_OFF)
         elif cursor_mode == CursorMode.underline:
-            self.__send_command(self.CMD_UNDERLINE_CURSOR_ON)
+            self._send_command(CMD_UNDERLINE_CURSOR_ON)
         elif cursor_mode == CursorMode.block:
-            self.__send_command(self.CMD_BLOCK_CURSOR_ON)
+            self._send_command(CMD_BLOCK_CURSOR_ON)
 
     def cursor_home(self):
         """
@@ -346,7 +346,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_CURSOR_HOME)
+        self._send_command(CMD_CURSOR_HOME)
 
     def set_cursor_pos(self, x, y):
         """
@@ -359,7 +359,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_CURSOR_POS, x, y)
+        self._send_command(CMD_CURSOR_POS, x, y)
 
     def move_cursor_forward(self):
         """
@@ -370,7 +370,7 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_CURSOR_FWD)
+        self._send_command(CMD_CURSOR_FWD)
 
     def move_cursor_back(self):
         """
@@ -381,13 +381,13 @@ class Lcd:
 
         @return     None
         """
-        self.__send_command(self.CMD_CURSOR_BACK)
+        self._send_command(CMD_CURSOR_BACK)
 
     def create_char(self, bank, index, char_bytes):
-        self.__send_command(self.CMD_SAVE_CUSTOM_CHAR, bank, index, *char_bytes)
+        self._send_command(CMD_SAVE_CUSTOM_CHAR, bank, index, *char_bytes)
 
     def load_char_bank(self, bank):
-        self.__send_command(self.CMD_LOAD_CHAR_BANK, bank)
+        self._send_command(CMD_LOAD_CHAR_BANK, bank)
 
     def set_text(self, text):
         """
@@ -400,27 +400,27 @@ class Lcd:
         @return     None
         """
 
-        def __get_char_at(lines, x, y):
+        def _get_char_at(lines, x, y):
             if y < len(lines):
                 line = lines[y]
                 if x < len(line):
                     return line[x]
             return ' '
 
-        lines = [line[:self.width] for line in text.splitlines()[:self.height]]
+        lines = [line[:self._width] for line in text.splitlines()[:self._height]]
 
         self.cursor_home()  # Move the cursor to (1,1) before we start writing
-        for y in range(self.height):
-            for x in range(self.width):
-                old_char = __get_char_at(self.lines, x, y)
-                new_char = __get_char_at(lines, x, y)
+        for y in range(self._height):
+            for x in range(self._width):
+                old_char = _get_char_at(self._lines, x, y)
+                new_char = _get_char_at(lines, x, y)
 
                 # If this char changed, update it. Otherwise, just advance to the next one.
                 if old_char != new_char:
-                    self.__write(bytes([ord(new_char)]))
+                    self._write(bytes([ord(new_char)]))
                 else:
                     self.move_cursor_forward()
-        self.lines = lines
+        self._lines = lines
 
     def stop(self):
         """
@@ -430,5 +430,7 @@ class Lcd:
 
         @return     None
         """
+        self.off()
+        self.clear()
         self.flush_serial()
-        self.ser.close()
+        self._ser.close()

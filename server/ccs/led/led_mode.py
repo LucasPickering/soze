@@ -1,11 +1,9 @@
 from ccs.core.color import BLACK
-from ccs.core.settings import Settings
-
-_SETTINGS = Settings()
+from ccs.core import settings
 
 
 def _get_static_color():
-    return _SETTINGS.led_static_color
+    return settings.led.static.color
 
 
 # Maybe not the prettiest solution but it's definitely terse
@@ -13,6 +11,7 @@ _MODE_DICT = {
     'off': lambda: BLACK,
     'static': _get_static_color,
 }
+MODES = set(_MODE_DICT.keys())
 
 
 def get_color(mode):

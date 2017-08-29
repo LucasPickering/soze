@@ -39,9 +39,11 @@ class CaseControlServer:
         self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
         self._threads = []  # List of background threads to run
 
-        # Import LCD/LED handles based on whether or not we are mocking
+        # Import LCD/LED handlers based on whether or not we are mocking
         if args.mock:
-            from .core.mock import MockedLcd as Lcd, MockedLed as Led
+            from .core.mock import MockedLcd as Lcd, MockedLed as Led  # FAKE HANDLERS, SAD!!
+        elif args.null:
+            from .core.null import NullLcd as Lcd, NullLed as Led
         else:
             from .lcd.lcd import Lcd
             from .led.led import Led
@@ -67,7 +69,7 @@ class CaseControlServer:
         for thread in self._threads:
             thread.start()
         try:
-            app.run(host='0.0.0.0', debug=self._debug, use_reloader=False)
+            app.run(host='0.0.0.0')
         finally:
             # When flask receives Ctrl-C and stops, this runs to shut down the other threads
             self._stop()
@@ -91,12 +93,14 @@ class CaseControlServer:
 
         @return     None
         """
-        while self._keep_running:
-            color = self._hw_data.led_color if self._keepalive_up else BLACK
-            self._led.set_color(color.red, color.green, color.blue)
-            time.sleep(_LED_THREAD_PAUSE)
-        self._led.stop()
-        logger.debug("LED thread stopped")
+        try:
+            while self._keep_running:
+                color = self._hw_data.led_color if self._keepalive_up else BLACK
+                self._led.set_color(color)
+                time.sleep(_LED_THREAD_PAUSE)
+        finally:
+            self._led.stop()
+            logger.debug("LED thread stopped")
 
     def _lcd_thread(self):
         """
@@ -107,20 +111,20 @@ class CaseControlServer:
 
         @return     None
         """
-        while self._keep_running:
-            if self._keepalive_up:
-                color = self._hw_data.lcd_color
-                text = self._hw_data.lcd_text
-            else:
-                color = BLACK
-                text = ''
-            self._lcd.set_color(color)
-            self._lcd.set_text(text)
-            # self._lcd.flush_serial()  # Maybe uncomment this if we have problems?`
-        self._lcd.off()
-        self._lcd.clear()
-        self._lcd.stop()
-        logger.debug("LCD thread stopped")
+        try:
+            while self._keep_running:
+                if self._keepalive_up:
+                    color = self._hw_data.lcd_color
+                    text = self._hw_data.lcd_text
+                else:
+                    color = BLACK
+                    text = ''
+                self._lcd.set_color(color)
+                self._lcd.set_text(text)
+                # self._lcd.flush_serial()  # Maybe uncomment this if we have problems?`
+        finally:
+            self._lcd.stop()
+            logger.debug("LCD thread stopped")
 
     def _hw_data_thread(self):
         """
@@ -132,8 +136,8 @@ class CaseControlServer:
         """
         while self._keep_running:
             # Compute new values and store them
-            led_color = led_mode.get_color(_SETTINGS.led_mode)
-            lcd_color, lcd_text = lcd_mode.get_color_and_text(_SETTINGS.lcd_mode)
+            led_color = led_mode.get_color(_SETTINGS.get('led.mode'))
+            lcd_color, lcd_text = lcd_mode.get_color_and_text(_SETTINGS.get('lcd.mode'))
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
             time.sleep(_HW_DATA_THREAD_PAUSE)
 
@@ -166,7 +170,9 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('-c', '--config', default='config.ini', help="Specify the config file")
     parser.add_argument('-m', '--mock', action='store_const', default=False, const=True,
-                        help="Run in mocking mode, for testing without all the hardware")
+                        help="Mock the LEDs/LCD in the console for development")
+    parser.add_argument('-n', '--null', action='store_const', default=False, const=True,
+                        help="Don't output data at all (no hardware or mocking)")
     parser.add_argument('-s', '--settings', default='settings.json',
                         help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()

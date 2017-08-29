@@ -2,18 +2,16 @@ from datetime import datetime
 
 from . import lcd
 from ccs.core.color import BLACK
-from ccs.core.settings import Settings
+from ccs.core import settings
 
 _LONG_DAY_FORMAT = '%A, %B %d'
 _SHORT_DAY_FORMAT = '%A, %b %d'
 _SECONDS_FORMAT = ' %S'
 _TIME_FORMAT = ' %I:%M'
 
-_SETTINGS = Settings()
-
 
 def _get_lcd_color():
-    return _SETTINGS.lcd_color
+    return settings.lcd.color
 
 
 def _get_clock_text():
@@ -43,6 +41,7 @@ _MODE_DICT = {
     'off': (lambda: BLACK, lambda: ''),
     'clock': (_get_lcd_color, _get_clock_text),
 }
+MODES = set(_MODE_DICT.keys())
 
 
 def get_color_and_text(mode):
