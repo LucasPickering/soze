@@ -27,6 +27,7 @@ target/
 
 *.log
 *.ini
+*.p
 !default.ini
 settings.json
 
