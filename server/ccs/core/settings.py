@@ -22,6 +22,12 @@ class Setting:
     def _validate(self, val):
         return val
 
+    def __str__(self):
+        return str(self._val)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: {self._val}>"
+
 
 class ModeSetting(Setting):
     def __init__(self, valid_modes, default_mode='off'):
@@ -130,6 +136,7 @@ class Settings(metaclass=Singleton):
         try:
             with open(self._settings_file, 'rb') as f:
                 self._settings = pickle.load(f)
+                logger.info(f"Loaded settings from '{self._settings_file}'")
         except Exception as e:
             logger.warning(f"Failed to load settings from '{self._settings_file}': {e}")
 

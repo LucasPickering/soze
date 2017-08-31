@@ -11,7 +11,7 @@ if __name__ == '__main__':
                         help="Mock the LEDs/LCD in the console for development")
     parser.add_argument('-n', '--null', action='store_const', default=False, const=True,
                         help="Don't output data at all (no hardware or mocking)")
-    parser.add_argument('-s', '--settings', default='settings.json',
+    parser.add_argument('-s', '--settings', default='settings.p',
                         help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()
 
