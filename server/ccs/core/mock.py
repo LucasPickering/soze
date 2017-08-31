@@ -15,14 +15,14 @@ class MockedLed:
     def __init__(self):
         self._window = curses.newwin(1, 50, 0, 0)
 
-    def stop(self):
-        self.off()
-        curses.endwin()  # Kill the curses window
-
     def set_color(self, color):
         self._window.clear()
         self._window.addstr(0, 0, f'LED Color: {color}')
         self._window.refresh()
+
+    def stop(self):
+        self.off()
+        curses.endwin()  # Kill the curses window
 
     def off(self):
         self.set_color(BLACK)

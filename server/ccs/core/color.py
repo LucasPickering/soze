@@ -10,6 +10,6 @@ WHITE = Color(255, 255, 255)
 
 
 def unpack_color(data):
-    if type(data) is list and len(data) == 3:
+    if (isinstance(data, list) or isinstance(data, tuple)) and len(data) == 3:
         return Color(*data)  # Data is in a list, unpack the list into a color tuple
     raise ValueError(f"Invalid format for color data: {data}")

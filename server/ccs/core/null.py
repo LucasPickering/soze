@@ -3,11 +3,13 @@ from ccs.lcd import lcd
 
 
 class NullLed:
-    def stop(self):
-        self.off()
 
     def set_color(self, color):
         pass
+        # print(color)
+
+    def stop(self):
+        self.off()
 
     def off(self):
         self.set_color(BLACK)

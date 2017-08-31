@@ -6,21 +6,21 @@ from .settings import Settings
 _SETTINGS = Settings()
 
 
-def to_json(data):
+def _to_json(data):
     if 'pretty' in request.args:
         return json.dumps(data, indent=4) + '\n'
     return json.dumps(data)
 
 
 @app.route('/', defaults={'path': ''})
-@app.route('/<path>', methods=['GET', 'POST'])
+@app.route('/<path:path>', methods=['GET', 'POST'])
 def route(path):
     if request.method == 'GET':
-        return to_json(_SETTINGS.get(path))
+        data = _SETTINGS.get(path)
+        return _to_json(data)
     elif request.method == 'POST':
-        for k, v in request.get_json().items():
-            _SETTINGS.set(path + k, v)
-        return to_json(_SETTINGS.get(path))
+        data = _SETTINGS.set(path, request.get_json())
+        return _to_json(data)
 
 
 @app.route('/xkcd')

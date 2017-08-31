@@ -28,19 +28,19 @@ class Led:
         self.green_pwm.start(0)
         self.blue_pwm.start(0)
 
-    def stop(self):
-        self.off()
-        self.red_pwm.stop()
-        self.green_pwm.stop()
-        self.blue_pwm.stop()
-        GPIO.cleanup()
-
     def set_color(self, color):
         def to_duty_cycle(color_val):
             return color_val / 255.0 * 100
         self.red_pwm.ChangeDutyCycle(to_duty_cycle(color.red))
         self.green_pwm.ChangeDutyCycle(to_duty_cycle(color.green))
         self.blue_pwm.ChangeDutyCycle(to_duty_cycle(color.blue))
+
+    def stop(self):
+        self.off()
+        self.red_pwm.stop()
+        self.green_pwm.stop()
+        self.blue_pwm.stop()
+        GPIO.cleanup()
 
     def off(self):
         self.set_color(0, 0, 0)

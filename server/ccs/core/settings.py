@@ -1,6 +1,4 @@
-import abc
 import pickle
-import re
 
 from ccs import logger
 from .color import Color, unpack_color, BLACK
@@ -9,56 +7,15 @@ from ccs.lcd import lcd_mode
 from ccs.led import led_mode
 
 
-class Named(metaclass=abc.ABCMeta):
-    def __init__(self, name):
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
-
-    @abc.abstractmethod
-    def get(self):
-        pass
-
-    @abc.abstractmethod
-    def set(self, value):
-        pass
-
-
-class Section(Named):
-    def __init__(self, name, *children):
-        self._children = {child.name: child for child in children}
-        super().__init__(name)
-
-    def __getitem__(self, item):
-        return self._children[item]
-
-    def __setitem__(self, item, value):
-        self._children[item].set(value)
-
-    def get(self):
-        # Convert children into a dict
-        return {k: v.get() for k, v in self._children.items()}
-
-    def set(self, value):
-        raise AttributeError("Section cannot be set")
-
-
-class Setting(Named):
-    def __init__(self, name, default_val):
-        super().__init__(name)
+class Setting:
+    def __init__(self, default_val):
         self._val = default_val
-
-    def __str__(self):
-        val = self.get()
-        return f"{name}: {val}"
 
     def get(self):
         return self._val
 
     def set(self, value):
-        validated = self._validate()
+        validated = self._validate(value)
         self._val = validated
         return validated
 
@@ -67,8 +24,8 @@ class Setting(Named):
 
 
 class ModeSetting(Setting):
-    def __init__(self, name, valid_modes, default_mode='off'):
-        super().__init__(name, default_mode)
+    def __init__(self, valid_modes, default_mode='off'):
+        super().__init__(default_mode)
         self._valid_modes = valid_modes
 
     def _is_valid(self, val):
@@ -80,8 +37,8 @@ class ModeSetting(Setting):
 
 
 class ColorSetting(Setting):
-    def __init__(self, name, default_color=BLACK):
-        super().__init__(name, default_color)
+    def __init__(self, default_color=BLACK):
+        super().__init__(default_color)
 
     def _validate(self, val):
         if not isinstance(val, Color):
@@ -90,19 +47,18 @@ class ColorSetting(Setting):
 
 
 def _new_settings():
-    return \
-        Section('',
-                Section('led',
-                        ModeSetting('mode', led_mode.MODES),
-                        Section('static',
-                                ColorSetting('color')
-                                )
-                        ),
-                Section('lcd',
-                        ModeSetting('mode', lcd_mode.MODES),
-                        ColorSetting('color')
-                        )
-                )
+    return {
+        'led': {
+            'mode': ModeSetting(led_mode.MODES),
+            'static': {
+                'color': ColorSetting(),
+            },
+        },
+        'lcd': {
+            'mode': ModeSetting(lcd_mode.MODES),
+            'color': ColorSetting()
+        },
+    }
 
 
 class Settings(metaclass=Singleton):
@@ -128,29 +84,45 @@ class Settings(metaclass=Singleton):
         self._save()  # Write the whole settings file to make sure it's up to date
 
     def _get_at_path(self, path):
+        path = path.replace('.', '/')
         d = self._settings
+        name = ''
 
+        # Drill down into the settings
         if path:
-            # Drill down into the settings
-            for key in re.split(r'[./]', path):  # Split on . or /
+            for key in path.split('/'):  # Split on . or /
                 try:
                     d = d[key]
                 except KeyError:
-                    raise ValueError(f"Invalid path: {path}")
+                    raise ValueError(f"Invalid path: '{path}'")
+                name = key
 
-        return d  # Return the section/setting that we ended up with
+        return (name, d)  # Return the name and object that we ended up with
 
     def get(self, path):
-        return self._get_at_path(path).get()
+        def get_all(obj):
+            if isinstance(obj, Setting):
+                return obj.get()
+            return {k: get_all(v) for k, v in obj.items()}
+
+        name, obj = self._get_at_path(path)
+        return get_all(obj)
 
     def set(self, path, value):
-        obj = self._get_at_path(value)
-        obj.set(value)
-        self._on_setting_changed()
+        def set_all(obj, value):
+            if isinstance(obj, Setting):
+                return obj.set(value)
+            if not isinstance(value, dict):
+                raise ValueError("Value must be dict")
+            return {k: set_all(obj[k], v) for k, v in value.items()}
 
-    def _on_setting_changed(self, setting):
-        val = setting.get()
-        logger.info(f"Setting {setting.name} to {val}")
+        name, obj = self._get_at_path(path)
+        rv = set_all(obj, value)
+        self._on_setting_changed(path, rv)
+        return rv
+
+    def _on_setting_changed(self, name, value):
+        logger.info(f"Setting {name} to {value}")
         self._save()
 
     def _load(self):

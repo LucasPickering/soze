@@ -3,7 +3,7 @@ from ccs.core import settings
 
 
 def _get_static_color():
-    return settings.led.static.color
+    return settings.Settings().get('led.static.color')
 
 
 # Maybe not the prettiest solution but it's definitely terse
