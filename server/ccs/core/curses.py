@@ -7,7 +7,7 @@ from ccs.lcd import lcd
 _stdscr = curses.initscr()
 
 
-class MockedLed:
+class CursesLed:
     """
     @brief      A mocked version of the LED handler.
     """
@@ -28,7 +28,7 @@ class MockedLed:
         self.set_color(BLACK)
 
 
-class MockedLcd(lcd.Lcd):
+class CursesLcd(lcd.Lcd):
     """
     @brief      A mocked verison of the LCD handler, for testing without the required hardware.
                 This is pretty minimal, most of the hard work goes on in MockedSerial.
@@ -44,7 +44,7 @@ class MockedLcd(lcd.Lcd):
         self._window.border()
         self._window.refresh()
 
-        self._ser = MockedSerial(self._window)
+        self._ser = CursesSerial(self._window)
         self._lines = [''] * height  # Screen starts blank
         self.set_size(width, height)
         self.clear()
@@ -54,7 +54,7 @@ class MockedLcd(lcd.Lcd):
         curses.endwin()  # REALLY kill the curses window
 
 
-class MockedSerial:
+class CursesSerial:
     """
     @brief      Where the magic happens for mocking the LCD.
     """

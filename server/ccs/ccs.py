@@ -40,7 +40,7 @@ class CaseControlServer:
 
         # Import LCD/LED handlers based on whether or not we are mocking
         if args.mock:
-            from .core.mock import MockedLcd as Lcd, MockedLed as Led  # FAKE HANDLERS, SAD!!
+            from .core.curses import CursesLcd as Lcd, CursesLed as Led  # FAKE HANDLERS, SAD!!
         elif args.null:
             from .core.null import NullLcd as Lcd, NullLed as Led
         else:
