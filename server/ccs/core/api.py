@@ -1,15 +1,23 @@
 from flask import json, request
 
-from ccs import app, logger
+from ccs import app
+from .color import Color
 from .settings import Settings
 
 _SETTINGS = Settings()
 
 
+class Encoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Color):
+            return obj.to_list()
+        return obj
+
+
 def _to_json(data):
     if 'pretty' in request.args:
-        return json.dumps(data, indent=4) + '\n'
-    return json.dumps(data)
+        return json.dumps(data, cls=Encoder, indent=4) + '\n'
+    return json.dumps(data, cls=Encoder)
 
 
 @app.route('/', defaults={'path': ''})

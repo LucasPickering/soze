@@ -1,10 +1,14 @@
 import curses
 
 from ccs import logger
-from .color import BLACK
+from .color import Color, BLACK
 from ccs.lcd import lcd
 
 _stdscr = curses.initscr()
+curses.start_color()
+curses.use_default_colors()
+for i in range(1, curses.COLORS):
+    curses.init_pair(i, i, -1)  # Background is always blank
 
 
 class CursesLed:
@@ -16,8 +20,9 @@ class CursesLed:
         self._window = curses.newwin(1, 50, 0, 0)
 
     def set_color(self, color):
+        term_color = color.to_term_color()
         self._window.clear()
-        self._window.addstr(0, 0, f'LED Color: {color}')
+        self._window.addstr(f'LED Color: {color}', curses.color_pair(term_color))
         self._window.refresh()
 
     def stop(self):
@@ -69,11 +74,11 @@ class CursesSerial:
             lcd.CMD_CLEAR: lambda self, args: self._clear(),
             lcd.CMD_BACKLIGHT_ON: lambda self, args: None,
             lcd.CMD_BACKLIGHT_OFF: lambda self, args: None,
-            lcd.CMD_SIZE: lambda self, args: self._set_size(args[0], args[1]),
+            lcd.CMD_SIZE: lambda self, args: self._set_size(*args),
             lcd.CMD_SPLASH_TEXT: lambda self, args: None,
             lcd.CMD_BRIGHTNESS: lambda self, args: None,
             lcd.CMD_CONTRAST: lambda self, args: None,
-            lcd.CMD_COLOR: lambda self, args: None,
+            lcd.CMD_COLOR: lambda self, args: self._set_color(*args),
             lcd.CMD_AUTOSCROLL_ON: lambda self, args: None,  # Not supporting (always off)
             lcd.CMD_AUTOSCROLL_OFF: lambda self, args: None,
             lcd.CMD_UNDERLINE_CURSOR_ON: lambda self, args: None,
@@ -81,7 +86,7 @@ class CursesSerial:
             lcd.CMD_BLOCK_CURSOR_ON: lambda self, args: None,
             lcd.CMD_BLOCK_CURSOR_OFF: lambda self, args: None,
             lcd.CMD_CURSOR_HOME: lambda self, args: self._set_cursor_pos(1, 1),
-            lcd.CMD_CURSOR_POS: lambda self, args: self._set_cursor_pos(args[0], args[1]),
+            lcd.CMD_CURSOR_POS: lambda self, args: self._set_cursor_pos(*args),
             lcd.CMD_CURSOR_FWD: lambda self, args: self._cursor_fwd(),
             lcd.CMD_CURSOR_BACK: lambda self, args: self._cursor_back(),
             lcd.CMD_CREATE_CHAR: lambda self, args: None,
@@ -89,9 +94,19 @@ class CursesSerial:
             lcd.CMD_LOAD_CHAR_BANK: lambda self, args: None,
         }
 
+    def _clear(self):
+        self._window.clear()
+        self._window.border()  # Put the pretty border back
+        self._window.refresh()
+
     def _set_size(self, width, height):
         self._width = width
         self._height = height
+
+    def _set_color(self, red, green, blue):
+        term_color = Color(red, green, blue).to_term_color()
+        self._window.attrset(term_color)
+        # TODO
 
     def _set_cursor_pos(self, x, y):
         if self._width == 0 or self._height == 0:
@@ -108,11 +123,6 @@ class CursesSerial:
 
     def _cursor_back(self):
         self._set_cursor_pos(self._cursor_x - 1, self._cursor_y)
-
-    def _clear(self):
-        self._window.clear()
-        self._window.border()  # Put the pretty border back
-        self._window.refresh()
 
     def write(self, data):
         if len(data) == 0:

@@ -1,7 +1,7 @@
 import pickle
 
 from ccs import logger
-from .color import Color, unpack_color, BLACK
+from .color import Color, BLACK
 from .singleton import Singleton
 from ccs.lcd import lcd_mode
 from ccs.led import led_mode
@@ -17,7 +17,7 @@ class Setting:
     def set(self, value):
         validated = self._validate(value)
         self._val = validated
-        return validated
+        return self.get()
 
     def _validate(self, val):
         return val
@@ -48,7 +48,7 @@ class ColorSetting(Setting):
 
     def _validate(self, val):
         if not isinstance(val, Color):
-            val = unpack_color(val)  # This will raise an error if it isn't unpackable
+            val = Color.unpack(val)  # This will raise an error if it isn't unpackable
         return val
 
 
