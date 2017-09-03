@@ -11,7 +11,7 @@ _TIME_FORMAT = ' %I:%M'
 
 
 def _get_lcd_color():
-    return settings.lcd.color
+    return settings.get('lcd.color')
 
 
 def _get_clock_text():

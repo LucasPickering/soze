@@ -5,7 +5,6 @@ import time
 from collections import namedtuple
 
 from ccs import app, logger
-from .core.config import Config
 from .core.settings import Settings
 from .core.color import BLACK
 from .lcd import lcd_mode
@@ -18,7 +17,6 @@ _LCD_THREAD_PAUSE = 0.01
 _HW_DATA_THREAD_PAUSE = 0.05
 _PING_THREAD_PAUSE = 1.0
 
-_CONFIG = Config()
 _SETTINGS = Settings()
 
 
@@ -32,7 +30,6 @@ class CaseControlServer:
             logger.setLevel(logging.DEBUG)
 
         # Init config/settings
-        _CONFIG.init(args.config)
         _SETTINGS.init(args.settings)
 
         self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
@@ -48,7 +45,7 @@ class CaseControlServer:
             from .led.led import Led
 
         # Init the LCD handler
-        self._lcd = Lcd(_CONFIG.lcd_serial_device, _CONFIG.lcd_width, _CONFIG.lcd_height)
+        self._lcd = Lcd(args.lcd_serial, args.lcd_width, args.lcd_height)
 
         # Init the LED handler
         self._led = Led()
@@ -57,7 +54,7 @@ class CaseControlServer:
         self._add_thread(self._led_thread)
         self._add_thread(self._lcd_thread)
         self._add_thread(self._hw_data_thread, daemon=True)
-        self._add_thread(self._ping_thread, args=(_CONFIG.keepalive_host,), daemon=True)
+        self._add_thread(self._ping_thread, args=(args.keepalive,), daemon=True)
 
     def _add_thread(self, target, **kwargs):
         thread = threading.Thread(target=target, **kwargs)
