@@ -4,7 +4,7 @@ from ccs import app
 from .color import Color
 from .settings import Settings
 
-_SETTINGS = Settings()
+settings = Settings()
 
 
 class Encoder(json.JSONEncoder):
@@ -24,10 +24,10 @@ def _to_json(data):
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def route(path):
     if request.method == 'GET':
-        data = _SETTINGS.get(path)
+        data = settings.get(path)
         return _to_json(data)
     elif request.method == 'POST':
-        data = _SETTINGS.set(path, request.get_json())
+        data = settings.set(path, request.get_json())
         return _to_json(data)
 
 

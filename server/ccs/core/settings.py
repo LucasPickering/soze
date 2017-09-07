@@ -2,7 +2,7 @@ import pickle
 
 from ccs import logger
 from .color import Color, BLACK
-from .singleton import Singleton
+from .singleton import singleton
 from ccs.lcd import lcd_mode
 from ccs.led import led_mode
 
@@ -55,19 +55,20 @@ class ColorSetting(Setting):
 def _new_settings():
     return {
         'led': {
-            'mode': ModeSetting(led_mode.MODES),
+            'mode': ModeSetting(led_mode.MODE_NAMES),
             'static': {
                 'color': ColorSetting(),
             },
         },
         'lcd': {
-            'mode': ModeSetting(lcd_mode.MODES),
+            'mode': ModeSetting(lcd_mode.MODE_NAMES),
             'color': ColorSetting()
         },
     }
 
 
-class Settings(metaclass=Singleton):
+@singleton
+class Settings:
     """
     @brief      The settings directly determined by the user. These are all set from the API.
                 They are used to calculatate the data sent to the hardware.
@@ -78,7 +79,7 @@ class Settings(metaclass=Singleton):
         self._settings = _new_settings()
 
     def init(self, settings_file):
-        # This is separate from the constructor so that anyone can use get this instance via the
+        # This is separate from the constructor so that anyone can get this instance via the
         # constructor without having to initialize the class
 
         self._settings_file = settings_file

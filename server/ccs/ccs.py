@@ -17,7 +17,7 @@ _LCD_THREAD_PAUSE = 0.01
 _HW_DATA_THREAD_PAUSE = 0.05
 _PING_THREAD_PAUSE = 1.0
 
-_SETTINGS = Settings()
+settings = Settings()
 
 
 class CaseControlServer:
@@ -30,7 +30,7 @@ class CaseControlServer:
             logger.setLevel(logging.DEBUG)
 
         # Init config/settings
-        _SETTINGS.init(args.settings)
+        settings.init(args.settings)
 
         self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
         self._threads = []  # List of background threads to run
@@ -44,11 +44,9 @@ class CaseControlServer:
             from .lcd.lcd import Lcd
             from .led.led import Led
 
-        # Init the LCD handler
-        self._lcd = Lcd(args.lcd_serial, args.lcd_width, args.lcd_height)
-
-        # Init the LED handler
+        # Init the LED/LCD handlers
         self._led = Led()
+        self._lcd = Lcd(args.lcd_serial, args.lcd_width, args.lcd_height)
 
         # Add background threads to be run
         self._add_thread(self._led_thread)
@@ -132,8 +130,8 @@ class CaseControlServer:
         """
         while self._keep_running:
             # Compute new values and store them
-            led_color = led_mode.get_color(_SETTINGS.get('led.mode'))
-            lcd_color, lcd_text = lcd_mode.get_color_and_text(_SETTINGS.get('lcd.mode'))
+            led_color = led_mode.get_color(settings)
+            lcd_color, lcd_text = lcd_mode.get_color_and_text(self._lcd, settings)
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
             time.sleep(_HW_DATA_THREAD_PAUSE)
 

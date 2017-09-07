@@ -1,5 +1,12 @@
 import argparse
-import RPi.GPIO as GPIO
+
+from ccs import logger
+from ccs.core.color import BLACK
+
+try:
+    import RPi.GPIO as GPIO
+except ModuleNotFoundError:
+    logger.warning("RPi.GPIO library not installed")
 
 
 class Led:
@@ -43,7 +50,7 @@ class Led:
         GPIO.cleanup()
 
     def off(self):
-        self.set_color(0, 0, 0)
+        self.set_color(BLACK)
 
 
 def main():

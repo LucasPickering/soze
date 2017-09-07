@@ -1,22 +1,22 @@
-from .color import BLACK
-from ccs.lcd import lcd
+from ccs.led.led import Led
+from ccs.lcd.lcd import Lcd
 
 
-class NullLed:
+class NullLed(Led):
+
+    def __init__(self):
+        pass
 
     def set_color(self, color):
         pass
-        # print(color)
 
     def stop(self):
         self.off()
 
-    def off(self):
-        self.set_color(BLACK)
 
+class NullLcd(Lcd):
 
-class NullLcd(lcd.Lcd):
-    def __init__(self, serial_port, width=lcd.DEFAULT_WIDTH, height=lcd.DEFAULT_HEIGHT):
+    def __init__(self, serial_port, width, height):
         self._width = width
         self._height = height
 

@@ -1,32 +1,51 @@
+import abc
+
+from ccs.core.named import Named
 from ccs.core.color import BLACK
-from ccs.core import settings
 
 
-def _get_static_color():
-    return settings.Settings().get('led.static.color')
+class LedMode(Named):
+
+    @abc.abstractmethod
+    def get_color(self, settings):
+        pass
 
 
-# Maybe not the prettiest solution but it's definitely terse
-_MODE_DICT = {
-    'off': lambda: BLACK,
-    'static': _get_static_color,
-}
-MODES = set(_MODE_DICT.keys())
+class OffMode(LedMode):
+
+    def __init__(self):
+        super().__init__('off')
+
+    def get_color(self, settings):
+        return BLACK
 
 
-def get_color(mode):
+class StaticMode(LedMode):
+
+    def __init__(self):
+        super().__init__('static')
+
+    def get_color(self, settings):
+        return settings.get('led.static.color')
+
+
+_MODES = [OffMode(), StaticMode()]
+_MODE_DICT = {mode.name: mode for mode in _MODES}
+MODE_NAMES = set(_MODE_DICT.keys())
+
+
+def get_color(settings):
     """
     @brief      Gets the current color for the LEDs.
 
-    @param      mode  The current LED mode, as a string
+    @param      settings  The current settings
 
     @return     The current LED color, based on mode and other relevant settings.
 
     @raises     ValueError if the given LED mode is unknown
     """
     try:
-        mode_func = _MODE_DICT[mode]  # Get the function used for this mode
+        mode = _MODE_DICT[settings.get('led.mode')]  # Get the relevant mode object
     except KeyError:
-        valid_modes = _MODE_DICT.keys()
-        raise ValueError(f"Invalid mode '{mode}'. Valid modes are {valid_modes}")
-    return mode_func()
+        raise ValueError(f"Invalid mode '{mode}'. Valid modes are {MODE_NAMES}")
+    return mode.get_color(settings)

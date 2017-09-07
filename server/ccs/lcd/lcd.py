@@ -73,9 +73,6 @@ BIG_CHARS = {
 
 BAUD_RATE = 9600
 
-DEFAULT_WIDTH = 20
-DEFAULT_HEIGHT = 4
-
 # Special signals for the controller
 SIG_COMMAND = 0xfe
 CMD_CLEAR = 0x58
@@ -101,43 +98,6 @@ CMD_SAVE_CUSTOM_CHAR = 0xc1
 CMD_LOAD_CHAR_BANK = 0xc0
 
 
-def make_big_text(text):
-    """
-    @brief      Converts the given string into "big text". Big text is text that is three lines
-                high. The return value will be a three-line string reprsenting the given text
-                in "big form."
-
-    @param      text  The text to make big
-
-    @return     The big text.
-    """
-
-    def _get_big_char(char):
-        try:
-            return BIG_CHARS[char]
-        except KeyError:
-            raise ValueError(f"Unsupported big character: {char}")
-
-    def _add_spaces(line):
-        # Add a space after every character, except for spaces (don't double them up)
-        result = ''
-        for c in line:
-            if c != ' ':
-                result += c
-            result += ' '
-        return result
-
-    def _make_big_line(line):
-        line = _add_spaces(line)  # Add some spaces to the line to make it look nicer
-        big_chars = [_get_big_char(c) for c in line]
-        line_tuples = zip(*big_chars)
-        big_lines = [''.join(t) for t in line_tuples]
-        return '\n'.join(big_lines)
-
-    lines = text.splitlines()
-    return [_make_big_line(line) for line in lines]
-
-
 class CursorMode(Enum):
     off = 1
     underline = 2
@@ -146,7 +106,7 @@ class CursorMode(Enum):
 
 class Lcd:
 
-    def __init__(self, serial_port, width=DEFAULT_WIDTH, height=DEFAULT_HEIGHT):
+    def __init__(self, serial_port, width, height):
         self._width = width
         self._height = height
         self._ser = serial.Serial(serial_port,
@@ -204,6 +164,14 @@ class Lcd:
         joined_bytes = b''.join(arg_bytes_list)
         all_bytes = bytes([SIG_COMMAND, command]) + joined_bytes
         self._write(all_bytes, flush)
+
+    @property
+    def width(self):
+        return self._width
+
+    @property
+    def height(self):
+        return self._height
 
     def flush_serial(self):
         """
@@ -434,3 +402,40 @@ class Lcd:
         self.clear()
         self.flush_serial()
         self._ser.close()
+
+    @staticmethod
+    def make_big_text(text):
+        """
+        @brief      Converts the given string into "big text". Big text is text that is three lines
+                    high. The return value will be a three-line string reprsenting the given text
+                    in "big form."
+
+        @param      text  The text to make big
+
+        @return     The big text.
+        """
+
+        def _get_big_char(char):
+            try:
+                return BIG_CHARS[char]
+            except KeyError:
+                raise ValueError(f"Unsupported big character: {char}")
+
+        def _add_spaces(line):
+            # Add a space after every character, except for spaces (don't double them up)
+            result = ''
+            for c in line:
+                if c != ' ':
+                    result += c
+                result += ' '
+            return result
+
+        def _make_big_line(line):
+            line = _add_spaces(line)  # Add some spaces to the line to make it look nicer
+            big_chars = [_get_big_char(c) for c in line]
+            line_tuples = zip(*big_chars)
+            big_lines = [''.join(t) for t in line_tuples]
+            return '\n'.join(big_lines)
+
+        lines = text.splitlines()
+        return [_make_big_line(line) for line in lines]
