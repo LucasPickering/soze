@@ -1,3 +1,4 @@
+import re
 import serial
 from enum import Enum
 
@@ -415,25 +416,10 @@ class Lcd:
 
         @return     The big text.
         """
-
-        def get_big_char(char):
-            try:
-                return BIG_CHARS[char]
-            except KeyError:
-                raise ValueError(f"Unsupported big character: {char}")
-
-        def add_spaces(line):
-            # Add a space after every character, except for spaces (don't double them up)
-            result = ''
-            for c in line:
-                if c != ' ':
-                    result += c
-                result += ' '
-            return result
-
         def make_big_line(line):
-            line = add_spaces(line)  # Add some spaces to the line to make it look nicer
-            big_chars = [get_big_char(c) for c in line]
+            # Add a space after every character, except for spaces (don't double them up)
+            line = re.sub(r'(\S)', r'\1 ', line)
+            big_chars = [BIG_CHARS[c] for c in line]
             line_tuples = zip(*big_chars)
             big_lines = [''.join(t) for t in line_tuples]
             return '\n'.join(big_lines)
