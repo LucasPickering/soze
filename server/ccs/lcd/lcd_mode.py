@@ -6,11 +6,6 @@ from .lcd import Lcd
 from ccs.core.named import Named
 from ccs.core.color import BLACK
 
-_LONG_DAY_FORMAT = '%A, %B %d'
-_SHORT_DAY_FORMAT = '%A, %b %d'
-_SECONDS_FORMAT = ' %S'
-_TIME_FORMAT = ' %I:%M'
-
 
 class LcdMode(Named):
 
@@ -37,6 +32,11 @@ class OffMode(LcdMode):
 
 class ClockMode(LcdMode):
 
+    _LONG_DAY_FORMAT = '{d:%A}, {d:%B} {d.day}'
+    _SHORT_DAY_FORMAT = '{d:%A}, {d:%b} {d.day}'
+    _SECONDS_FORMAT = ' {d.second:02}'
+    _TIME_FORMAT = ' {d:%I}:{d.minute:02}'
+
     def __init__(self):
         super().__init__('clock')
 
@@ -47,18 +47,18 @@ class ClockMode(LcdMode):
         lines = []  # This will we populated as we go along
 
         now = datetime.now()
-        day_str = now.strftime(_LONG_DAY_FORMAT)
-        seconds_str = now.strftime(_SECONDS_FORMAT)
+        day_str = ClockMode._LONG_DAY_FORMAT.format(d=now)
+        seconds_str = ClockMode._SECONDS_FORMAT.format(d=now)
 
         # If the line is too long, use a shorter version
         if len(day_str) + len(seconds_str) > lcd.width:
-            day_str = now.strftime(_SHORT_DAY_FORMAT)
+            day_str = ClockMode._SHORT_DAY_FORMAT.format(d=now)
 
         # Pad the day string with spaces to make it the right length
         day_str = day_str.ljust(lcd.width - len(seconds_str))
         lines.append(day_str + seconds_str)  # First line
 
-        time_str = now.strftime(_TIME_FORMAT)
+        time_str = ClockMode._TIME_FORMAT.format(d=now)
         lines += Lcd.make_big_text(time_str)  # Rest of the fucking lines
 
         return '\n'.join(lines)

@@ -416,13 +416,13 @@ class Lcd:
         @return     The big text.
         """
 
-        def _get_big_char(char):
+        def get_big_char(char):
             try:
                 return BIG_CHARS[char]
             except KeyError:
                 raise ValueError(f"Unsupported big character: {char}")
 
-        def _add_spaces(line):
+        def add_spaces(line):
             # Add a space after every character, except for spaces (don't double them up)
             result = ''
             for c in line:
@@ -431,12 +431,11 @@ class Lcd:
                 result += ' '
             return result
 
-        def _make_big_line(line):
-            line = _add_spaces(line)  # Add some spaces to the line to make it look nicer
-            big_chars = [_get_big_char(c) for c in line]
+        def make_big_line(line):
+            line = add_spaces(line)  # Add some spaces to the line to make it look nicer
+            big_chars = [get_big_char(c) for c in line]
             line_tuples = zip(*big_chars)
             big_lines = [''.join(t) for t in line_tuples]
             return '\n'.join(big_lines)
 
-        lines = text.splitlines()
-        return [_make_big_line(line) for line in lines]
+        return [make_big_line(line) for line in text.splitlines()]
