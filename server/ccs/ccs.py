@@ -92,9 +92,11 @@ class CaseControlServer:
                 color = self._hw_data.led_color if self._keepalive_up else BLACK
                 self._led.set_color(color)
                 time.sleep(_LED_THREAD_PAUSE)
+            logger.debug("LED thread stopped")
+        except Exception as e:
+            logger.error(f"LED thread stopped with exception: {e}")
         finally:
             self._led.stop()
-            logger.debug("LED thread stopped")
 
     def _lcd_thread(self):
         """
@@ -115,10 +117,11 @@ class CaseControlServer:
                     text = ''
                 self._lcd.set_color(color)
                 self._lcd.set_text(text)
-                # self._lcd.flush_serial()  # Maybe uncomment this if we have problems?`
+            logger.debug("LCD thread stopped")
+        except Exception as e:
+            logger.error(f"LCD thread stopped with exception: {e}")
         finally:
             self._lcd.stop()
-            logger.debug("LCD thread stopped")
 
     def _hw_data_thread(self):
         """
