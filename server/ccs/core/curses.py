@@ -39,25 +39,9 @@ class CursesLcd(lcd.Lcd):
     @brief      A mocked verison of the LCD handler, for testing without the required hardware.
                 This is pretty minimal, most of the hard work goes on in MockedSerial.
     """
-    _START_LINE = 1
 
-    def __init__(self, serial_port, width, height):
-        self._width = width
-        self._height = height
-
-        # Init the curses window
-        self._window = curses.newwin(self._height + 2, self._width + 2, 1, 0)
-        self._window.border()
-        self._window.refresh()
-
-        self._ser = CursesSerial(self._window)
-        self._lines = [''] * height  # Screen starts blank
-        self.set_size(width, height)
-        self.clear()
-
-    def stop(self):
-        super().stop()
-        curses.endwin()  # REALLY kill the curses window
+    def _open_serial(self, serial_port, **kwargs):
+        return CursesSerial()
 
 
 class CursesSerial:
@@ -89,19 +73,26 @@ class CursesSerial:
         lcd.CMD_LOAD_CHAR_BANK: lambda self, args: None,
     }
 
-    def __init__(self, window):
-        self._window = window
-        self._set_size(1, 1)
-        self._set_cursor_pos(1, 1)  # Yes, (1, 1) is the origin. Fuck Adafruit.
+    def __init__(self):
+        # Init the curses window
+        self._window = curses.newwin(0, 0, 1, 0)
+        self._border()
+
+    def _border(self):
+        self._window.border()
+        self._window.refresh()
 
     def _clear(self):
         self._window.clear()
-        self._window.border()  # Put the pretty border back
-        self._window.refresh()
+        self._border()
 
     def _set_size(self, width, height):
         self._width = width
         self._height = height
+        self._window.clear()
+        self._window.refresh()
+        self._window.resize(height + 2, width + 2)
+        self._border()
 
     def _set_color(self, red, green, blue):
         term_color = Color(red, green, blue).to_term_color()
@@ -109,7 +100,7 @@ class CursesSerial:
         # TODO
 
     def _set_cursor_pos(self, x, y):
-        if self._width == 0 or self._height == 0:
+        if self._width is None or self._height is None:
             raise ValueError("Width and height must be set before setting cursor pos")
         better_x = x - 1  # Fuck 1-indexing
         better_y = y - 1  # Once again, fuck 1-indexing
@@ -127,6 +118,7 @@ class CursesSerial:
     def write(self, data):
         if len(data) == 0:
             return
+
         if data[0] == lcd.SIG_COMMAND:
             cmd = data[1]
             args = data[2:]
@@ -138,14 +130,11 @@ class CursesSerial:
             cmd_func(self, args)  # Call the function with the args
         else:
             # Data is just text, write to the screen
-            logger.debug(f"Writing {data} to screen")
-            for b in data:
-                self._window.addch(self._cursor_y, self._cursor_x, b)
-                self._cursor_fwd()  # Advance the cursor after every char
+            self._window.addstr(self._cursor_y, self._cursor_x, data.decode())
             self._window.refresh()
 
     def flush(self):
         pass
 
     def close(self):
-        pass
+        curses.endwin()  # Kill the curses window

@@ -109,11 +109,11 @@ class Lcd:
     def __init__(self, serial_port, width, height):
         self._width = width
         self._height = height
-        self._ser = serial.Serial(serial_port,
-                                  baudrate=BAUD_RATE,
-                                  bytesize=serial.EIGHTBITS,
-                                  parity=serial.PARITY_NONE,
-                                  stopbits=serial.STOPBITS_ONE)
+        self._ser = self._open_serial(serial_port,
+                                      baudrate=BAUD_RATE,
+                                      bytesize=serial.EIGHTBITS,
+                                      parity=serial.PARITY_NONE,
+                                      stopbits=serial.STOPBITS_ONE)
         self.set_size(width, height)
         self.clear()
         self.set_autoscroll(False)  # Fugg that
@@ -124,6 +124,9 @@ class Lcd:
         for index, char in CUSTOM_CHARS.items():
             self.create_char(0, index, char)
         self.load_char_bank(0)
+
+    def _open_serial(self, serial_port, **kwargs):
+        return serial.Serial(serial_port, **kwargs)
 
     def _write(self, data, flush=False):
         """
@@ -368,26 +371,24 @@ class Lcd:
         @return     None
         """
 
-        def _get_char_at(lines, x, y):
-            if y < len(lines):
-                line = lines[y]
-                if x < len(line):
-                    return line[x]
-            return ' '
+        def char_at(lines, x, y):
+            try:
+                return lines[y][x]
+            except IndexError:
+                return ' '
 
         lines = [line[:self._width] for line in text.splitlines()[:self._height]]
 
         self.cursor_home()  # Move the cursor to (1,1) before we start writing
         for y in range(self._height):
             for x in range(self._width):
-                old_char = _get_char_at(self._lines, x, y)
-                new_char = _get_char_at(lines, x, y)
+                old_char = char_at(self._lines, x, y)
+                new_char = char_at(lines, x, y)
 
-                # If this char changed, update it. Otherwise, just advance to the next one.
+                # If this char changed, update it
                 if old_char != new_char:
-                    self._write(bytes([ord(new_char)]))
-                else:
-                    self.move_cursor_forward()
+                    self.set_cursor_pos(x + 1, y + 1)
+                    self._write(new_char.encode())
         self._lines = lines
 
     def stop(self):
