@@ -4,11 +4,11 @@ from enum import Enum
 # Custom chars (e.g. the small blocks used to make big chars) are defined here
 # Each character box is 5x8, represented as 8 5-bit lines
 CUSTOM_CHARS = {
-    0: [0b00000, 0b00000, 0b00000, 0b00000, 0b00011, 0b01111, 0b01111, 0b11111],
-    1: [0b00000, 0b00000, 0b00000, 0b00000, 0b11000, 0b11110, 0b11110, 0b11111],
-    2: [0b00000, 0b00000, 0b00000, 0b00000, 0b11111, 0b11111, 0b11111, 0b11111],
-    3: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b01111, 0b01111, 0b00011],
-    4: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11110, 0b11110, 0b11000],
+    0x00: [0b00000, 0b00000, 0b00000, 0b00000, 0b00011, 0b01111, 0b01111, 0b11111],
+    0x01: [0b00000, 0b00000, 0b00000, 0b00000, 0b11000, 0b11110, 0b11110, 0b11111],
+    0x02: [0b00000, 0b00000, 0b00000, 0b00000, 0b11111, 0b11111, 0b11111, 0b11111],
+    0x03: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b01111, 0b01111, 0b00011],
+    0x04: [0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11110, 0b11110, 0b11000],
 }
 
 # Aliases for the small characters used to make big characters
@@ -154,7 +154,7 @@ class Lcd:
 
         @return     None
         """
-        def _to_bytes(d):
+        def to_bytes(d):
             if type(d) is int:
                 return bytes([d])
             elif type(d) is str:
@@ -163,7 +163,7 @@ class Lcd:
                 return d
             return b''
 
-        arg_bytes_list = [_to_bytes(arg) for arg in args]
+        arg_bytes_list = [to_bytes(arg) for arg in args]
         joined_bytes = b''.join(arg_bytes_list)
         all_bytes = bytes([SIG_COMMAND, command]) + joined_bytes
         self._write(all_bytes, flush)
@@ -354,8 +354,8 @@ class Lcd:
         """
         self._send_command(CMD_CURSOR_BACK)
 
-    def create_char(self, bank, index, char_bytes):
-        self._send_command(CMD_SAVE_CUSTOM_CHAR, bank, index, *char_bytes)
+    def create_char(self, bank, code, char_bytes):
+        self._send_command(CMD_SAVE_CUSTOM_CHAR, bank, code, *char_bytes)
 
     def load_char_bank(self, bank):
         self._send_command(CMD_LOAD_CHAR_BANK, bank)

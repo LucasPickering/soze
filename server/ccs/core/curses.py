@@ -1,6 +1,5 @@
 import curses
 
-from ccs import logger
 from .color import Color, BLACK
 from ccs.led.led import Led
 from ccs.lcd import lcd
@@ -68,12 +67,25 @@ class CursesSerial:
         lcd.CMD_CURSOR_POS: lambda self, args: self._set_cursor_pos(*args),
         lcd.CMD_CURSOR_FWD: lambda self, args: self._cursor_fwd(),
         lcd.CMD_CURSOR_BACK: lambda self, args: self._cursor_back(),
-        lcd.CMD_CREATE_CHAR: lambda self, args: None,
-        lcd.CMD_SAVE_CUSTOM_CHAR: lambda self, args: None,
-        lcd.CMD_LOAD_CHAR_BANK: lambda self, args: None,
+        lcd.CMD_CREATE_CHAR: lambda self, args: None,  # This thing is useless
+        lcd.CMD_SAVE_CUSTOM_CHAR: lambda self, args: self._save_custom_char(args[0], args[1],
+                                                                            args[2:]),
+        lcd.CMD_LOAD_CHAR_BANK: lambda self, args: self._load_char_bank(args[0]),
     }
 
     def __init__(self):
+        # Unfortunately this has to be hardcoded
+        self._custom_chars = {
+            0: {
+                0x00: '▗',  # Half-bottom right
+                0x01: '▖',  # Half-bottom left
+                0x02: '▄',  # Half-bottom
+                0x03: '▜',  # Full-bottom right
+                0x04: '▛',  # Full-bottom left
+                0xff: '█',  # Full
+            }
+        }
+        self._current_char_bank = None
         # Init the curses window
         self._window = curses.newwin(0, 0, 1, 0)
         self._border()
@@ -115,6 +127,14 @@ class CursesSerial:
     def _cursor_back(self):
         self._set_cursor_pos(self._cursor_x - 1, self._cursor_y)
 
+    def _save_custom_char(self, bank, code, char_bytes):
+        # We can't do anything with the custom chars, so why save them
+        # self._custom_chars[bank][code] = char_bytes
+        pass
+
+    def _load_char_bank(self, bank):
+        self._current_char_bank = self._custom_chars[bank]
+
     def write(self, data):
         if len(data) == 0:
             return
@@ -130,7 +150,10 @@ class CursesSerial:
             cmd_func(self, args)  # Call the function with the args
         else:
             # Data is just text, write to the screen
-            self._window.addstr(self._cursor_y, self._cursor_x, data.decode())
+            s = data.decode()
+            for code, char in self._current_char_bank.items():
+                s = s.replace(chr(code), char)
+            self._window.addstr(self._cursor_y, self._cursor_x, s)
             self._window.refresh()
 
     def flush(self):
