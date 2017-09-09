@@ -11,18 +11,17 @@ from .lcd import lcd_mode
 from .led import led_mode
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
-
-_LED_THREAD_PAUSE = 0.01
-_LCD_THREAD_PAUSE = 0.01
-_HW_DATA_THREAD_PAUSE = 0.05
-_PING_THREAD_PAUSE = 1.0
-
 settings = Settings()
 
 
 class CaseControlServer:
+    _LED_THREAD_PAUSE = 0.01
+    _LCD_THREAD_PAUSE = 0.01
+    _HW_DATA_THREAD_PAUSE = 0.05
+    _PING_THREAD_PAUSE = 1.0
+
     def __init__(self, args):
-        self._keep_running = True
+        self._run = True
         self._keepalive_up = True
         self._debug = args.debug
 
@@ -33,7 +32,6 @@ class CaseControlServer:
         settings.init(args.settings)
 
         self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
-        self._threads = []  # List of background threads to run
 
         # Import LCD/LED handlers based on whether or not we are mocking
         if args.mock:
@@ -49,14 +47,14 @@ class CaseControlServer:
         self._lcd = Lcd(args.lcd_serial, args.lcd_width, args.lcd_height)
 
         # Add background threads to be run
-        self._add_thread(self._led_thread)
-        self._add_thread(self._lcd_thread)
-        self._add_thread(self._hw_data_thread, daemon=True)
-        self._add_thread(self._ping_thread, args=(args.keepalive,), daemon=True)
-
-    def _add_thread(self, target, **kwargs):
-        thread = threading.Thread(target=target, **kwargs)
-        self._threads.append(thread)
+        def add_thread(target, **kwargs):
+            thread = threading.Thread(target=target, **kwargs)
+            self._threads.append(thread)
+        self._threads = []
+        add_thread(self._led_thread)
+        add_thread(self._lcd_thread)
+        add_thread(self._hw_data_thread, daemon=True)
+        add_thread(self._ping_thread, args=(args.keepalive,), daemon=True)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -70,7 +68,7 @@ class CaseControlServer:
 
     def _stop(self):
         logger.info("Stopping...")
-        self._keep_running = False
+        self._run = False
 
         # Wait for all blocking (i.e. non-daemon) threads to terminate
         logger.debug("Waiting for threads to stop...")
@@ -88,10 +86,10 @@ class CaseControlServer:
         @return     None
         """
         try:
-            while self._keep_running:
+            while self._run:
                 color = self._hw_data.led_color if self._keepalive_up else BLACK
                 self._led.set_color(color)
-                time.sleep(_LED_THREAD_PAUSE)
+                time.sleep(CaseControlServer._LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         except Exception as e:
             logger.error(f"LED thread stopped with exception: {e}")
@@ -108,7 +106,7 @@ class CaseControlServer:
         @return     None
         """
         try:
-            while self._keep_running:
+            while self._run:
                 if self._keepalive_up:
                     color = self._hw_data.lcd_color
                     text = self._hw_data.lcd_text
@@ -117,6 +115,7 @@ class CaseControlServer:
                     text = ''
                 self._lcd.set_color(color)
                 self._lcd.set_text(text)
+                time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         except Exception as e:
             logger.error(f"LCD thread stopped with exception: {e}")
@@ -131,12 +130,12 @@ class CaseControlServer:
 
         @return     None
         """
-        while self._keep_running:
+        while self._run:
             # Compute new values and store them
             led_color = led_mode.get_color(settings)
             lcd_color, lcd_text = lcd_mode.get_color_and_text(self._lcd, settings)
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
-            time.sleep(_HW_DATA_THREAD_PAUSE)
+            time.sleep(CaseControlServer._HW_DATA_THREAD_PAUSE)
 
     def _ping_thread(self, keepalive_host):
         """
@@ -147,7 +146,7 @@ class CaseControlServer:
 
         @return     None
         """
-        while self._keep_running:
+        while self._run:
             success = True  # Assume true until we have a failing ping
             if keepalive_host:  # If a host was specified...
                 exit_code = subprocess.call(['ping', '-c', '1', keepalive_host],
@@ -159,4 +158,4 @@ class CaseControlServer:
                 logger.debug(f"Keepalive up: {success}")
             self._keepalive_up = success
 
-            time.sleep(_PING_THREAD_PAUSE)  # Until we meet again...
+            time.sleep(CaseControlServer._PING_THREAD_PAUSE)  # Until we meet again...

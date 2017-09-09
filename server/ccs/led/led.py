@@ -9,9 +9,24 @@ except ModuleNotFoundError:
     logger.warning("RPi.GPIO library not installed")
 
 
-class Led:
+class PwmPin:
 
     PWM_FREQ = 100  # Frequency of PWM wave, in Hz
+
+    def __init__(self, pin_num):
+        GPIO.setup(pin_num, GPIO.OUT)
+        self._pwm = GPIO.PWM(pin_num, PwmPin.PWM_FREQ)
+        self._pwm.start(0)
+
+    def set_color(self, color_val):
+        duty_cycle = color_val / 255.0 * 100  # Convert color val [0, 255] to duty cycle [0, 100]
+        self._pwm.ChangeDutyCycle(duty_cycle)
+
+    def stop(self):
+        self._pwm.stop()
+
+
+class Led:
 
     # Hardware pin numbers, please don't ask about the ordering that's just how I wired it
     RED_PIN = 5
@@ -22,31 +37,24 @@ class Led:
         # Init pins
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
-        GPIO.setup(self.RED_PIN, GPIO.OUT)
-        GPIO.setup(self.GREEN_PIN, GPIO.OUT)
-        GPIO.setup(self.BLUE_PIN, GPIO.OUT)
 
         # Init and start a PWM controller for each pin
-        self.red_pwm = GPIO.PWM(self.RED_PIN, self.PWM_FREQ)
-        self.green_pwm = GPIO.PWM(self.GREEN_PIN, self.PWM_FREQ)
-        self.blue_pwm = GPIO.PWM(self.BLUE_PIN, self.PWM_FREQ)
-
-        self.red_pwm.start(0)
-        self.green_pwm.start(0)
-        self.blue_pwm.start(0)
+        self._red_pwm = PwmPin(Led.RED_PIN)
+        self._green_pwm = PwmPin(Led.GREEN_PIN)
+        self._blue_pwm = PwmPin(Led.BLUE_PIN)
 
     def set_color(self, color):
         def to_duty_cycle(color_val):
             return color_val / 255.0 * 100
-        self.red_pwm.ChangeDutyCycle(to_duty_cycle(color.red))
-        self.green_pwm.ChangeDutyCycle(to_duty_cycle(color.green))
-        self.blue_pwm.ChangeDutyCycle(to_duty_cycle(color.blue))
+        self._red_pwm.set_color(color.red)
+        self._green_pwm.set_color(color.green)
+        self._blue_pwm.set_color(color.blue)
 
     def stop(self):
         self.off()
-        self.red_pwm.stop()
-        self.green_pwm.stop()
-        self.blue_pwm.stop()
+        self._red_pwm.stop()
+        self._green_pwm.stop()
+        self._blue_pwm.stop()
         GPIO.cleanup()
 
     def off(self):
