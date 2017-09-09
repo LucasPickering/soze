@@ -86,6 +86,7 @@ class CursesSerial:
             }
         }
         self._current_char_bank = None
+        self._color = BLACK
         # Init the curses window
         self._window = curses.newwin(0, 0, 1, 0)
         self._border()
@@ -103,13 +104,15 @@ class CursesSerial:
         self._height = height
         self._window.clear()
         self._window.refresh()
-        self._window.resize(height + 2, width + 2)
+        self._window.resize(height + 3, width + 2)
         self._border()
 
     def _set_color(self, red, green, blue):
-        term_color = Color(red, green, blue).to_term_color()
-        self._window.attrset(term_color)
-        # TODO
+        self._color = Color(red, green, blue)
+        s = str(self._color).ljust(self._width)
+        term_color = self._color.to_term_color()
+        self._window.addstr(self._height + 1, 1, s, curses.color_pair(term_color))
+        self._window.refresh()
 
     def _set_cursor_pos(self, x, y):
         if self._width is None or self._height is None:
@@ -151,8 +154,9 @@ class CursesSerial:
         else:
             # Data is just text, write to the screen
             s = data.decode()
-            for code, char in self._current_char_bank.items():
-                s = s.replace(chr(code), char)
+            if self._current_char_bank:
+                for code, char in self._current_char_bank.items():
+                    s = s.replace(chr(code), char)
             self._window.addstr(self._cursor_y, self._cursor_x, s)
             self._window.refresh()
 
