@@ -1,4 +1,5 @@
 import abc
+import time
 
 from ccs.core.decorators import registered_singleton
 from ccs.core.named import Named
@@ -49,9 +50,27 @@ class StaticMode(LedMode):
 @registered_singleton(_modes, 'fade')
 class FadeMode(LedMode):
 
+    FADE_TIME = 1.0
+
     def __init__(self, name):
         super().__init__(name)
         self._color_index = 0
+        self._fade_start_time = 0
 
     def _get_color(self, settings):
-        return RED
+        fade_colors = settings.get('led.fade.colors')
+
+        # If the size of fade_colors changed, color_index could be out of range
+        if self._color_index >= len(fade_colors):
+            self._color_index = 0
+
+        if len(fade_colors) == 0:
+            return BLACK
+
+        now = time.time()
+        if now - self._fade_start_time >= FadeMode.FADE_TIME:
+            self._color_index += 1
+            self._color_index %= len(fade_colors)
+            self._fade_start_time = now
+
+        return fade_colors[self._color_index]
