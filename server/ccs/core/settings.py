@@ -2,7 +2,6 @@ import pickle
 
 from ccs import logger
 from .color import Color, BLACK
-from .decorators import singleton
 from ccs.lcd.lcd_mode import LcdMode
 from ccs.led.led_mode import LedMode
 
@@ -63,26 +62,6 @@ class ColorSetting(Setting):
         return val
 
 
-def _new_settings():
-    logger.debug("Creating new settings object...")
-    return {
-        'led': {
-            'mode': ModeSetting(LedMode.get_mode_names()),
-            'static': {
-                'color': ColorSetting(),
-            },
-            'fade': {
-                'colors': ListSetting(ColorSetting()),
-            },
-        },
-        'lcd': {
-            'mode': ModeSetting(LcdMode.get_mode_names()),
-            'color': ColorSetting(),
-        },
-    }
-
-
-@singleton
 class Settings:
     """
     @brief      The settings directly determined by the user. These are all set from the API.
@@ -90,20 +69,35 @@ class Settings:
                 LED and LCD mode are examples of user settings.
     """
 
-    def __init__(self):
-        self._settings = _new_settings()
-
     def init(self, settings_file):
-        # This is separate from the constructor so that anyone can get this instance via the
-        # constructor without having to initialize the class
+        # This is separate from the constructor so that the object can be initialized with the
+        # settings file name (as it is in __init__.py)
 
         self._settings_file = settings_file
 
-        # Init default values for properties
-        self._settings = _new_settings()
+        # Try to load from the file, if that fails, use default settings
+        if not self._load():  # Try to load settings from file
+            logger.debug("Initializing new settings...")
+            self._settings = Settings._new_settings()
+            self._save()  # Save the default settings
 
-        self._load()  # Load from the settings file
-        self._save()  # Write the whole settings file to make sure it's up to date
+    @staticmethod
+    def _new_settings():
+        return {
+            'led': {
+                'mode': ModeSetting(LedMode.get_mode_names()),
+                'static': {
+                    'color': ColorSetting(),
+                },
+                'fade': {
+                    'colors': ListSetting(ColorSetting()),
+                },
+            },
+            'lcd': {
+                'mode': ModeSetting(LcdMode.get_mode_names()),
+                'color': ColorSetting(),
+            },
+        }
 
     def _get_at_path(self, path):
         path = path.replace('.', '/')
@@ -148,16 +142,31 @@ class Settings:
         self._save()
 
     def _load(self):
-        # Load the dict from a file
+        """
+        Load settings from the given pickle file.
+
+        Return True if the settings were successfully loaded, False otherwise.
+        """
         try:
             with open(self._settings_file, 'rb') as f:
                 self._settings = pickle.load(f)
                 logger.info(f"Loaded settings from '{self._settings_file}'")
+                return True
         except Exception as e:
             logger.warning(f"Failed to load settings from '{self._settings_file}': {e}")
+            return False
 
     def _save(self):
-        # Save settings to a file
-        logger.debug(f"Saving settings to '{self._settings_file}'")
-        with open(self._settings_file, 'wb') as f:
-            pickle.dump(self._settings, f)
+        """
+        Save settings to the given pickle file.
+
+        Return True if the settings were successfully saved, False otherwise.
+        """
+        try:
+            with open(self._settings_file, 'wb') as f:
+                pickle.dump(self._settings, f)
+                logger.debug(f"Saved settings to '{self._settings_file}'")
+                return True
+        except Exception as e:
+            logger.warning(f"Failed to save settings to '{self._settings_file}': {e}")
+            return False

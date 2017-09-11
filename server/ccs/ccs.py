@@ -5,13 +5,12 @@ import time
 from collections import namedtuple
 
 from ccs import app, logger
-from .core.settings import Settings
+from .core import api, settings # Import api just to initialize it
 from .core.color import BLACK
 from .led.led_mode import LedMode
 from .lcd.lcd_mode import LcdMode
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
-settings = Settings()
 
 
 class CaseControlServer:

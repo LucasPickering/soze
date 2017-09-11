@@ -2,9 +2,7 @@ from flask import json, request
 
 from ccs import app
 from .color import Color
-from .settings import Settings
-
-settings = Settings()
+from . import settings
 
 
 class Encoder(json.JSONEncoder):
