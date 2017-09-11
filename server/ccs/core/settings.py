@@ -2,9 +2,9 @@ import pickle
 
 from ccs import logger
 from .color import Color, BLACK
-from .singleton import singleton
-from ccs.lcd import lcd_mode
-from ccs.led import led_mode
+from .decorators import singleton
+from ccs.lcd.lcd_mode import LcdMode
+from ccs.led.led_mode import LedMode
 
 
 class Setting:
@@ -29,17 +29,28 @@ class Setting:
         return f"<{self.__class__.__name__}: {self._val}>"
 
 
+class ListSetting(Setting):
+    def __init__(self, setting):
+        self._setting = setting
+
+    def _validate(self, val):
+        if not isinstance(val, list):
+            raise ValueError(f"Expected list, got {val}")
+        return [self._setting._validate(e) for e in val]
+
+
 class ModeSetting(Setting):
     def __init__(self, valid_modes, default_mode='off'):
         super().__init__(default_mode)
         self._valid_modes = valid_modes
 
-    def _is_valid(self, val):
+    def _validate(self, val):
         if not isinstance(val, str):
             raise ValueError(f"Expected str, got {val}")
+        val = val.lower()
         if val not in self._valid_modes:
             raise ValueError(f"Expected one of {self._valid_modes}, got {val}")
-        return val.lower()
+        return val
 
 
 class ColorSetting(Setting):
@@ -53,16 +64,20 @@ class ColorSetting(Setting):
 
 
 def _new_settings():
+    logger.debug("Creating new settings object...")
     return {
         'led': {
-            'mode': ModeSetting(led_mode.MODE_NAMES),
+            'mode': ModeSetting(LedMode.get_mode_names()),
             'static': {
                 'color': ColorSetting(),
             },
+            'fade': {
+                'colors': ListSetting(ColorSetting()),
+            },
         },
         'lcd': {
-            'mode': ModeSetting(lcd_mode.MODE_NAMES),
-            'color': ColorSetting()
+            'mode': ModeSetting(LcdMode.get_mode_names()),
+            'color': ColorSetting(),
         },
     }
 

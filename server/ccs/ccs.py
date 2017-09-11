@@ -7,8 +7,8 @@ from collections import namedtuple
 from ccs import app, logger
 from .core.settings import Settings
 from .core.color import BLACK
-from .lcd import lcd_mode
-from .led import led_mode
+from .led.led_mode import LedMode
+from .lcd.lcd_mode import LcdMode
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 settings = Settings()
@@ -132,8 +132,8 @@ class CaseControlServer:
         """
         while self._run:
             # Compute new values and store them
-            led_color = led_mode.get_color(settings)
-            lcd_color, lcd_text = lcd_mode.get_color_and_text(self._lcd, settings)
+            led_color = LedMode.get_color(settings)
+            lcd_color, lcd_text = LcdMode.get_color_and_text(self._lcd, settings)
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
             time.sleep(CaseControlServer._HW_DATA_THREAD_PAUSE)
 
