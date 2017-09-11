@@ -1,3 +1,4 @@
+import abc
 import pickle
 
 from ccs import logger
@@ -6,9 +7,9 @@ from ccs.lcd.lcd_mode import LcdMode
 from ccs.led.led_mode import LedMode
 
 
-class Setting:
+class Setting(metaclass=abc.ABCMeta):
     def __init__(self, default_val):
-        self._val = default_val
+        self.set(default_val)
 
     def get(self):
         return self._val
@@ -18,8 +19,9 @@ class Setting:
         self._val = validated
         return self.get()
 
+    @abc.abstractmethod
     def _validate(self, val):
-        return val
+        pass
 
     def __str__(self):
         return str(self._val)
@@ -29,7 +31,8 @@ class Setting:
 
 
 class ListSetting(Setting):
-    def __init__(self, setting):
+    def __init__(self, setting, default_val=[]):
+        super().__init__(default_val)
         self._setting = setting
 
     def _validate(self, val):
