@@ -5,6 +5,7 @@ from ccs.led.led import Led
 from ccs.lcd import lcd
 
 _stdscr = curses.initscr()
+curses.curs_set(0)
 curses.start_color()
 curses.use_default_colors()
 for i in range(1, curses.COLORS):
@@ -16,13 +17,16 @@ class CursesLed(Led):
     @brief      A mocked version of the LED handler.
     """
 
+    WIDTH = 50
+    HEIGHT = 1
+
     def __init__(self):
-        self._window = curses.newwin(1, 50, 0, 0)
+        self._window = curses.newwin(CursesLed.HEIGHT, CursesLed.WIDTH, 0, 0)
 
     def set_color(self, color):
         term_color = color.to_term_color()
         self._window.clear()
-        self._window.addstr(f'LED Color: {color}', curses.color_pair(term_color))
+        self._window.addstr(f"LED Color: {color}", curses.color_pair(term_color))
         self._window.refresh()
 
     def stop(self):

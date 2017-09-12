@@ -14,8 +14,8 @@ HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
 
 class CaseControlServer:
-    _LED_THREAD_PAUSE = 0.01
-    _LCD_THREAD_PAUSE = 0.01
+    _LED_THREAD_PAUSE = 0.1
+    _LCD_THREAD_PAUSE = 0.1
     _HW_DATA_THREAD_PAUSE = 0.05
     _PING_THREAD_PAUSE = 1.0
 
