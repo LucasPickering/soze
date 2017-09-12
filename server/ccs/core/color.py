@@ -269,9 +269,21 @@ class Color:
     }
 
     def __init__(self, red, green, blue):
-        self._r = red
-        self._g = green
-        self._b = blue
+        self._r = Color._check(red)
+        self._g = Color._check(green)
+        self._b = Color._check(blue)
+
+    @staticmethod
+    def _check(val):
+        if not isinstance(val, int):
+            raise TypeError(f"Value must be int, but was {type(val)}")
+        if val < 0 or val > 255:
+            raise ValueError(f"Value must be [0, 255], but was {val}")
+        return val
+
+    @staticmethod
+    def _coerce(val):
+        return min(max(int(val), 0), 255)
 
     @staticmethod
     def from_hexcode(hex_val):
@@ -308,6 +320,54 @@ class Color:
         closest_hex = min(Color._RGB_TO_TERM.keys(), key=lambda x: abs(x - hexcode))
         closest_color = Color.from_hexcode(closest_hex)
         return Color._RGB_TO_TERM[closest_color.to_hexcode()]
+
+    def __add__(self, other):
+        if not isinstance(other, Color):
+            raise TypeError("unsupported operand type(s) for +:"
+                            f" '{type(self)}' and '{type(other)}'")
+        r = Color._coerce(self.red + other.red)
+        g = Color._coerce(self.green + other.green)
+        b = Color._coerce(self.blue + other.blue)
+        return Color(r, g, b)
+
+    def __sub__(self, other):
+        if not isinstance(other, Color):
+            raise TypeError("unsupported operand type(s) for -:"
+                            f" '{type(self)}' and '{type(other)}'")
+        r = Color._coerce(self.red - other.red)
+        g = Color._coerce(self.green - other.green)
+        b = Color._coerce(self.blue - other.blue)
+        return Color(r, g, b)
+
+    def __mul__(self, coeff):
+        if not isinstance(coeff, int) and not isinstance(coeff, float):
+            raise TypeError("unsupported operand type(s) for *:"
+                            f" '{type(self)}' and '{type(other)}'")
+        r = Color._coerce(self.red * coeff)
+        g = Color._coerce(self.green * coeff)
+        b = Color._coerce(self.blue * coeff)
+        return Color(r, g, b)
+
+    def blend(self, other, bias=0.5):
+        """
+        @brief      Blend this color with another one.
+
+        @param      self   The object
+        @param      other  The other color to blend with
+        @param      bias   The bias to give towards this color in the blend [0, 1]
+
+        @return     The blended color, as a new Color object
+        """
+        if bias < 0 or 1 < bias:
+            raise ValueError(f"Bias must be in range [0, 1], but was {bias}")
+        other_bias = 1.0 - bias
+
+        def mix(this, other):
+            return int(this * bias + other * other_bias)
+
+        return Color(mix(self.red, other.red),
+                     mix(self.green, other.green),
+                     mix(self.blue, other.blue))
 
     def default(self):
         # Convert to JSON

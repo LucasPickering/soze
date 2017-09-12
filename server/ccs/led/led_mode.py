@@ -3,7 +3,7 @@ import time
 
 from ccs.core.decorators import registered_singleton
 from ccs.core.named import Named
-from ccs.core.color import Color, RED, BLACK
+from ccs.core.color import BLACK
 
 _modes = {}
 
@@ -50,8 +50,6 @@ class StaticMode(LedMode):
 @registered_singleton(_modes, 'fade')
 class FadeMode(LedMode):
 
-    FADE_TIME = 1.0
-
     def __init__(self, name):
         super().__init__(name)
         self._color_index = 0
@@ -59,18 +57,24 @@ class FadeMode(LedMode):
 
     def _get_color(self, settings):
         fade_colors = settings.get('led.fade.colors')
-
-        # If the size of fade_colors changed, color_index could be out of range
-        if self._color_index >= len(fade_colors):
-            self._color_index = 0
+        fade_time = settings.get('led.fade.fade_time')
 
         if len(fade_colors) == 0:
             return BLACK
 
+        def get_fade_color(index):
+            return fade_colors[index % len(fade_colors)]
+
         now = time.time()
-        if now - self._fade_start_time >= FadeMode.FADE_TIME:
+        if now - self._fade_start_time >= fade_time:
+            # Reached the next color
             self._color_index += 1
             self._color_index %= len(fade_colors)
             self._fade_start_time = now
 
-        return fade_colors[self._color_index]
+        # Interpolate between the two boundary colors based on time
+        last_color = get_fade_color(self._color_index)
+        next_color = get_fade_color(self._color_index + 1)
+        bias = (now - self._fade_start_time) / fade_time
+        current_color = last_color * (1 - bias) + next_color * bias
+        return current_color

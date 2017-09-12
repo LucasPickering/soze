@@ -1,4 +1,4 @@
-from . import color, named, settings  # Import api just to get the functions to initialize
+from . import color, settings
 
 __all__ = ['color', 'named', 'settings']
 

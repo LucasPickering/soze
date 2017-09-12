@@ -32,8 +32,8 @@ class Setting(metaclass=abc.ABCMeta):
 
 class ListSetting(Setting):
     def __init__(self, setting, default_val=[]):
-        super().__init__(default_val)
         self._setting = setting
+        super().__init__(default_val)
 
     def _validate(self, val):
         if not isinstance(val, list):
@@ -43,8 +43,8 @@ class ListSetting(Setting):
 
 class ModeSetting(Setting):
     def __init__(self, valid_modes, default_mode='off'):
-        super().__init__(default_mode)
         self._valid_modes = valid_modes
+        super().__init__(default_mode)
 
     def _validate(self, val):
         if not isinstance(val, str):
@@ -62,6 +62,22 @@ class ColorSetting(Setting):
     def _validate(self, val):
         if not isinstance(val, Color):
             val = Color.unpack(val)  # This will raise an error if it isn't unpackable
+        return val
+
+
+class FloatSetting(Setting):
+    def __init__(self, default_val, min_=None, max_=None):
+        self._min = min_
+        self._max = max_
+        super().__init__(default_val)
+
+    def _validate(self, val):
+        if not isinstance(val, float):
+            raise ValueError(f"Expected float, got {val}")
+        if self._min is not None and val < self._min:
+            raise ValueError(f"Value {val} below minimum of {self._min}")
+        if self._max is not None and val > self._max:
+            raise ValueError(f"Value {val} below maximum of {self._max}")
         return val
 
 
@@ -94,6 +110,7 @@ class Settings:
                 },
                 'fade': {
                     'colors': ListSetting(ColorSetting()),
+                    'fade_time': FloatSetting(5.0, 1.0, 30.0),
                 },
             },
             'lcd': {
