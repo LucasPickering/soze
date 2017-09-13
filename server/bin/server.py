@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import argparse
 
 from ccs.ccs import CaseControlServer
@@ -12,8 +13,6 @@ if __name__ == '__main__':
     parser.add_argument('--keepalive', default=None, help="Host to use for keepalive check")
     parser.add_argument('--mock', '-m', action='store_const', default=False, const=True,
                         help="Mock the LEDs/LCD in the console for development")
-    parser.add_argument('--null', '-n', action='store_const', default=False, const=True,
-                        help="Don't output data at all (no hardware or mocking)")
     parser.add_argument('--settings', '-s', default='settings.p',
                         help="Specify the settings file that will be saved to and loaded from")
     args = parser.parse_args()

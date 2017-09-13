@@ -1,5 +1,3 @@
-from . import color, settings
-
-__all__ = ['color', 'named', 'settings']
+from . import settings
 
 settings = settings.Settings()

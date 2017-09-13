@@ -1,10 +1,7 @@
-from ccs import logger
-from ccs.core.color import BLACK
+import RPi.GPIO as GPIO
 
-try:
-    import RPi.GPIO as GPIO
-except ModuleNotFoundError:
-    logger.warning("RPi.GPIO library not installed")
+from .helper import *
+from ccs.core.color import BLACK
 
 
 class PwmPin:
@@ -26,20 +23,15 @@ class PwmPin:
 
 class Led:
 
-    # Hardware pin numbers, please don't ask about the ordering that's just how I wired it
-    RED_PIN = 5
-    GREEN_PIN = 3
-    BLUE_PIN = 7
-
     def __init__(self):
         # Init pins
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
 
         # Init and start a PWM controller for each pin
-        self._red_pwm = PwmPin(Led.RED_PIN)
-        self._green_pwm = PwmPin(Led.GREEN_PIN)
-        self._blue_pwm = PwmPin(Led.BLUE_PIN)
+        self._red_pwm = PwmPin(LED_RED_PIN)
+        self._green_pwm = PwmPin(LED_GREEN_PIN)
+        self._blue_pwm = PwmPin(LED_BLUE_PIN)
 
     def set_color(self, color):
         self._red_pwm.set_color(color.red)

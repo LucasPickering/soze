@@ -2,7 +2,7 @@ import abc
 
 from datetime import datetime
 
-from .lcd import Lcd
+from .helper import make_big_text
 from ccs.core.decorators import registered_singleton
 from ccs.core.named import Named
 from ccs.core.color import BLACK
@@ -76,6 +76,6 @@ class ClockMode(LcdMode):
         lines.append(day_str + seconds_str)  # First line
 
         time_str = ClockMode._TIME_FORMAT.format(d=now)
-        lines += Lcd.make_big_text(time_str)  # Rest of the fucking lines
+        lines += make_big_text(time_str)  # Rest of the fucking lines
 
         return '\n'.join(lines)

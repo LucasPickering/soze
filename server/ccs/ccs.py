@@ -1,3 +1,4 @@
+import importlib
 import logging
 import subprocess
 import threading
@@ -14,8 +15,8 @@ HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
 
 class CaseControlServer:
-    _LED_THREAD_PAUSE = 0.1
-    _LCD_THREAD_PAUSE = 0.1
+    _LED_THREAD_PAUSE = 1.0
+    _LCD_THREAD_PAUSE = 1.0
     _HW_DATA_THREAD_PAUSE = 0.05
     _PING_THREAD_PAUSE = 1.0
 
@@ -32,16 +33,19 @@ class CaseControlServer:
 
         self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
 
-        # Import LCD/LED handlers based on whether or not we are mocking
+        # Mock hardware communication (PWM and serial)
         if args.mock:
-            from .core.curses import CursesLcd as Lcd, CursesLed as Led  # FAKE HANDLERS, SAD!!
-        elif args.null:
-            from .core.null import NullLcd as Lcd, NullLed as Led
-        else:
-            from .lcd.lcd import Lcd
-            from .led.led import Led
+            # Swap out some libraries with out mocked versions
+            # Fake imports, SAD!!
+            logger.info("Running in mocking mode")
+            import sys
+            sys.modules['RPi'] = importlib.import_module('ccs.mock.RPi')
+            sys.modules['serial'] = importlib.import_module('ccs.mock.serial')
 
         # Init the LED/LCD handlers
+        # Wait to import these in case their libraries are being mocked
+        from .led.led import Led
+        from .lcd.lcd import Lcd
         self._led = Led()
         self._lcd = Lcd(args.lcd_serial, args.lcd_width, args.lcd_height)
 
