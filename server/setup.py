@@ -5,4 +5,4 @@ setup(name='ccs',
       url='https://github.com/LucasPickering/Case-Control-CLI',
       author='Lucas Pickering',
       packages=find_packages(),
-      install_requires=['flask'])
+      install_requires=['flask', 'pyserial'])
