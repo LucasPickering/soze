@@ -15,8 +15,8 @@ from ccs.lcd.helper import *
 class Resource(metaclass=abc.ABCMeta):
 
     def __init__(self, sock_addr, width, height, x, y):
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        self._sock.setblocking(False)
+        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        # self._sock.setblocking(False)
         self._addr = sock_addr
         self._window = curses.newwin(height, width, y, x)
         self._thread = threading.Thread(target=self._loop)
@@ -27,20 +27,18 @@ class Resource(metaclass=abc.ABCMeta):
         pass
 
     def _loop(self):
-        while self._run:
-            try:
-                data = self._sock.recv(1024)
-                self._process_data(data)
-            except socket.error:
-                pass
-
-    def _close(self):
-        print(f"Closing {self}")
-        self._sock.close()
-        os.remove(self._addr)
+        conn, addr = self._sock.accept()
+        with conn:
+            while self._run:
+                try:
+                    data = conn.recv(1024)
+                    self._process_data(data)
+                except socket.error:
+                    pass
 
     def start(self):
         self._sock.bind(self._addr)
+        self._sock.listen(1)
         self._thread.start()
 
     def wait(self):
@@ -50,7 +48,10 @@ class Resource(metaclass=abc.ABCMeta):
     def stop(self):
         self._run = False
         self.wait()
-        self._close()
+
+        print(f"Closing {self}")
+        self._sock.close()
+        os.unlink(self._addr)
 
     def __str__(self):
         return self._addr
@@ -102,7 +103,7 @@ class CursesLcd(Resource):
         CMD_CURSOR_BACK: lambda self, args: self._cursor_back(),
         CMD_CREATE_CHAR: lambda self, args: None,  # This thing is useless
         CMD_SAVE_CUSTOM_CHAR: lambda self, args: self._save_custom_char(args[0], args[1], args[2:]),
-        CMD_LOAD_CHAR_BANK: lambda self, args: self._load_char_bank(args[0]),
+        CMD_LOAD_CHAR_BANK: lambda self, args: self._load_char_bank(*args),
     }
 
     def __init__(self, x=0, y=0):

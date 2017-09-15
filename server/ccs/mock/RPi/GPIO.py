@@ -11,7 +11,7 @@ OUT = None
 class PWM:
     def __init__(self, pin, *args, **kwargs):  # extra args to match the sig of GPIO.PWM
         self._addr = LED_PWM_SOCKET.format(pin=pin)
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
     def start(self, dc):
         self._sock.connect(self._addr)

@@ -10,7 +10,7 @@ STOPBITS_ONE = None
 
 class Serial:
     def __init__(self, *args, **kwargs):
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self._sock.connect(LCD_MOCK_SOCKET)
         self.total_bytes = 0
 
