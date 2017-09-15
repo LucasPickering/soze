@@ -99,6 +99,9 @@ LCD_MOCK_SOCKET = '/tmp/ccs_lcd.sock'
 
 BAUD_RATE = 9600
 
+DEFAULT_WIDTH = 20
+DEFAULT_HEIGHT = 4
+
 
 class CursorMode(Enum):
     off = 1

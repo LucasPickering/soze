@@ -1,6 +1,6 @@
-import socket
 import struct
 
+from ccs.mock.mock_server import MockServer
 from ccs.led.helper import LED_PWM_SOCKET
 
 # Mocked GPIO constants
@@ -8,22 +8,20 @@ BOARD = None
 OUT = None
 
 
-class PWM:
-    def __init__(self, pin, *args, **kwargs):  # extra args to match the sig of GPIO.PWM
-        self._addr = LED_PWM_SOCKET.format(pin=pin)
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+class PWM(MockServer):
+    def __init__(self, pin, *args, **kwargs):
+        super().__init__(LED_PWM_SOCKET.format(pin=pin))
 
     def start(self, dc):
-        self._sock.connect(self._addr)
+        super().start()
         self.ChangeDutyCycle(dc)
 
     def ChangeDutyCycle(self, dc):  # Which idiot chose Pascal casing for Python???
         data = struct.pack('f', dc)
-        # self._sock.sendall(data)
+        super().write(data)
 
     def stop(self):
-        self._sock.close()
-
+        super().stop()
 
 # Mocked GPIO methods
 
