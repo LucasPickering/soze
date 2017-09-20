@@ -2,6 +2,7 @@
 
 import abc
 import curses
+import os
 import socket
 import struct
 import time
@@ -12,40 +13,41 @@ from ccs.led.helper import LED_PWM_SOCKET, LED_RED_PIN, LED_GREEN_PIN, LED_BLUE_
 from ccs.lcd.helper import *
 
 
+def format_bytes(data):
+    return ' '.join('{:02x}'.format(b) for b in data)
+
+
 class Resource(metaclass=abc.ABCMeta):
 
     def __init__(self, sock_addr):
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self._sock.setblocking(False)
+        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         self._addr = sock_addr
-        self._thread = Thread(target=self._loop)
-        self._run = True
+        self._thread = Thread(target=self._loop, daemon=True)
+
+    def _read_data(self):
+        return self._sock.recv(64)
 
     @abc.abstractmethod
-    def _read_data(self):
+    def _process_data(self, data):
         pass
 
     def _loop(self):
-        while self._run:
+        while True:
             try:
-                self._read_data()
-            except socket.error:
-                pass
+                data = self._read_data()
+                # print(format_bytes(data))
+                self._process_data(data)
+            except OSError:
+                break
 
     def start(self):
-        self._sock.connect(self._addr)
+        self._sock.bind(self._addr)
         self._thread.start()
 
-    def wait(self):
-        if self._thread.is_alive():
-            self._thread.join()
-
-    def stop(self):
-        self._run = False
-        self.wait()
-
+    def close(self):
         print(f"Closing {self}")
         self._sock.close()
+        os.unlink(self._addr)
 
     def __str__(self):
         return self._addr
@@ -60,8 +62,7 @@ class ColorPwmSocket(Resource):
         super().__init__(LED_PWM_SOCKET.format(pin=pin))
         self.val = 0
 
-    def _read_data(self):
-        data = self._sock.recv(4)  # 4 bytes per float
+    def _process_data(self, data):
         dc = struct.unpack('f', data)[0]
         self.val = int(dc / 100.0 * 255.0)
 
@@ -129,7 +130,15 @@ class LcdSocket(Resource):
 
     @command(CMD_CLEAR)
     def _clear(self):
-        self.text = [''] * self._height
+        self._text = [''] * self._height
+
+    @command(CMD_BACKLIGHT_ON, 1)
+    def _backlight_on(self, timeout):  # timeout is unused in Adafruit's driver
+        pass  # TODO
+
+    @command(CMD_BACKLIGHT_OFF)
+    def _backlight_off(self):
+        pass  # TODO
 
     @command(CMD_SIZE, 2)
     def _set_size(self, width, height):
@@ -163,8 +172,8 @@ class LcdSocket(Resource):
     def _cursor_back(self, n=1):
         self._set_cursor_pos(self._cursor_x - n, self._cursor_y)
 
-    @command(CMD_SAVE_CUSTOM_CHAR, 3)
-    def _save_custom_char(self, bank, code, char_bytes):
+    @command(CMD_SAVE_CUSTOM_CHAR, 10)  # bank + code + 8 char bytes
+    def _save_custom_char(self, bank, code, *char_bytes):
         # We can't do anything with the custom chars, so don't bother saving them
         # self._custom_chars[bank][code] = char_bytes
         pass
@@ -172,6 +181,14 @@ class LcdSocket(Resource):
     @command(CMD_LOAD_CHAR_BANK, 1)
     def _load_char_bank(self, bank):
         self._current_char_bank = self._custom_chars[bank]
+
+    @command(CMD_AUTOSCROLL_ON)
+    def _autoscroll_on(self):
+        pass  # TODO
+
+    @command(CMD_AUTOSCROLL_OFF)
+    def _autoscroll_off(self):
+        pass  # TODO
 
     def _write_str(self, s):
         x = self._cursor_x - 1
@@ -181,26 +198,27 @@ class LcdSocket(Resource):
         self._text[y] = (line[:x] + s + line[x + n:])[:self._width]  # No text wrapping
         self._cursor_fwd(n)
 
-    def _read_data(self):
-        byte = self._sock.recv(1)[0]  # Get the first byte
-        if byte == SIG_COMMAND:
-            cmd = self._sock.recv(1)[0]  # Get the command byte
+    def _process_data(self, data):
+        if data[0] == SIG_COMMAND:
+            if len(data) < 2:
+                raise ValueError(f"Missing command byte: {format_bytes(data)}")
+            cmd = data[1]  # Get the command byte
+
             try:
                 num_args, cmd_func = _lcd_commands[cmd]  # Figure out how many args we want
             except KeyError:
-                raise ValueError(f"Unknown command: 0x{cmd:02x}")
+                raise ValueError(f"Unknown command: {hex(cmd)}")
+            args = data[2:]
+            if len(args) != num_args:
+                raise ValueError(f"Expected {num_args} args, got {len(args)}: {format_bytes(data)}")
 
-            args = bytearray()
-            while len(args) < num_args:
-                args += self._sock.recv(1)
             cmd_func(self, *args)  # Call the function with the args
         else:
             # Data is just text, write to the screen
-            if self._current_char_bank and byte in self._current_char_bank:
-                c = self._current_char_bank[byte]
-            else:
-                c = chr(byte)
-            self._write_str(c)
+            s = data.decode()
+            for code, char in self._current_char_bank.items():
+                s = s.replace(chr(code), char)
+            self._write_str(s)
 
 
 class CursesDisplay:
@@ -245,7 +263,7 @@ def main(stdscr):
     try:
         curses.curs_set(0)  # Hide the cursor
 
-        # # Add curses colors
+        # Add curses colors
         curses.start_color()
         curses.use_default_colors()
         for i in range(1, curses.COLORS):
@@ -265,14 +283,16 @@ def main(stdscr):
         display = CursesDisplay(stdscr, *resources)
         display.start()
 
-        for res in resources:
-            res.wait()
+        # Wait for Ctrl-c
+        while True:
+            time.sleep(10)
     except KeyboardInterrupt:
         pass
     finally:
         for res in resources:
-            res.stop()
+            res.close()
 
 
 if __name__ == '__main__':
     curses.wrapper(main)
+    # main(None)

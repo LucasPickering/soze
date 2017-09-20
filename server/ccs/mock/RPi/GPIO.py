@@ -18,7 +18,7 @@ class PWM(MockServer):
 
     def ChangeDutyCycle(self, dc):  # Which idiot chose Pascal casing for Python???
         data = struct.pack('f', dc)
-        super().write(data)
+        # super().write(data)
 
     def stop(self):
         super().stop()

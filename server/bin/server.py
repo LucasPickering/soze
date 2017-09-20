@@ -3,7 +3,7 @@
 import argparse
 
 from ccs.ccs import CaseControlServer
-from ccs.ccs.lcd.helper import DEFAULT_WIDTH, DEFAULT_HEIGHT
+from ccs.lcd.helper import DEFAULT_WIDTH, DEFAULT_HEIGHT
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

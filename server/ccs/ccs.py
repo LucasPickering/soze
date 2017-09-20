@@ -54,10 +54,10 @@ class CaseControlServer:
             thread = threading.Thread(target=target, **kwargs)
             self._threads.append(thread)
         self._threads = []
-        add_thread(self._led_thread)
-        add_thread(self._lcd_thread)
-        add_thread(self._hw_data_thread, daemon=True)
-        add_thread(self._ping_thread, args=(args.keepalive,), daemon=True)
+        add_thread(self._led_thread, name='LED-Thread')
+        add_thread(self._lcd_thread, name='LCD-Thread')
+        add_thread(self._hw_data_thread, name='HW-Data-Thread', daemon=True)
+        add_thread(self._ping_thread, name='Ping-Thread', args=[args.keepalive], daemon=True)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -94,8 +94,6 @@ class CaseControlServer:
                 self._led.set_color(color)
                 time.sleep(CaseControlServer._LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
-        except Exception as e:
-            logger.error(f"LED thread stopped with exception: {e}")
         finally:
             self._led.stop()
 
@@ -120,8 +118,6 @@ class CaseControlServer:
                 self._lcd.set_text(text)
                 time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
-        except Exception as e:
-            logger.error(f"LCD thread stopped with exception: {e}")
         finally:
             self._lcd.stop()
 
