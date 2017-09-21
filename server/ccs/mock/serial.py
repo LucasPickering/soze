@@ -14,7 +14,6 @@ class Serial(MockServer):
 
     def write(self, data):
         super().write(data)
-        pass
 
     def flush(self):
         pass

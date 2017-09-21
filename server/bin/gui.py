@@ -2,15 +2,43 @@
 
 import abc
 import curses
+import logging
 import os
 import socket
 import struct
 import time
+import traceback
 from threading import Thread
 
 from ccs.core.color import Color, BLACK
 from ccs.led.helper import LED_PWM_SOCKET, LED_RED_PIN, LED_GREEN_PIN, LED_BLUE_PIN
 from ccs.lcd.helper import *
+
+logging.config.dictConfig({
+    'version': 1,
+    'formatters': {
+        'f': {
+            'format': '[{asctime} {threadName:<11} {levelname}] {message}',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'style': '{',
+        }
+    },
+    'handlers': {
+        'file': {
+            'class': 'logging.FileHandler',
+            'formatter': 'f',
+            'filename': 'gui.log',
+            'mode': 'w',
+        },
+    },
+    'loggers': {
+        __name__: {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+    },
+})
+logger = logging.getLogger(__name__)
 
 
 def format_bytes(data):
@@ -19,10 +47,11 @@ def format_bytes(data):
 
 class Resource(metaclass=abc.ABCMeta):
 
-    def __init__(self, sock_addr):
+    def __init__(self, name, sock_addr):
         self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         self._addr = sock_addr
-        self._thread = Thread(target=self._loop, daemon=True)
+        self._thread = Thread(target=self._loop, name='{}-Thread'.format(name), daemon=True)
+        self._run = True
 
     def _read_data(self):
         return self._sock.recv(64)
@@ -32,22 +61,31 @@ class Resource(metaclass=abc.ABCMeta):
         pass
 
     def _loop(self):
-        while True:
-            try:
+        try:
+            while self._run:
+                logger.debug("Waiting for data...")
                 data = self._read_data()
-                # print(format_bytes(data))
+                logger.debug(format_bytes(data))
                 self._process_data(data)
-            except OSError:
-                break
+        except Exception:
+            logger.error(traceback.format_exc())
+        finally:
+            self.close()
 
     def start(self):
         self._sock.bind(self._addr)
         self._thread.start()
 
     def close(self):
-        print(f"Closing {self}")
-        self._sock.close()
-        os.unlink(self._addr)
+        logger.info(f"Closing {self}")
+        try:
+            self._sock.shutdown(socket.SHUT_RDWR)
+            self._sock.close()
+        except Exception:
+            pass
+        finally:
+            if os.path.exists(self._addr):
+                os.unlink(self._addr)
 
     def __str__(self):
         return self._addr
@@ -59,7 +97,7 @@ class ColorPwmSocket(Resource):
     """
 
     def __init__(self, pin, x=0, y=0):
-        super().__init__(LED_PWM_SOCKET.format(pin=pin))
+        super().__init__('PWM{}'.format(pin), LED_PWM_SOCKET.format(pin=pin))
         self.val = 0
 
     def _process_data(self, data):
@@ -85,7 +123,8 @@ class LcdSocket(Resource):
     """
 
     def __init__(self):
-        super().__init__(LCD_MOCK_SOCKET)
+        super().__init__('LCD', LCD_MOCK_SOCKET)
+        self._window = curses.newwin(0, 0, 1, 0)
 
         # Unfortunately this has to be hardcoded
         self._custom_chars = {
@@ -101,36 +140,14 @@ class LcdSocket(Resource):
         self._current_char_bank = None
         self._socket_buffer = bytearray()
 
-        self._width = DEFAULT_WIDTH
-        self._height = DEFAULT_HEIGHT
-        self._text = [''] * self._height
-        self._cursor_x = 0
-        self._cursor_y = 0
+        self._width, self._height = None, None
+        self._cursor_x, self._cursor_y = 0, 0
         self._color = BLACK
-
-    @property
-    def width(self):
-        return self._width
-
-    @property
-    def height(self):
-        return self._height
-
-    @property
-    def text(self):
-        return '\n'.join(self._text)
-
-    @property
-    def cursor_pos(self):
-        return (self._cursor_x, self._cursor_y)
-
-    @property
-    def color(self):
-        return self._color
 
     @command(CMD_CLEAR)
     def _clear(self):
-        self._text = [''] * self._height
+        self._window.clear()
+        self._window.noutrefresh()
 
     @command(CMD_BACKLIGHT_ON, 1)
     def _backlight_on(self, timeout):  # timeout is unused in Adafruit's driver
@@ -142,8 +159,11 @@ class LcdSocket(Resource):
 
     @command(CMD_SIZE, 2)
     def _set_size(self, width, height):
-        self._width = width
-        self._height = height
+        self._width, self._height = width, height
+        self._window.clear()
+        self._window.resize(height + 2, width + 2)  # padding for border
+        self._window.border()
+        self._window.noutrefresh()
 
     @command(CMD_COLOR, 3)
     def _set_color(self, red, green, blue):
@@ -157,8 +177,8 @@ class LcdSocket(Resource):
         better_y = y - 1  # Once again, fuck 1-indexing
         wrapped_x = better_x % self._width  # Wrap on x
         wrapped_y = (int(better_x / self._width) + better_y) % self._height  # Wrap on x and y
-        self._cursor_x = wrapped_x
-        self._cursor_y = wrapped_y
+        self._cursor_x = wrapped_x + 1
+        self._cursor_y = wrapped_y + 1
 
     @command(CMD_CURSOR_HOME)
     def _cursor_home(self):
@@ -191,26 +211,24 @@ class LcdSocket(Resource):
         pass  # TODO
 
     def _write_str(self, s):
-        x = self._cursor_x - 1
-        y = self._cursor_y - 1
-        n = len(s)
-        line = self._text[y]
-        self._text[y] = (line[:x] + s + line[x + n:])[:self._width]  # No text wrapping
-        self._cursor_fwd(n)
+        curses_color = curses.color_pair(self._color.to_term_color())
+        self._window.addstr(self._cursor_y, self._cursor_x, s, curses_color)
+        self._window.noutrefresh()
+        self._cursor_fwd(len(s))
 
     def _process_data(self, data):
         if data[0] == SIG_COMMAND:
             if len(data) < 2:
-                raise ValueError(f"Missing command byte: {format_bytes(data)}")
+                logger.error(f"Missing command byte: {format_bytes(data)}")
             cmd = data[1]  # Get the command byte
 
             try:
                 num_args, cmd_func = _lcd_commands[cmd]  # Figure out how many args we want
             except KeyError:
-                raise ValueError(f"Unknown command: {hex(cmd)}")
+                logger.error(f"Unknown command {hex(cmd)} in {format_bytes(data)}")
             args = data[2:]
             if len(args) != num_args:
-                raise ValueError(f"Expected {num_args} args, got {len(args)}: {format_bytes(data)}")
+                logger.error(f"Expected {num_args} args, got {len(args)}: {format_bytes(data)}")
 
             cmd_func(self, *args)  # Call the function with the args
         else:
@@ -221,73 +239,61 @@ class LcdSocket(Resource):
             self._write_str(s)
 
 
-class CursesDisplay:
+def update_led_color(red_pwm, green_pwm, blue_pwm, interval):
+    window = curses.newwin(1, 30, 0, 0)
+    while True:
+        r, g, b = red_pwm.val, green_pwm.val, blue_pwm.val
+        curses_color = curses.color_pair(Color(r, g, b).to_term_color())
 
-    PAUSE = 0.1
+        window.clear()
+        window.addstr(f"LED Color: ({r}, {g}, {b})", curses_color)
+        window.noutrefresh()
 
-    def __init__(self, stdscr, red_pwm, green_pwm, blue_pwm, lcd):
-        self._red_pwm = red_pwm
-        self._green_pwm = green_pwm
-        self._blue_pwm = blue_pwm
-        self._lcd = lcd
+        time.sleep(interval)
 
-        self._led_window = curses.newwin(1, 50, 0, 0)
-        self._lcd_window = curses.newwin(0, 0, 1, 0)
 
-    def start(self):
-        thread = Thread(target=self._loop, daemon=True)
-        thread.start()
-
-    def _loop(self):
-        while True:
-            led_color = Color(self._red_pwm.val, self._green_pwm.val, self._blue_pwm.val)
-            led_str = f"LCD color: ({led_color.red}, {led_color.green}, {led_color.blue})"
-            self._led_window.clear()
-            self._led_window.addstr(led_str, curses.color_pair(led_color.to_term_color()))
-            self._led_window.refresh()
-
-            lcd = self._lcd
-            cursor_x, cursor_y = lcd.cursor_pos
-            self._lcd_window.clear()
-            self._lcd_window.resize(lcd.height + 2, lcd.width + 2)  # +2 for border
-            self._lcd_window.border()
-            self._lcd_window.addstr(1, 1, lcd.text)
-            self._lcd_window.refresh()
-
-            time.sleep(CursesDisplay.PAUSE)
+def update_window(interval):
+    while True:
+        curses.doupdate()
+        time.sleep(interval)
 
 
 def main(stdscr):
-    resources = []
+    curses.curs_set(0)  # Hide the cursor
+
+    # Add curses colors
+    curses.start_color()
+    curses.use_default_colors()
+    for i in range(1, curses.COLORS):
+        curses.init_pair(i, i, -1)  # Background is always blank
+
+    resources = [
+        ColorPwmSocket(LED_RED_PIN),
+        ColorPwmSocket(LED_GREEN_PIN),
+        ColorPwmSocket(LED_BLUE_PIN),
+        LcdSocket(),
+    ]
 
     try:
-        curses.curs_set(0)  # Hide the cursor
-
-        # Add curses colors
-        curses.start_color()
-        curses.use_default_colors()
-        for i in range(1, curses.COLORS):
-            curses.init_pair(i, i, -1)  # Background is always blank
-
-        resources = [
-            ColorPwmSocket(LED_RED_PIN),
-            ColorPwmSocket(LED_GREEN_PIN),
-            ColorPwmSocket(LED_BLUE_PIN),
-            LcdSocket(),
-        ]
-
         # Start each resource, then wait for it to stop
         for res in resources:
             res.start()
 
-        display = CursesDisplay(stdscr, *resources)
-        display.start()
+        threads = [
+            Thread(target=update_led_color, name='LED-Thread', args=[*resources[:3], 0.1],
+                   daemon=True),
+            Thread(target=update_window, name='Curses-Thread', args=[0.1], daemon=True),
+        ]
+        for thread in threads:
+            thread.start()
 
         # Wait for Ctrl-c
         while True:
-            time.sleep(10)
+            time.sleep(1000)
     except KeyboardInterrupt:
         pass
+    except Exception:
+        logger.error(traceback.format_exc())
     finally:
         for res in resources:
             res.close()
@@ -295,4 +301,3 @@ def main(stdscr):
 
 if __name__ == '__main__':
     curses.wrapper(main)
-    # main(None)
