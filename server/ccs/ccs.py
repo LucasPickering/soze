@@ -90,8 +90,7 @@ class CaseControlServer:
         """
         try:
             while self._run:
-                color = self._hw_data.led_color if self._keepalive_up else BLACK
-                self._led.set_color(color)
+                self._led.set_color(self._hw_data.led_color)
                 time.sleep(CaseControlServer._LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         finally:
@@ -108,14 +107,8 @@ class CaseControlServer:
         """
         try:
             while self._run:
-                if self._keepalive_up:
-                    color = self._hw_data.lcd_color
-                    text = self._hw_data.lcd_text
-                else:
-                    color = BLACK
-                    text = ''
-                self._lcd.set_color(color)
-                self._lcd.set_text(text)
+                self._lcd.set_color(self._hw_data.lcd_color)
+                self._lcd.set_text(self._hw_data.lcd_text)
                 time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:
@@ -131,8 +124,12 @@ class CaseControlServer:
         """
         while self._run:
             # Compute new values and store them
-            led_color = LedMode.get_color(settings)
-            lcd_color, lcd_text = LcdMode.get_color_and_text(self._lcd, settings)
+            if self._keepalive_up:
+                led_color = LedMode.get_color(settings)
+                lcd_color, lcd_text = LcdMode.get_color_and_text(self._lcd, settings)
+            else:
+                led_color = BLACK
+                lcd_color, lcd_text = BLACK, ''
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
             time.sleep(CaseControlServer._HW_DATA_THREAD_PAUSE)
 

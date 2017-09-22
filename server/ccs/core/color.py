@@ -316,10 +316,9 @@ class Color:
     def to_term_color(self):
         hexcode = self.to_hexcode()
 
-        # Yes this is O(n) and yes this could be O(nlogn) but go fuck yourself
+        # Yes this is O(n) and yes this could be O(logn) but go fuck yourself
         closest_hex = min(Color._RGB_TO_TERM.keys(), key=lambda x: abs(x - hexcode))
-        closest_color = Color.from_hexcode(closest_hex)
-        return Color._RGB_TO_TERM[closest_color.to_hexcode()]
+        return Color._RGB_TO_TERM[closest_hex]
 
     def __add__(self, other):
         if not isinstance(other, Color):

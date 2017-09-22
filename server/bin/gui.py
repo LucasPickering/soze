@@ -63,7 +63,6 @@ class Resource(metaclass=abc.ABCMeta):
     def _loop(self):
         try:
             while self._run:
-                logger.debug("Waiting for data...")
                 data = self._read_data()
                 logger.debug(format_bytes(data))
                 self._process_data(data)
@@ -77,10 +76,10 @@ class Resource(metaclass=abc.ABCMeta):
         self._thread.start()
 
     def close(self):
-        logger.info(f"Closing {self}")
         try:
             self._sock.shutdown(socket.SHUT_RDWR)
             self._sock.close()
+            logger.info(f"Closed {self}")
         except Exception:
             pass
         finally:
@@ -142,11 +141,11 @@ class LcdSocket(Resource):
 
         self._width, self._height = None, None
         self._cursor_x, self._cursor_y = 0, 0
-        self._color = BLACK
 
     @command(CMD_CLEAR)
     def _clear(self):
         self._window.clear()
+        self._window.border()
         self._window.noutrefresh()
 
     @command(CMD_BACKLIGHT_ON, 1)
@@ -160,14 +159,16 @@ class LcdSocket(Resource):
     @command(CMD_SIZE, 2)
     def _set_size(self, width, height):
         self._width, self._height = width, height
-        self._window.clear()
         self._window.resize(height + 2, width + 2)  # padding for border
         self._window.border()
         self._window.noutrefresh()
 
     @command(CMD_COLOR, 3)
     def _set_color(self, red, green, blue):
-        self._color = Color(red, green, blue)
+        color = Color(red, green, blue)
+        color_pair = curses.color_pair(color.to_term_color())
+        self._window.bkgd(' ', color_pair)
+        self._window.noutrefresh()
 
     @command(CMD_CURSOR_POS, 2)
     def _set_cursor_pos(self, x, y):
@@ -211,8 +212,7 @@ class LcdSocket(Resource):
         pass  # TODO
 
     def _write_str(self, s):
-        curses_color = curses.color_pair(self._color.to_term_color())
-        self._window.addstr(self._cursor_y, self._cursor_x, s, curses_color)
+        self._window.addstr(self._cursor_y, self._cursor_x, s)
         self._window.noutrefresh()
         self._cursor_fwd(len(s))
 
@@ -239,7 +239,7 @@ class LcdSocket(Resource):
             self._write_str(s)
 
 
-def update_led_color(red_pwm, green_pwm, blue_pwm, interval):
+def update_window(red_pwm, green_pwm, blue_pwm, interval):
     window = curses.newwin(1, 30, 0, 0)
     while True:
         r, g, b = red_pwm.val, green_pwm.val, blue_pwm.val
@@ -249,11 +249,6 @@ def update_led_color(red_pwm, green_pwm, blue_pwm, interval):
         window.addstr(f"LED Color: ({r}, {g}, {b})", curses_color)
         window.noutrefresh()
 
-        time.sleep(interval)
-
-
-def update_window(interval):
-    while True:
         curses.doupdate()
         time.sleep(interval)
 
@@ -279,13 +274,9 @@ def main(stdscr):
         for res in resources:
             res.start()
 
-        threads = [
-            Thread(target=update_led_color, name='LED-Thread', args=[*resources[:3], 0.1],
-                   daemon=True),
-            Thread(target=update_window, name='Curses-Thread', args=[0.1], daemon=True),
-        ]
-        for thread in threads:
-            thread.start()
+        curses_thread = Thread(target=update_window, name='Curses-Thread',
+                               args=[*resources[:3], 0.05], daemon=True)
+        curses_thread.start()
 
         # Wait for Ctrl-c
         while True:

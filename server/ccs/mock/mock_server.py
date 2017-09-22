@@ -1,4 +1,5 @@
 import abc
+import errno
 import socket
 import time
 
@@ -21,10 +22,10 @@ class MockServer(metaclass=abc.ABCMeta):
                 self._sock.sendall(data)
                 break
             except OSError as e:
-                if e.errno == 55:
+                # Workaround for buffer full error:
+                if e.errno == errno.ENOBUFS:
                     logger.error(f"Buffer full on {self._addr}. Will retry...")
-                    time.sleep(0.1)
-                    # try again
+                    time.sleep(0.1)  # try again
                 else:
                     raise
 
