@@ -1,4 +1,6 @@
+import itertools
 import re
+from collections import defaultdict
 from enum import Enum
 
 # Custom chars (e.g. the small blocks used to make big chars) are defined here
@@ -128,3 +130,29 @@ def make_big_text(text):
         return '\n'.join(big_lines)
 
     return [make_big_line(line) for line in text.splitlines()]
+
+
+def diff_text(lines1, lines2):
+    """
+    @brief      Diffs the given lists of strings, producing a dict of (x,y):str tuples of the text
+                from lines2 where they differed. Adjacent differeing characters are included
+                together in the same string. If one list is longer then the other, the shorter list
+                is padded with empty strings. If one line is longer than its counterpart, the
+                shorter string is padded with spaces. See unit tests for examples.
+
+    @param      lines1  The first list of strings
+    @param      lines2  The second list of strings (this one takes priority)
+
+    @return     A dict of (x,y):str tuples representing changes from lines1 to lines2
+    """
+    diff = defaultdict(lambda: [])  # List is more efficient to be built up
+    for y, (line1, line2) in enumerate(itertools.zip_longest(lines1, lines2, fillvalue='')):
+        pos = None
+        for x, (c1, c2) in enumerate(itertools.zip_longest(line1, line2, fillvalue=' ')):
+            if c1 != c2:
+                if pos is None:
+                    pos = (x, y)
+                diff[pos].append(c2)
+            else:
+                pos = None
+    return {k: ''.join(v) for k, v in diff.items()}
