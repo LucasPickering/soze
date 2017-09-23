@@ -22,10 +22,16 @@ def _to_json(data):
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def route(path):
     if request.method == 'GET':
-        data = settings.get(path)
+        try:
+            data = settings.get(path)
+        except (KeyError, ValueError) as e:
+            return str(e), 400
         return _to_json(data)
     elif request.method == 'POST':
-        data = settings.set(path, request.get_json())
+        try:
+            data = settings.set(path, request.get_json())
+        except (KeyError, ValueError) as e:
+            return str(e), 400
         return _to_json(data)
 
 

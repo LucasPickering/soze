@@ -30,17 +30,6 @@ class Setting(metaclass=abc.ABCMeta):
         return f"<{self.__class__.__name__}: {self._val}>"
 
 
-class ListSetting(Setting):
-    def __init__(self, setting, default_val=[]):
-        self._setting = setting
-        super().__init__(default_val)
-
-    def _validate(self, val):
-        if not isinstance(val, list):
-            raise ValueError(f"Expected list, got {val}")
-        return [self._setting._validate(e) for e in val]
-
-
 class ModeSetting(Setting):
     def __init__(self, valid_modes, default_mode='off'):
         self._valid_modes = valid_modes
@@ -81,6 +70,28 @@ class FloatSetting(Setting):
         return val
 
 
+class ListSetting(Setting):
+    def __init__(self, setting, default_val=[]):
+        self._setting = setting
+        super().__init__(default_val)
+
+    def _validate(self, val):
+        if not isinstance(val, list):
+            raise ValueError(f"Expected list, got {val}")
+        return [self._setting._validate(e) for e in val]
+
+
+class DictSetting(Setting):
+    def __init__(self, setting, default_val={}):
+        self._setting = setting
+        super().__init__(default_val)
+
+    def _validate(self, val):
+        if not isinstance(val, dict):
+            raise ValueError(f"Expected dict, got {val}")
+        return {k: self._setting._validate(v) for k, v in val.items()}
+
+
 class Settings:
     """
     @brief      The settings directly determined by the user. These are all set from the API.
@@ -110,6 +121,7 @@ class Settings:
                 },
                 'fade': {
                     'colors': ListSetting(ColorSetting()),
+                    'saved_fades': DictSetting(ListSetting(ColorSetting())),
                     'fade_time': FloatSetting(5.0, 1.0, 30.0),
                 },
             },
@@ -153,7 +165,10 @@ class Settings:
             return {k: set_all(obj[k], v) for k, v in value.items()}
 
         name, obj = self._get_at_path(path)
-        rv = set_all(obj, value)
+        try:
+            rv = set_all(obj, value)
+        except KeyError as e:
+            raise KeyError(f"Unknown setting: {e}")
         self._on_setting_changed(path, rv)
         return rv
 

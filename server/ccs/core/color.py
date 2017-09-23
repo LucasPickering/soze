@@ -341,7 +341,7 @@ class Color:
     def __mul__(self, coeff):
         if not isinstance(coeff, int) and not isinstance(coeff, float):
             raise TypeError("unsupported operand type(s) for *:"
-                            f" '{type(self)}' and '{type(other)}'")
+                            f" '{type(self)}' and '{type(coeff)}'")
         r = Color._coerce(self.red * coeff)
         g = Color._coerce(self.green * coeff)
         b = Color._coerce(self.blue * coeff)

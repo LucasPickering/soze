@@ -83,10 +83,6 @@ class CaseControlServer:
         """
         @brief      A thread that periodically updates the case LEDs based on the current
                     derived settings.
-
-        @param      self  The object
-
-        @return     None
         """
         try:
             while self._run:
@@ -100,10 +96,6 @@ class CaseControlServer:
         """
         @brief      A thread that periodically updates the case LEDs based on the current
                     derived settings.
-
-        @param      self  The object
-
-        @return     None
         """
         try:
             while self._run:
@@ -117,10 +109,6 @@ class CaseControlServer:
     def _hw_data_thread(self):
         """
         @brief      A thread that periodically re-calculates the hardware data from the settings.
-
-        @param      self  The object
-
-        @return     None
         """
         while self._run:
             # Compute new values and store them
@@ -137,10 +125,6 @@ class CaseControlServer:
         """
         @brief      A thread that periodically pings the keepalive host. If the host doesn't repond,
                     the LED and LCD are shut off. If there is no host set, it is assumed to be up.
-
-        @param      self  The object
-
-        @return     None
         """
         while self._run:
             success = True  # Assume true until we have a failing ping
