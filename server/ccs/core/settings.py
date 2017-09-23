@@ -1,4 +1,5 @@
 import abc
+import os
 import pickle
 
 from ccs import logger
@@ -99,11 +100,13 @@ class Settings:
                 LED and LCD mode are examples of user settings.
     """
 
-    def init(self, settings_file):
+    SETTINGS_FILE = 'settings.p'
+
+    def init(self, settings_dir):
         # This is separate from the constructor so that the object can be initialized with the
         # settings file name (as it is in __init__.py)
 
-        self._settings_file = settings_file
+        self._settings_file = os.path.join(settings_dir, Settings.SETTINGS_FILE)
 
         # Try to load from the file, if that fails, use default settings
         if not self._load():  # Try to load settings from file

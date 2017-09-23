@@ -1,5 +1,7 @@
+import argparse
 import importlib
 import logging
+import os
 import subprocess
 import threading
 import time
@@ -10,6 +12,7 @@ from .core import api, settings # Import api just to initialize it
 from .core.color import BLACK
 from .led.led_mode import LedMode
 from .lcd.lcd_mode import LcdMode
+from .lcd.helper import DEFAULT_WIDTH, DEFAULT_HEIGHT
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
@@ -28,7 +31,9 @@ class CaseControlServer:
         if self._debug:
             logger.setLevel(logging.DEBUG)
 
-        # Init config/settings
+        # Init settings
+        if not os.path.exists(args.settings):
+            os.makedirs(args.settings)
         settings.init(args.settings)
 
         self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
@@ -139,3 +144,22 @@ class CaseControlServer:
             self._keepalive_up = success
 
             time.sleep(CaseControlServer._PING_THREAD_PAUSE)  # Until we meet again...
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--debug', '-d', action='store_true', help="Enable debug mode")
+    parser.add_argument('--lcd-serial', default='/dev/ttyAMA0', help="Serial device for the LCD")
+    parser.add_argument('--lcd-width', type=int, default=DEFAULT_WIDTH,
+                        help="LCD width, in characters")
+    parser.add_argument('--lcd-height', type=int, default=DEFAULT_HEIGHT,
+                        help="LCD height, in characters")
+    parser.add_argument('--keepalive', default=None, help="Host to use for keepalive check")
+    parser.add_argument('--mock', '-m', action='store_const', default=False, const=True,
+                        help="Mock the LEDs/LCD in the console for development")
+    parser.add_argument('--settings', '-s', default='.',
+                        help="Directory to store settings, config, etc.")
+    args = parser.parse_args()
+
+    c = CaseControlServer(args)
+    c.run()
