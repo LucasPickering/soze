@@ -16,16 +16,10 @@ logging.config.dictConfig({
             'class': 'logging.StreamHandler',
             'formatter': 'f',
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'formatter': 'f',
-            'filename': 'server.log',
-            'mode': 'w',
-        },
     },
     'loggers': {
         __name__: {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
         },
     },

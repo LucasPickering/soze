@@ -217,6 +217,12 @@ class LcdSocket(Resource):
         self._cursor_fwd(len(s))
 
     def _process_data(self, data):
+        def decode_byte(b):
+            try:
+                return self._current_char_bank[b]
+            except KeyError:
+                return chr(b)
+
         if data[0] == SIG_COMMAND:
             if len(data) < 2:
                 logger.error(f"Missing command byte: {format_bytes(data)}")
@@ -233,9 +239,7 @@ class LcdSocket(Resource):
             cmd_func(self, *args)  # Call the function with the args
         else:
             # Data is just text, write to the screen
-            s = data.decode()
-            for code, char in self._current_char_bank.items():
-                s = s.replace(chr(code), char)
+            s = ''.join(decode_byte(b) for b in data)
             self._write_str(s)
 
 

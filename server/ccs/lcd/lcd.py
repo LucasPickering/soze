@@ -235,11 +235,15 @@ class Lcd:
 
         @param      text  The text for the LCD, with lines separated by a newline character
         """
+
+        def encode_str(s):
+            return bytes(ord(c) for c in s)
+
         lines = [line[:self._width] for line in text.splitlines()[:self._height]]
         diff = diff_text(self._lines, lines)
         for (x, y), s in diff.items():
             self.set_cursor_pos(x + 1, y + 1)  # Move to the cursor to the right spot
-            self._write(s.encode())
+            self._write(encode_str(s))
         self._lines = lines
 
     def stop(self):
