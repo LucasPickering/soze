@@ -18,7 +18,7 @@ def _to_json(data):
     return json.dumps(data, cls=Encoder)
 
 
-@app.route('/', defaults={'path': ''})
+@app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def route(path):
     if request.method == 'GET':
