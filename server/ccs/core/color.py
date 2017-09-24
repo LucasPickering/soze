@@ -1,3 +1,6 @@
+import re
+
+
 class Color:
     # Used to convert RGB colors to xterm-256 colors
     # I recommend minimizing this if your editor has such a functionality
@@ -291,7 +294,14 @@ class Color:
 
     @staticmethod
     def unpack(data):
-        if (isinstance(data, list) or isinstance(data, tuple)) and len(data) == 3:
+        if isinstance(data, str):
+            m = re.match(r'(?:#|0x)?([A-Za-z0-9]{6})', data)  # Parse hexcode format
+            if m:
+                return Color.from_hexcode(int(m.group(1), 16))
+            # Match failed, fall through to error
+        elif isinstance(data, int):
+            return Color.from_hexcode(data)
+        elif (isinstance(data, list) or isinstance(data, tuple)) and len(data) == 3:
             return Color(*data)  # Data is in a list, unpack the list into a color tuple
         raise ValueError(f"Invalid format for color data: {data}")
 
@@ -309,6 +319,9 @@ class Color:
 
     def to_hexcode(self):
         return (self.red << 16) | (self.green << 8) | self.blue
+
+    def to_hex_str(self):
+        return f"0x{self.to_hexcode():06x}"
 
     def to_list(self):
         return [self.red, self.green, self.blue]

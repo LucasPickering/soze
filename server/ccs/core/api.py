@@ -8,7 +8,7 @@ from . import settings
 class Encoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Color):
-            return obj.to_list()
+            return obj.to_hex_str()
         return obj
 
 
