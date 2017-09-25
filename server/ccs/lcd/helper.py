@@ -68,9 +68,9 @@ BIG_CHARS = {
           EMT,
           FUL],
 
-    ' ': [EMT,
-          EMT,
-          EMT]
+    ' ': [EMT + EMT + EMT,
+          EMT + EMT + EMT,
+          EMT + EMT + EMT]
 }
 
 # Special signals for the controller
@@ -111,25 +111,22 @@ class CursorMode(Enum):
     block = 3
 
 
+def format_bytes(data):
+    return ' '.join('{:02x}'.format(b) for b in data)
+
+
 def make_big_text(text):
     """
     @brief      Converts the given string into "big text". Big text is text that is three lines
-                high. The return value will be a three-line string reprsenting the given text
-                in "big form."
+                high.
 
     @param      text  The text to make big
 
-    @return     The big text.
+    @return     The big text, as a list of 3 strings, one for each line
     """
-    def make_big_line(line):
-        # Add a space after every character, except for spaces (don't double them up)
-        line = re.sub(r'(\S)', r'\1 ', line)
-        big_chars = [BIG_CHARS[c] for c in line]
-        line_tuples = zip(*big_chars)
-        big_lines = [''.join(t) for t in line_tuples]
-        return '\n'.join(big_lines)
-
-    return [make_big_line(line) for line in text.splitlines()]
+    big_chars = (BIG_CHARS[c] for c in text)
+    line_tuples = zip(*big_chars)
+    return (' '.join(t) for t in line_tuples)  # Put a space between characters
 
 
 def diff_text(lines1, lines2):

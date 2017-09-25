@@ -1,6 +1,8 @@
 from ccs.core.color import BLACK
 from .helper import *
 
+from ccs import logger
+
 
 class Lcd:
 
@@ -37,39 +39,28 @@ class Lcd:
         @brief      Writes the given bytes to the serial stream. The given data must be a bytes-like
                     object.
 
-        @param      self   The object
         @param      data   The data (must be bytes-like)
         @param      flush  Whether or not to flush the serial buffer after writing the data
 
-        @return     the number of bytes written
+        @return     The number of bytes written
         """
-        rv = self._ser.write(data)
+        # logger.info(' '.join('{:02x}'.format(b) for b in data))
+        num_written = self._ser.write(data)
         if flush:
             self.flush_serial()
-        return rv
+        if num_written != len(data):
+            logger.error(f"Expected to write {format_bytes(data)} ({len(data)} bytes),"
+                         f" but only wrote {num_written} bytes")
+        return num_written
 
     def _send_command(self, command, *args, flush=False):
         """
         @brief      Sends the given command to the LCD, with the given arguments.
 
-        @param      self     The object
         @param      command  The command to send
         @param      args     The arguments for the command (if any)
-
-        @return     None
         """
-        def to_bytes(d):
-            if type(d) is int:
-                return bytes([d])
-            elif type(d) is str:
-                return d.encode()
-            elif type(d) is bytes:
-                return d
-            return b''
-
-        arg_bytes_list = [to_bytes(arg) for arg in args]
-        joined_bytes = b''.join(arg_bytes_list)
-        all_bytes = bytes([SIG_COMMAND, command]) + joined_bytes
+        all_bytes = bytes([SIG_COMMAND, command]) + bytes(args)
         self._write(all_bytes, flush)
 
     @property
@@ -83,10 +74,6 @@ class Lcd:
     def flush_serial(self):
         """
         @brief      Flushes the serial buffer, i.e. waits until everything in the buffer sends.
-
-        @param      self  The object
-
-        @return     None
         """
         self._ser.flush()
 
@@ -128,7 +115,7 @@ class Lcd:
 
         @param      splash_text  The splash text
         """
-        self._send_command(CMD_SPLASH_TEXT, splash_text)
+        self._send_command(CMD_SPLASH_TEXT, splash_text.encode())
 
     def set_brightness(self, brightness):
         """
@@ -243,7 +230,7 @@ class Lcd:
         diff = diff_text(self._lines, lines)
         for (x, y), s in diff.items():
             self.set_cursor_pos(x + 1, y + 1)  # Move to the cursor to the right spot
-            self._write(encode_str(s))
+            self._write(encode_str(s), flush=True)
         self._lines = lines
 
     def stop(self):

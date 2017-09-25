@@ -54,8 +54,8 @@ class ClockMode(LcdMode):
 
     _LONG_DAY_FORMAT = '{d:%A}, {d:%B} {d.day}'
     _SHORT_DAY_FORMAT = '{d:%A}, {d:%b} {d.day}'
-    _SECONDS_FORMAT = ' {d.second:02}'
-    _TIME_FORMAT = ' {d:%I}:{d.minute:02}'
+    _SECONDS_FORMAT = ' {d:%S}'
+    _TIME_FORMAT = '{d:%l}:{d:%M}'
 
     def _get_color(self, lcd, settings):
         return settings.get('lcd.color')
@@ -76,6 +76,7 @@ class ClockMode(LcdMode):
         lines.append(day_str + seconds_str)  # First line
 
         time_str = ClockMode._TIME_FORMAT.format(d=now)
-        lines += make_big_text(time_str)  # Rest of the fucking lines
+        time_lines = make_big_text(time_str)  # Rest of the fucking lines
+        lines += [' {}'.format(line) for line in time_lines]  # Pad each line with a space
 
         return '\n'.join(lines)
