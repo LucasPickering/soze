@@ -9,6 +9,7 @@ from configparser import SafeConfigParser
 CFG_FILE = os.path.expanduser('~/.ccc.ini')
 CFG_SECTION = 'all'
 DEFAULT_CFG = {'host': 'localhost', 'port': 5000}
+COMMANDS = {}
 
 
 def get_url(setting):
@@ -32,11 +33,25 @@ def post(setting, value):
     return response.json()
 
 
+def command(name, *cmd_args, **kwargs):
+    def inner(func):
+        def wrapper(*args):
+            func(*args)
+        COMMANDS[name] = (func, cmd_args, kwargs)
+        return wrapper
+    return inner
+
+
+@command('get', (['settings'],
+                 {'nargs': '+', 'help': "Settings to get the value of, e.g. 'led.mode' -> 'off'"}),
+         help="Get one or more settings")
 def get_settings(args):
     for setting in args.settings:
         pprint(get(setting))
 
 
+@command('set', (['settings'], {'nargs': '+', 'help': "Settings to change, e.g. 'led.mode=off'"}),
+         help="Set one or more settings")
 def set_settings(args):
     for setting_value in args.settings:
         setting, value = setting_value.split('=', 1)
@@ -48,6 +63,7 @@ def set_settings(args):
         pprint(post(setting, json_val))
 
 
+@command('load-fade', (['name'], {'help': "Name of the fade to load"}), help="Load a fade")
 def load_fade(args):
     name = args.name
     fade = get('led.fade')
@@ -60,6 +76,8 @@ def load_fade(args):
     post('led.fade', fade)
 
 
+@command('save-fade', (['name'], {'help': "Name for the fade (will overwrite)"}),
+         help="Save the current fade colors")
 def save_fade(args):
     name = args.name
     fade = get('led.fade')
@@ -69,6 +87,7 @@ def save_fade(args):
     print(f"Saved {colors} as '{name}'")
 
 
+@command('del-fade', (['name'], {'help': "Name of the fade to delete"}), help="Delete a fade")
 def del_fade(args):
     name = args.name
     saved_fades = get('led.fade.saved')
@@ -80,6 +99,9 @@ def del_fade(args):
         print(f"No fade by the name '{name}'")
 
 
+@command('config', (['settings'],
+                    {'nargs': '+', 'help': "Config settings to change"}),
+         help="Set local config value(s)")
 def set_cfg(args):
     cfg_dict = dict(setting.split('=', 1) for setting in args.settings)
     cfg.update(cfg_dict)
@@ -102,26 +124,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
 
-    parser_get = add_subcommand('get', get_settings, help="Get one or more CC settings")
-    parser_get.add_argument('settings', nargs='+',
-                            help="Settings to get the value of, e.g. 'led.mode' -> 'static'")
-
-    parser_get = add_subcommand('set', set_settings, help="Set one or more CC settings")
-    parser_get.add_argument('settings', nargs='+',
-                            help="Settings to change, e.g. 'led.mode=static'")
-
-    parser_save_fade = add_subcommand('save-fade', save_fade, help="Save the current fade colors")
-    parser_save_fade.add_argument('name', help="Name for the fade (will overwrite)")
-
-    parser_save_fade = add_subcommand('load-fade', load_fade, help="Load a fade")
-    parser_save_fade.add_argument('name', help="Name of the fade to load")
-
-    parser_del_fade = add_subcommand('del-fade', del_fade, help="Delete a fade")
-    parser_del_fade.add_argument('name', help="Name of the fade to delete")
-
-    parser_cfg = add_subcommand('config', set_cfg, help="Set local config value(s)")
-    parser_cfg.add_argument('settings', nargs='+',
-                            help="Settings to get the value of, e.g. 'led.mode' -> 'static'")
+    for cmd, (func, cmd_args, kwargs) in COMMANDS.items():
+        subparser = subparsers.add_parser(cmd, **kwargs)
+        subparser.set_defaults(func=func)
+        for arg_names, arg_kwargs in cmd_args:
+            subparser.add_argument(*arg_names, **arg_kwargs)
 
     return parser.parse_args()
 
