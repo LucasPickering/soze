@@ -48,21 +48,33 @@ def set_settings(args):
         pprint(post(setting, json_val))
 
 
+def load_fade(args):
+    name = args.name
+    fade = get('led.fade')
+    try:
+        colors = fade['saved'][name]
+    except KeyError:
+        print(f"No fade by the name '{name}'")
+        return
+    fade['colors'] = colors
+    post('led.fade', fade)
+
+
 def save_fade(args):
     name = args.name
     fade = get('led.fade')
     colors = fade['colors']
-    fade['saved_fades'][name] = colors
+    fade['saved'][name] = colors
     post('led.fade', fade)
     print(f"Saved {colors} as '{name}'")
 
 
 def del_fade(args):
     name = args.name
-    saved_fades = get('led.fade.saved_fades')
+    saved_fades = get('led.fade.saved')
     try:
         deleted = saved_fades.pop(name)
-        post('led.fade.saved_fades', saved_fades)
+        post('led.fade.saved', saved_fades)
         print(f"Deleted '{name}': {deleted}")
     except KeyError:
         print(f"No fade by the name '{name}'")
@@ -101,6 +113,9 @@ def parse_args():
     parser_save_fade = add_subcommand('save-fade', save_fade, help="Save the current fade colors")
     parser_save_fade.add_argument('name', help="Name for the fade (will overwrite)")
 
+    parser_save_fade = add_subcommand('load-fade', load_fade, help="Load a fade")
+    parser_save_fade.add_argument('name', help="Name of the fade to load")
+
     parser_del_fade = add_subcommand('del-fade', del_fade, help="Delete a fade")
     parser_del_fade.add_argument('name', help="Name of the fade to delete")
 
@@ -124,7 +139,7 @@ def main():
     args = parse_args()
 
     global cfg  # I'm sorry
-    cfg = parse_cfg(args.config)
+    cfg = parse_cfg()
 
     try:
         func = args.func
