@@ -224,6 +224,7 @@ class Lcd:
         """
 
         def encode_str(s):
+            # UTF-8 encodes 128+ as two bytes but we want just one byte for [0, 255]
             return bytes(ord(c) for c in s)
 
         lines = [line[:self._width] for line in text.splitlines()[:self._height]]
