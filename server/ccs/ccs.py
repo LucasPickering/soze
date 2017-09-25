@@ -31,7 +31,7 @@ class CaseControlServer:
         if self._debug:
             logger.setLevel(logging.DEBUG)
 
-        # Init config settings
+        # Init config and settings
         if not os.path.exists(args.settings):
             os.makedirs(args.settings)
         config = Config(args.settings)
@@ -141,9 +141,11 @@ class CaseControlServer:
                                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 success = not exit_code
 
-            # If the value changed, log it
-            if success != self._keepalive_up:
-                logger.debug(f"Keepalive up: {success}")
+            # If the state changed, log it
+            if success and not self._keepalive_up:
+                logger.info(f"Keepalive host {keepalive_host} came up")
+            elif not success and self._keepalive_up:
+                logger.info(f"Keepalive host {keepalive_host} went down")
             self._keepalive_up = success
 
             time.sleep(CaseControlServer._PING_THREAD_PAUSE)  # Until we meet again...

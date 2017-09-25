@@ -1,4 +1,5 @@
 import abc
+import copy
 import os
 import pickle
 
@@ -55,6 +56,16 @@ class ColorSetting(Setting):
         return val
 
 
+class BoolSetting(Setting):
+    def __init__(self, default_val=False):
+        super().__init__(default_val)
+
+    def _validate(self, val):
+        if not isinstance(val, bool):
+            raise ValueError(f"Expected bool, got {val}")
+        return val
+
+
 class FloatSetting(Setting):
     def __init__(self, default_val, min_=None, max_=None):
         self._min = min_
@@ -101,38 +112,37 @@ class Settings:
     """
 
     SETTINGS_FILE = 'settings.p'
-
-    def init(self, settings_dir):
-        # This is separate from the constructor so that the object can be initialized without the
-        # settings directory (as it is in __init__.py)
-
-        self._settings_file = os.path.join(settings_dir, Settings.SETTINGS_FILE)
-
-        # Try to load from the file, if that fails, use default settings
-        if not self._load():  # Try to load settings from file
-            logger.debug("Initializing new settings...")
-            self._settings = Settings._new_settings()
-            self._save()  # Save the default settings
-
-    @staticmethod
-    def _new_settings():
-        return {
-            'led': {
-                'mode': ModeSetting(LedMode.get_mode_names()),
-                'static': {
-                    'color': ColorSetting(),
-                },
-                'fade': {
-                    'colors': ListSetting(ColorSetting()),
-                    'saved_fades': DictSetting(ListSetting(ColorSetting())),
-                    'fade_time': FloatSetting(5.0, 1.0, 30.0),
-                },
-            },
-            'lcd': {
-                'mode': ModeSetting(LcdMode.get_mode_names()),
+    DEFAULT_SETTINGS = {
+        'led': {
+            'mode': ModeSetting(LedMode.get_mode_names()),
+            'static': {
                 'color': ColorSetting(),
             },
-        }
+            'fade': {
+                'colors': ListSetting(ColorSetting()),
+                'saved': DictSetting(ListSetting(ColorSetting())),
+                'fade_time': FloatSetting(5.0, 1.0, 30.0),
+            },
+        },
+        'lcd': {
+            'mode': ModeSetting(LcdMode.get_mode_names()),
+            'color': ColorSetting(),
+            'link_to_led': BoolSetting(),
+        },
+    }
+
+    def init(self, settings_dir):
+        """
+        @brief      Initialize the settings object. This is separate from the constructor so that
+                    the object can be constructed without being initialized.
+
+        @param      settings_dir  The directory to contain the settings file
+        """
+        self._settings_file = os.path.join(settings_dir, Settings.SETTINGS_FILE)
+        self._settings = copy.deepcopy(Settings.DEFAULT_SETTINGS)
+
+        self._load()
+        self._save()  # Save in case anything changed
 
     def _get_at_path(self, path):
         path = path.replace('.', '/')
@@ -181,30 +191,36 @@ class Settings:
 
     def _load(self):
         """
-        Load settings from the given pickle file.
-
-        Return True if the settings were successfully loaded, False otherwise.
+        @brief      Loads settings from the settings file. Only values loaded from the pickle
+                    settings are updated; any value in the default settings but not the pickle
+                    ones does not get deleted. Any value in the pickle settings but not the
+                    defaults does not get included at all. This indicates that a setting was
+                    renamed or removed.
         """
+        def update_dict(base, new):
+            for k, v in new.items():
+                if k in base:  # Exclude things that only appear in the new dict
+                    base_v = base[k]
+                    if type(base_v) == type(v):  # If the type differs, stick with the base value
+                        if isinstance(v, dict):  # RECURSION
+                            update_dict(base_v, v)
+                        else:
+                            base[k] = v
         try:
             with open(self._settings_file, 'rb') as f:
-                self._settings = pickle.load(f)
-                logger.info(f"Loaded settings from '{self._settings_file}'")
-                return True
+                loaded = pickle.load(f)
+            update_dict(self._settings, loaded)
+            logger.info(f"Loaded settings from '{self._settings_file}'")
         except Exception as e:
             logger.warning(f"Failed to load settings from '{self._settings_file}': {e}")
-            return False
 
     def _save(self):
         """
-        Save settings to the given pickle file.
-
-        Return True if the settings were successfully saved, False otherwise.
+        @brief      Saves the current settings to the settings file.
         """
         try:
             with open(self._settings_file, 'wb') as f:
                 pickle.dump(self._settings, f)
-                logger.debug(f"Saved settings to '{self._settings_file}'")
-                return True
+            logger.debug(f"Saved settings to '{self._settings_file}'")
         except Exception as e:
             logger.warning(f"Failed to save settings to '{self._settings_file}': {e}")
-            return False
