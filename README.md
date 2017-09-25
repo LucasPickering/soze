@@ -1,7 +1,7 @@
 # Case-Control-CLI
 CLI to control the LEDs and LCD in my computer case. Interfaces with a Raspberry Pi Zero over an
-Ethernet connection, which is established via USB. The PC's program is in Java, and the Pi's is
-in Python. They communicate over a socket.
+Ethernet connection via USB. The Pi hosts a REST API written in Python, while the PC uses a CLI
+to make HTTP calls, also written in Python.
 
 ## Hardware
 * [Raspberry Pi Zero](https://www.raspberrypi.org/products/pi-zero/)
