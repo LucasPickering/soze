@@ -33,6 +33,10 @@ def post(setting, value):
     return response.json()
 
 
+def parse_settings(settings):
+    return (tuple(setting.split('=', 1)) for setting in settings)
+
+
 def command(name, *cmd_args, **kwargs):
     def inner(func):
         def wrapper(*args):
@@ -45,16 +49,15 @@ def command(name, *cmd_args, **kwargs):
 @command('get', (['settings'],
                  {'nargs': '+', 'help': "Settings to get the value of, e.g. 'led.mode' -> 'off'"}),
          help="Get one or more settings")
-def get_settings(args):
-    for setting in args.settings:
+def get_settings(settings):
+    for setting in settings:
         pprint(get(setting))
 
 
 @command('set', (['settings'], {'nargs': '+', 'help': "Settings to change, e.g. 'led.mode=off'"}),
          help="Set one or more settings")
-def set_settings(args):
-    for setting_value in args.settings:
-        setting, value = setting_value.split('=', 1)
+def set_settings(settings):
+    for setting, value in parse_settings(settings):
         try:
             json_val = json.loads(value)
         except json.decoder.JSONDecodeError:
@@ -63,9 +66,36 @@ def set_settings(args):
         pprint(post(setting, json_val))
 
 
+@command('add-color', (['colors'], {'nargs': '+', 'help': "Color(s) to add to the active fade"}),
+         help="Add color(s) to the active fade")
+def add_color(colors):
+    fade_colors = get('led.fade.colors')
+    fade_colors += colors
+    post('led.fade.colors', fade_colors)
+    print(fade_colors)
+
+
+@command('del-color', (['indexes'], {'type': int, 'nargs': '+',
+                                     'help': "Index(es) of the color(s) to remove"}),
+         help="Delete color(s) from the active fade")
+def del_color(indexes):
+    fade_colors = get('led.fade.colors')
+
+    # Pop off items, starting at the back so we don't affect lower indexes
+    for index in sorted(indexes, reverse=True):
+        fade_colors.pop(index)
+    post('led.fade.colors', fade_colors)
+    print(fade_colors)
+
+
+@command('clear-colors', help="Clear all colors from the active fade")
+def clear_colors():
+    post('led.fade.colors', [])
+    print("Cleared")
+
+
 @command('load-fade', (['name'], {'help': "Name of the fade to load"}), help="Load a fade")
-def load_fade(args):
-    name = args.name
+def load_fade(name):
     fade = get('led.fade')
     try:
         colors = fade['saved'][name]
@@ -74,12 +104,12 @@ def load_fade(args):
         return
     fade['colors'] = colors
     post('led.fade', fade)
+    print(colors)
 
 
 @command('save-fade', (['name'], {'help': "Name for the fade (will overwrite)"}),
          help="Save the current fade colors")
-def save_fade(args):
-    name = args.name
+def save_fade(name):
     fade = get('led.fade')
     colors = fade['colors']
     fade['saved'][name] = colors
@@ -87,9 +117,9 @@ def save_fade(args):
     print(f"Saved {colors} as '{name}'")
 
 
-@command('del-fade', (['name'], {'help': "Name of the fade to delete"}), help="Delete a fade")
-def del_fade(args):
-    name = args.name
+@command('del-fade', (['names'], {'nargs': '+', 'help': "Name(s) of the fade(s) to delete"}),
+         help="Delete a fade")
+def del_fade(name):
     saved_fades = get('led.fade.saved')
     try:
         deleted = saved_fades.pop(name)
@@ -102,8 +132,8 @@ def del_fade(args):
 @command('config', (['settings'],
                     {'nargs': '+', 'help': "Config settings to change"}),
          help="Set local config value(s)")
-def set_cfg(args):
-    cfg_dict = dict(setting.split('=', 1) for setting in args.settings)
+def set_cfg(settings):
+    cfg_dict = dict(parse_settings(settings))
     cfg.update(cfg_dict)
 
     # Save the config
@@ -143,19 +173,19 @@ def parse_cfg():
 
 
 def main():
-    args = parse_args()
+    argd = vars(parse_args())
 
     global cfg  # I'm sorry
     cfg = parse_cfg()
 
     try:
-        func = args.func
-    except AttributeError:
+        func = argd.pop('func')
+    except KeyError:
         print("No subcommand specified")
         exit(1)
 
     try:
-        func(args)
+        func(**argd)
     except requests.exceptions.HTTPError as e:
         print(f"{e}: {e.response.text}")
         exit(2)
