@@ -27,6 +27,4 @@ target/
 
 *.log
 *.p
-settings.json
-
-server/ccs.egg-info/
+*.egg-info/
