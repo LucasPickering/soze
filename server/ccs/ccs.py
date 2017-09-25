@@ -126,6 +126,8 @@ class CaseControlServer:
             else:
                 led_color = BLACK
                 lcd_color, lcd_text = BLACK, ''
+            if settings.get('lcd.link_to_led'):  # Special setting to let LCD color copy LED color
+                lcd_color = led_color
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
             time.sleep(CaseControlServer._HW_DATA_THREAD_PAUSE)
 
