@@ -103,8 +103,8 @@ class Settings:
     SETTINGS_FILE = 'settings.p'
 
     def init(self, settings_dir):
-        # This is separate from the constructor so that the object can be initialized with the
-        # settings file name (as it is in __init__.py)
+        # This is separate from the constructor so that the object can be initialized without the
+        # settings directory (as it is in __init__.py)
 
         self._settings_file = os.path.join(settings_dir, Settings.SETTINGS_FILE)
 

@@ -9,10 +9,10 @@ from collections import namedtuple
 
 from ccs import app, logger
 from .core import api, settings # Import api just to initialize it
+from .core.config import Config
 from .core.color import BLACK
 from .led.led_mode import LedMode
 from .lcd.lcd_mode import LcdMode
-from .lcd.helper import DEFAULT_WIDTH, DEFAULT_HEIGHT
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
@@ -31,9 +31,10 @@ class CaseControlServer:
         if self._debug:
             logger.setLevel(logging.DEBUG)
 
-        # Init settings
+        # Init config settings
         if not os.path.exists(args.settings):
             os.makedirs(args.settings)
+        config = Config(args.settings)
         settings.init(args.settings)
 
         self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
@@ -52,7 +53,8 @@ class CaseControlServer:
         from .led.led import Led
         from .lcd.lcd import Lcd
         self._led = Led()
-        self._lcd = Lcd(args.lcd_serial, args.lcd_width, args.lcd_height)
+        lcd_config = config['lcd']
+        self._lcd = Lcd(lcd_config['device'], int(lcd_config['width']), int(lcd_config['height']))
 
         # Add background threads to be run
         def add_thread(target, **kwargs):
@@ -62,7 +64,8 @@ class CaseControlServer:
         add_thread(self._led_thread, name='LED-Thread')
         add_thread(self._lcd_thread, name='LCD-Thread')
         add_thread(self._hw_data_thread, name='HW-Data-Thread', daemon=True)
-        add_thread(self._ping_thread, name='Ping-Thread', args=[args.keepalive], daemon=True)
+        add_thread(self._ping_thread, name='Ping-Thread',
+                   args=[config['general']['keepalive_host']], daemon=True)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -149,12 +152,6 @@ class CaseControlServer:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', '-d', action='store_true', help="Enable debug mode")
-    parser.add_argument('--lcd-serial', default='/dev/ttyAMA0', help="Serial device for the LCD")
-    parser.add_argument('--lcd-width', type=int, default=DEFAULT_WIDTH,
-                        help="LCD width, in characters")
-    parser.add_argument('--lcd-height', type=int, default=DEFAULT_HEIGHT,
-                        help="LCD height, in characters")
-    parser.add_argument('--keepalive', default=None, help="Host to use for keepalive check")
     parser.add_argument('--mock', '-m', action='store_const', default=False, const=True,
                         help="Mock the LEDs/LCD in the console for development")
     parser.add_argument('--settings', '-s', default='.',

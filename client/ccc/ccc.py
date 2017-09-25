@@ -6,7 +6,7 @@ from pprint import pprint
 from configparser import SafeConfigParser
 
 
-DEFAULT_CFG_FILE = os.path.expanduser('~/.ccc.ini')
+CFG_FILE = os.path.expanduser('~/.ccc.ini')
 CFG_SECTION = 'all'
 DEFAULT_CFG = {'host': 'localhost', 'port': 5000}
 
@@ -75,7 +75,7 @@ def set_cfg(args):
     # Save the config
     config = SafeConfigParser()
     config[CFG_SECTION] = cfg
-    with open(args.config, 'w') as f:
+    with open(CFG_FILE, 'w') as f:
         config.write(f)
 
     pprint(dict(cfg))
@@ -88,7 +88,6 @@ def parse_args():
         return subparser
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', '-c', default=DEFAULT_CFG_FILE, help="Config file path")
     subparsers = parser.add_subparsers()
 
     parser_get = add_subcommand('get', get_settings, help="Get one or more CC settings")
@@ -112,11 +111,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def parse_cfg(cfg_file):
+def parse_cfg():
     config = SafeConfigParser()
     config[CFG_SECTION] = DEFAULT_CFG
-    config.read(cfg_file)
-    with open(cfg_file, 'w') as f:
+    config.read(CFG_FILE)
+    with open(CFG_FILE, 'w') as f:
         config.write(f)
     return config[CFG_SECTION]
 
