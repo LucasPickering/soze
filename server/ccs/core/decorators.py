@@ -8,6 +8,6 @@ def registered_singleton(registry, name):
             raise ValueError("Cannot register '{}' under '{}'."
                              " '{}' is already registered under that name."
                              .format(cls, name, registry[name]))
-        registry[name] = cls(name)
+        registry[name] = cls()
         return cls
     return inner

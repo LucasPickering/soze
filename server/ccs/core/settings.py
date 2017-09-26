@@ -5,8 +5,8 @@ import pickle
 
 from ccs import logger
 from .color import Color, BLACK
-from ccs.lcd.lcd_mode import LcdMode
-from ccs.led.led_mode import LedMode
+from ccs.lcd.mode import LcdMode
+from ccs.led.mode import LedMode
 
 
 class Setting(metaclass=abc.ABCMeta):

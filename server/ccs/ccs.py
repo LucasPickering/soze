@@ -11,8 +11,8 @@ from ccs import app, logger
 from .core import api, settings # Import api just to initialize it
 from .core.config import Config
 from .core.color import BLACK
-from .led.led_mode import LedMode
-from .lcd.lcd_mode import LcdMode
+from .led.mode import LedMode
+from .lcd.mode import LcdMode
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
