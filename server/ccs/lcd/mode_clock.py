@@ -1,11 +1,9 @@
 from datetime import datetime
 
-from ccs.core.decorators import registered_singleton
 from . import helper
-from .mode import LcdMode, MODES
+from .mode import LcdMode
 
 
-@registered_singleton(MODES, 'clock')
 class ClockMode(LcdMode):
 
     _LONG_DAY_FORMAT = '{d:%A}, {d:%B} {d.day}'

@@ -1,9 +1,7 @@
 from ccs.core.color import BLACK
-from ccs.core.decorators import registered_singleton
-from .mode import LcdMode, MODES
+from .mode import LcdMode
 
 
-@registered_singleton(MODES, 'off')
 class OffMode(LcdMode):
 
     def _get_color(self, lcd, settings):

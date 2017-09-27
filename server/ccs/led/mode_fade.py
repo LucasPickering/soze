@@ -1,11 +1,9 @@
 import time
 
 from ccs.core.color import BLACK
-from ccs.core.decorators import registered_singleton
-from .mode import LedMode, MODES
+from .mode import LedMode
 
 
-@registered_singleton(MODES, 'fade')
 class FadeMode(LedMode):
 
     def __init__(self):
