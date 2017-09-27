@@ -1,7 +1,5 @@
 import abc
-import errno
 import socket
-import time
 
 from ccs import logger
 
@@ -17,17 +15,7 @@ class MockServer(metaclass=abc.ABCMeta):
         logger.info(f"Connected to {self._addr}")
 
     def write(self, data):
-        while True:
-            try:
-                self._sock.sendall(data)
-                break
-            except OSError as e:
-                # Workaround for buffer full error:
-                if e.errno == errno.ENOBUFS:
-                    logger.error(f"Buffer full on {self._addr}. Will retry...")
-                    time.sleep(0.1)  # try again
-                else:
-                    raise
+        self._sock.sendall(data)
 
     def stop(self):
         try:
