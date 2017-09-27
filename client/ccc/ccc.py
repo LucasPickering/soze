@@ -47,9 +47,11 @@ def command(name, *cmd_args, **kwargs):
 
 
 @command('get', (['settings'],
-                 {'nargs': '+', 'help': "Settings to get the value of, e.g. 'led.mode' -> 'off'"}),
+                 {'nargs': '*', 'help': "Settings to get the value of, e.g. 'led.mode' -> 'off'"}),
          help="Get one or more settings")
 def get_settings(settings):
+    if not settings:
+        settings = ['']
     for setting in settings:
         pprint(get(setting))
 
