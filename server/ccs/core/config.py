@@ -9,9 +9,6 @@ class Config:
 
     CFG_FILE = 'ccs.ini'
     DEFAULT_CFG = {
-        'general': {
-            'keepalive_host': '',
-        },
         'lcd': {
             'device': '/dev/ttyAMA0',
             'width': DEFAULT_WIDTH,

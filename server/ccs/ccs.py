@@ -2,7 +2,6 @@ import argparse
 import importlib
 import logging
 import os
-import subprocess
 import threading
 import time
 from collections import namedtuple
@@ -25,7 +24,6 @@ class CaseControlServer:
 
     def __init__(self, args):
         self._run = True
-        self._keepalive_up = True
         self._debug = args.debug
 
         if self._debug:
@@ -64,8 +62,6 @@ class CaseControlServer:
         add_thread(self._led_thread, name='LED-Thread')
         add_thread(self._lcd_thread, name='LCD-Thread')
         add_thread(self._hw_data_thread, name='HW-Data-Thread', daemon=True)
-        add_thread(self._ping_thread, name='Ping-Thread',
-                   args=[config['general']['keepalive_host']], daemon=True)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -120,37 +116,12 @@ class CaseControlServer:
         """
         while self._run:
             # Compute new values and store them
-            if self._keepalive_up:
-                led_color = LedMode.get_color(settings)
-                lcd_color, lcd_text = LcdMode.get_color_and_text(self._lcd, settings)
-            else:
-                led_color = BLACK
-                lcd_color, lcd_text = BLACK, ''
+            led_color = LedMode.get_color(settings)
+            lcd_color, lcd_text = LcdMode.get_color_and_text(self._lcd, settings)
             if settings.get('lcd.link_to_led'):  # Special setting to let LCD color copy LED color
                 lcd_color = led_color
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
             time.sleep(CaseControlServer._HW_DATA_THREAD_PAUSE)
-
-    def _ping_thread(self, keepalive_host):
-        """
-        @brief      A thread that periodically pings the keepalive host. If the host doesn't repond,
-                    the LED and LCD are shut off. If there is no host set, it is assumed to be up.
-        """
-        while self._run:
-            success = True  # Assume true until we have a failing ping
-            if keepalive_host:  # If a host was specified...
-                exit_code = subprocess.call(['ping', '-c', '1', keepalive_host],
-                                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                success = not exit_code
-
-            # If the state changed, log it
-            if success and not self._keepalive_up:
-                logger.info(f"Keepalive host {keepalive_host} came up")
-            elif not success and self._keepalive_up:
-                logger.info(f"Keepalive host {keepalive_host} went down")
-            self._keepalive_up = success
-
-            time.sleep(CaseControlServer._PING_THREAD_PAUSE)  # Until we meet again...
 
 
 def main():
