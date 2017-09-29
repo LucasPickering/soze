@@ -28,10 +28,10 @@ class CaseControlServer:
             logger.setLevel(logging.DEBUG)
 
         # Init config and settings
-        if not os.path.exists(args.settings):
-            os.makedirs(args.settings)
-        config.init(args.settings)
-        settings.init(args.settings)
+        if not os.path.exists(args.working_dir):
+            os.makedirs(args.working_dir)
+        config.init(args.working_dir)
+        settings.init(args.working_dir)
 
         self._hw_data = HardwareData(color.BLACK, color.BLACK, '')
 
@@ -124,11 +124,11 @@ class CaseControlServer:
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('working_dir', nargs='?', default='.',
+                        help="Directory to store settings, config, etc.")
     parser.add_argument('--debug', '-d', action='store_true', help="Enable debug mode")
     parser.add_argument('--mock', '-m', action='store_const', default=False, const=True,
                         help="Mock the LEDs/LCD in the console for development")
-    parser.add_argument('--settings', '-s', default='.',
-                        help="Directory to store settings, config, etc.")
     args = parser.parse_args()
 
     c = CaseControlServer(args)
