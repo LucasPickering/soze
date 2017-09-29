@@ -8,6 +8,6 @@ setup(
     packages=find_packages(),
     install_requires=['flask', 'pyserial'],
     entry_points={
-        'console_scripts': ['ccs = ccs.ccs:main']
+        'console_scripts': ['ccs = ccs.core.ccs:main']
     },
 )

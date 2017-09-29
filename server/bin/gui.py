@@ -10,7 +10,7 @@ import time
 import traceback
 from threading import Thread
 
-from ccs.core.color import Color
+from ccs.util.color import Color
 from ccs.led.helper import LED_PWM_SOCKET, LED_RED_PIN, LED_GREEN_PIN, LED_BLUE_PIN
 from ccs.lcd.helper import *
 

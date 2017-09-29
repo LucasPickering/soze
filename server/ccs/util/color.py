@@ -295,7 +295,7 @@ class Color:
     @staticmethod
     def unpack(data):
         if isinstance(data, str):
-            m = re.match(r'(?:#|0x)?([A-Za-z0-9]{6})', data)  # Parse hexcode format
+            m = re.match(r'^(?:#|0x)?([A-Za-z0-9]{6})$', data)  # Parse hexcode format
             if m:
                 return Color.from_hexcode(int(m.group(1), 16))
             # Match failed, fall through to error

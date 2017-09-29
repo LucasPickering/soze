@@ -1,5 +1,4 @@
 import itertools
-import re
 from collections import defaultdict
 from enum import Enum
 
@@ -100,9 +99,6 @@ CMD_LOAD_CHAR_BANK = 0xc0
 LCD_MOCK_SOCKET = '/tmp/ccs_lcd.sock'
 
 BAUD_RATE = 9600
-
-DEFAULT_WIDTH = 20
-DEFAULT_HEIGHT = 4
 
 
 class CursorMode(Enum):

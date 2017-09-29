@@ -1,6 +1,5 @@
 import logging
 import logging.config
-from flask import Flask
 
 logging.config.dictConfig({
     'version': 1,
@@ -25,5 +24,4 @@ logging.config.dictConfig({
     },
 })
 
-app = Flask(__name__)
 logger = logging.getLogger(__name__)

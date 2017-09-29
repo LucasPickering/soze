@@ -2,7 +2,6 @@ import os
 from configparser import SafeConfigParser
 
 from ccs import logger
-from ccs.lcd.helper import DEFAULT_WIDTH, DEFAULT_HEIGHT
 
 
 class Config:
@@ -11,12 +10,18 @@ class Config:
     DEFAULT_CFG = {
         'lcd': {
             'device': '/dev/ttyAMA0',
-            'width': DEFAULT_WIDTH,
-            'height': DEFAULT_HEIGHT,
+            'width': 20,
+            'height': 4,
         },
     }
 
-    def __init__(self, settings_dir):
+    def init(self, settings_dir):
+        """
+        @brief      Initialize the config object. This is separate from the constructor so that
+                    the object can be constructed without being initialized.
+
+        @param      settings_dir  The directory to contain the config file
+        """
         config_file = os.path.join(settings_dir, Config.CFG_FILE)
         self._config = SafeConfigParser()
 

@@ -6,12 +6,11 @@ import threading
 import time
 from collections import namedtuple
 
-from ccs import app, logger
-from .core import api, settings # Import api just to initialize it
-from .core.config import Config
-from .core.color import BLACK
-from .led.mode import LedMode
-from .lcd.mode import LcdMode
+from . import api, settings
+from ccs import logger
+from ccs.util import color, config
+from ccs.led.mode import LedMode
+from ccs.lcd.mode import LcdMode
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
@@ -20,7 +19,6 @@ class CaseControlServer:
     _LED_THREAD_PAUSE = 0.1
     _LCD_THREAD_PAUSE = 0.1
     _HW_DATA_THREAD_PAUSE = 0.05
-    _PING_THREAD_PAUSE = 1.0
 
     def __init__(self, args):
         self._run = True
@@ -32,10 +30,10 @@ class CaseControlServer:
         # Init config and settings
         if not os.path.exists(args.settings):
             os.makedirs(args.settings)
-        config = Config(args.settings)
+        config.init(args.settings)
         settings.init(args.settings)
 
-        self._hw_data = HardwareData(BLACK, BLACK, '')  # The values that get written to hardware
+        self._hw_data = HardwareData(color.BLACK, color.BLACK, '')
 
         # Mock hardware communication (PWM and serial)
         if args.mock:
@@ -48,19 +46,19 @@ class CaseControlServer:
 
         # Init the LED/LCD handlers
         # Wait to import these in case their libraries are being mocked
-        from .led.led import Led
-        from .lcd.lcd import Lcd
-        self._led = Led()
-        lcd_config = config['lcd']
-        self._lcd = Lcd(lcd_config['device'], int(lcd_config['width']), int(lcd_config['height']))
+        from ccs.led.led import Led
+        from ccs.lcd.lcd import Lcd
+        led = Led()
+        lcd_cfg = config['lcd']
+        lcd = Lcd(lcd_cfg['device'], int(lcd_cfg['width']), int(lcd_cfg['height']))
 
         # Add background threads to be run
         def add_thread(target, **kwargs):
             thread = threading.Thread(target=target, **kwargs)
             self._threads.append(thread)
         self._threads = []
-        add_thread(self._led_thread, name='LED-Thread')
-        add_thread(self._lcd_thread, name='LCD-Thread')
+        add_thread(self._led_thread, name='LED-Thread', args=(led,))
+        add_thread(self._lcd_thread, name='LCD-Thread', args=(lcd,))
         add_thread(self._hw_data_thread, name='HW-Data-Thread', daemon=True)
 
     def run(self):
@@ -68,7 +66,7 @@ class CaseControlServer:
         for thread in self._threads:
             thread.start()
         try:
-            app.run(host='0.0.0.0')
+            api.app.run(host='0.0.0.0')
         finally:
             # When flask receives Ctrl-C and stops, this runs to shut down the other threads
             self._stop()
@@ -83,32 +81,32 @@ class CaseControlServer:
             if not thread.daemon:
                 thread.join()
 
-    def _led_thread(self):
+    def _led_thread(self, led):
         """
         @brief      A thread that periodically updates the case LEDs based on the current
                     derived settings.
         """
         try:
             while self._run:
-                self._led.set_color(self._hw_data.led_color)
+                led.set_color(self._hw_data.led_color)
                 time.sleep(CaseControlServer._LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         finally:
-            self._led.stop()
+            led.stop()
 
-    def _lcd_thread(self):
+    def _lcd_thread(self, lcd):
         """
         @brief      A thread that periodically updates the case LEDs based on the current
                     derived settings.
         """
         try:
             while self._run:
-                self._lcd.set_color(self._hw_data.lcd_color)
-                self._lcd.set_text(self._hw_data.lcd_text)
+                lcd.set_color(self._hw_data.lcd_color)
+                lcd.set_text(self._hw_data.lcd_text)
                 time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:
-            self._lcd.stop()
+            lcd.stop()
 
     def _hw_data_thread(self):
         """
@@ -117,7 +115,7 @@ class CaseControlServer:
         while self._run:
             # Compute new values and store them
             led_color = LedMode.get_color(settings)
-            lcd_color, lcd_text = LcdMode.get_color_and_text(self._lcd, settings)
+            lcd_color, lcd_text = LcdMode.get_color_and_text(settings)
             if settings.get('lcd.link_to_led'):  # Special setting to let LCD color copy LED color
                 lcd_color = led_color
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)

@@ -1,4 +1,4 @@
-from ccs.core.color import BLACK
+from ccs.util.color import BLACK
 from .helper import *
 
 from ccs import logger

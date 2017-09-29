@@ -2,19 +2,19 @@ import abc
 import inspect
 import re
 
-MODE_NAME_RGX = re.compile(r'(.+)Mode')
-MODES = {}
+_MODE_NAME_RGX = re.compile(r'(.+)Mode')
+_MODES = {}
 
 
 class LedModeMeta(abc.ABCMeta):
     def __new__(cls, clsname, bases, attrs):
         newclass = super().__new__(cls, clsname, bases, attrs)
         if not inspect.isabstract(newclass):
-            m = MODE_NAME_RGX.match(clsname)
+            m = _MODE_NAME_RGX.match(clsname)
             if not m:
-                raise ValueError("Mode class name must match {}".format(MODE_NAME_RGX.pattern))
+                raise ValueError("Mode class name must match {}".format(_MODE_NAME_RGX.pattern))
             name = m.group(1).lower()
-            MODES[name] = newclass()  # Instantiate the class and register the object
+            _MODES[name] = newclass()  # Instantiate the class and register the object
         return newclass
 
 
@@ -26,7 +26,7 @@ class LedMode(metaclass=LedModeMeta):
 
     @staticmethod
     def get_mode_names():
-        return set(MODES.keys())
+        return set(_MODES.keys())
 
     @staticmethod
     def get_color(settings):
@@ -39,5 +39,5 @@ class LedMode(metaclass=LedModeMeta):
 
         @raise      ValueError if the given LED mode is unknown
         """
-        mode = MODES[settings.get('led.mode')]  # Get the relevant mode object
+        mode = _MODES[settings.get('led.mode')]  # Get the relevant mode object
         return mode._get_color(settings)

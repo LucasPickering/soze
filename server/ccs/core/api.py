@@ -1,8 +1,10 @@
-from flask import json, request
+from flask import Flask, json, request
 
-from ccs import app
-from .color import Color
 from . import settings
+from ccs.util.color import Color
+
+
+app = Flask(__name__)
 
 
 class Encoder(json.JSONEncoder):
@@ -12,27 +14,25 @@ class Encoder(json.JSONEncoder):
         return obj
 
 
-def _to_json(data):
-    if 'pretty' in request.args:
-        return json.dumps(data, cls=Encoder, indent=4) + '\n'
-    return json.dumps(data, cls=Encoder)
-
-
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
 @app.route('/<path:path>', methods=['GET', 'POST'])
 def route(path):
+    def to_json(data):
+        if 'pretty' in request.args:
+            return json.dumps(data, cls=Encoder, indent=4) + '\n'
+        return json.dumps(data, cls=Encoder)
+
     if request.method == 'GET':
         try:
             data = settings.get(path)
         except (KeyError, ValueError) as e:
             return str(e), 400
-        return _to_json(data)
     elif request.method == 'POST':
         try:
             data = settings.set(path, request.get_json())
         except (KeyError, ValueError) as e:
             return str(e), 400
-        return _to_json(data)
+    return to_json(data)
 
 
 @app.route('/xkcd')
