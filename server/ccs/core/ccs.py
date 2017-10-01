@@ -6,9 +6,9 @@ import threading
 import time
 from collections import namedtuple
 
-from . import api, settings
+from . import api, color, settings
+from .config import Config
 from ccs import logger
-from ccs.util import color, config
 from ccs.led.mode import LedMode
 from ccs.lcd.mode import LcdMode
 
@@ -30,7 +30,7 @@ class CaseControlServer:
         # Init config and settings
         if not os.path.exists(args.working_dir):
             os.makedirs(args.working_dir)
-        config.init(args.working_dir)
+        config = Config(args.working_dir)
         settings.init(args.working_dir)
 
         self._hw_data = HardwareData(color.BLACK, color.BLACK, '')

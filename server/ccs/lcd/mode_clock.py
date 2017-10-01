@@ -2,11 +2,11 @@ from datetime import datetime
 
 from . import helper
 from .mode import LcdMode
-from ccs.util import config
 
 
 class ClockMode(LcdMode):
 
+    _LCD_WIDTH = 20  # This won't work for any other size LCD so fuck it just hardcode it
     _LONG_DAY_FORMAT = '{d:%A}, {d:%B} {d.day}'
     _SHORT_DAY_FORMAT = '{d:%A}, {d:%b} {d.day}'
     _SECONDS_FORMAT = ' {d:%S}'
@@ -16,7 +16,6 @@ class ClockMode(LcdMode):
         return settings.get('lcd.color')
 
     def _get_text(self, settings):
-        width = int(config['lcd']['width'])
         lines = []  # This will we populated as we go along
 
         now = datetime.now()
@@ -24,11 +23,11 @@ class ClockMode(LcdMode):
         seconds_str = ClockMode._SECONDS_FORMAT.format(d=now)
 
         # If the line is too long, use a shorter version
-        if len(day_str) + len(seconds_str) > width:
+        if len(day_str) + len(seconds_str) > ClockMode._LCD_WIDTH:
             day_str = ClockMode._SHORT_DAY_FORMAT.format(d=now)
 
         # Pad the day string with spaces to make it the right length
-        day_str = day_str.ljust(width - len(seconds_str))
+        day_str = day_str.ljust(ClockMode._LCD_WIDTH - len(seconds_str))
         lines.append(day_str + seconds_str)  # First line
 
         time_str = ClockMode._TIME_FORMAT.format(d=now)

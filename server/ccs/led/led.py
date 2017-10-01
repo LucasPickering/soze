@@ -1,6 +1,6 @@
 import RPi.GPIO as GPIO
 
-from ccs.util.color import BLACK
+from ccs.core.color import BLACK
 
 
 class PwmPin:

@@ -1,7 +1,7 @@
 from flask import Flask, json, request
 
 from . import settings
-from ccs.util.color import Color
+from .color import Color
 
 
 app = Flask(__name__)

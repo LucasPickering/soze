@@ -11,8 +11,7 @@ import time
 import traceback
 from threading import Thread
 
-from ccs.util import config
-from ccs.util.color import Color
+from ccs.core.color import Color
 from ccs.mock.mock_server import PWM_SOCKET, LCD_SOCKET
 from ccs.lcd.helper import *
 
@@ -264,11 +263,10 @@ def main(stdscr):
     for i in range(1, curses.COLORS):
         curses.init_pair(i, i, -1)  # Background is always blank
 
-    cfg = config['led']
     resources = [
-        ColorPwmSocket(cfg['red_pin']),
-        ColorPwmSocket(cfg['green_pin']),
-        ColorPwmSocket(cfg['blue_pin']),
+        ColorPwmSocket(args.red),
+        ColorPwmSocket(args.green),
+        ColorPwmSocket(args.blue),
         LcdSocket(),
     ]
 
@@ -295,8 +293,8 @@ def main(stdscr):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('working_dir', nargs='?', default='.',
-                        help="Directory to store settings, config, etc.")
+    parser.add_argument('--red', '-r', type=int, default=5, help="Red pin #")
+    parser.add_argument('--green', '-g', type=int, default=3, help="Red pin #")
+    parser.add_argument('--blue', '-b', type=int, default=7, help="Red pin #")
     args = parser.parse_args()
-    config.init(args.working_dir)
     curses.wrapper(main)

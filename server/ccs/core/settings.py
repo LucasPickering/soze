@@ -4,7 +4,7 @@ import os
 import pickle
 
 from ccs import logger
-from ccs.util.color import Color, BLACK
+from .color import Color, BLACK
 from ccs.lcd.mode import LcdMode
 from ccs.led.mode import LedMode
 
