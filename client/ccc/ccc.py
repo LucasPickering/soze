@@ -68,7 +68,7 @@ def set_settings(settings):
         pprint(post(setting, json_val))
 
 
-@command('add-color', (['colors'], {'nargs': '+', 'help': "Color(s) to add to the active fade"}),
+@command('add-colors', (['colors'], {'nargs': '+', 'help': "Color(s) to add to the active fade"}),
          help="Add color(s) to the active fade")
 def add_color(colors):
     fade_colors = get('led.fade.colors')
@@ -77,8 +77,8 @@ def add_color(colors):
     print(fade_colors)
 
 
-@command('del-color', (['indexes'], {'type': int, 'nargs': '+',
-                                     'help': "Index(es) of the color(s) to remove"}),
+@command('del-colors', (['indexes'], {'type': int, 'nargs': '+',
+                                      'help': "Index(es) of the color(s) to remove"}),
          help="Delete color(s) from the active fade")
 def del_color(indexes):
     fade_colors = get('led.fade.colors')
