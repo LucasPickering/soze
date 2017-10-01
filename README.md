@@ -1,10 +1,30 @@
 # Case-Control-CLI
-CLI to control the LEDs and LCD in my computer case. Interfaces with a Raspberry Pi Zero over an
-Ethernet connection via USB. The Pi hosts a REST API written in Python, while the PC uses a CLI
-to make HTTP calls, also written in Python.
+CLI to control the LEDs and LCD in my computer case. The controller is a Raspberry Pi Zero W
+inside my PC, powered by a USB-header to Micro-USB cable from my motherboard to the Pi. This is
+also usable as an ethernet connection, but the Pi is mainly network-connected via WiFi.
+
+The Pi hosts a REST API written in Python, while the PC uses a CLI to make HTTP calls,
+also written in Python.
+
+# Installation
+## Server
+1. Install RPIO library (skip if only using mocking mode)
+    * `git clone https://github.com/metachris/RPIO.git --branch v2 --single-branch`
+    * `sudo pip3 install -e RPIO`
+2. Install CCS
+    * `git clone https://github.com/LucasPickering/case-control.git`
+    * `sudo pip3 install -e case-control/server`
+3. Install CCS systemd service
+    * `sudo ln -s /path/to/case-control/server/ccs.service /etc/systemd/system`
+
+## Client
+1. Install CCC
+    1. `git clone git@github.com:LucasPickering/case-control.git`
+    2. `sudo pip3 install -e case-control/client`
+
 
 ## Hardware
-* [Raspberry Pi Zero](https://www.raspberrypi.org/products/pi-zero/)
+* [Raspberry Pi Zero W](https://www.raspberrypi.org/products/pi-zero/)
 * [Adafruit RGB Backlight 20x4 Character LCD](https://www.adafruit.com/product/498)
 * [Adafruit LCD Backpack](https://www.adafruit.com/product/781)
 * [RGB LED Strip](https://www.adafruit.com/product/346)
