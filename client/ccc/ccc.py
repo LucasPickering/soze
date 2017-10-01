@@ -132,17 +132,18 @@ def del_fade(name):
 
 
 @command('config', (['settings'],
-                    {'nargs': '+', 'help': "Config settings to change"}),
+                    {'nargs': '*', 'help': "Config settings to change"}),
          help="Set local config value(s)")
 def set_cfg(settings):
-    cfg_dict = dict(parse_settings(settings))
-    cfg.update(cfg_dict)
+    if settings:
+        cfg_dict = dict(parse_settings(settings))
+        cfg.update(cfg_dict)
 
-    # Save the config
-    config = SafeConfigParser()
-    config[CFG_SECTION] = cfg
-    with open(CFG_FILE, 'w') as f:
-        config.write(f)
+        # Save the config
+        config = SafeConfigParser()
+        config[CFG_SECTION] = cfg
+        with open(CFG_FILE, 'w') as f:
+            config.write(f)
 
     pprint(dict(cfg))
 
