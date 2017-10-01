@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 
-from .helper import *
 from ccs.util.color import BLACK
 
 
@@ -23,15 +22,15 @@ class PwmPin:
 
 class Led:
 
-    def __init__(self):
+    def __init__(self, red_pin, green_pin, blue_pin):
         # Init pins
         GPIO.setmode(GPIO.BOARD)
         GPIO.setwarnings(False)
 
         # Init and start a PWM controller for each pin
-        self._red_pwm = PwmPin(LED_RED_PIN)
-        self._green_pwm = PwmPin(LED_GREEN_PIN)
-        self._blue_pwm = PwmPin(LED_BLUE_PIN)
+        self._red_pwm = PwmPin(red_pin)
+        self._green_pwm = PwmPin(green_pin)
+        self._blue_pwm = PwmPin(blue_pin)
 
     def set_color(self, color):
         self._red_pwm.set_color(color.red)

@@ -1,5 +1,4 @@
-from .mock_server import MockServer
-from ccs.lcd.helper import LCD_MOCK_SOCKET
+from .mock_server import MockServer, LCD_SOCKET
 
 # Mocked serial constants
 EIGHTBITS = None
@@ -9,7 +8,7 @@ STOPBITS_ONE = None
 
 class Serial(MockServer):
     def __init__(self, *args, **kwargs):
-        super().__init__(LCD_MOCK_SOCKET)
+        super().__init__(LCD_SOCKET)
         self.start()
 
     def write(self, data):

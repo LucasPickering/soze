@@ -8,6 +8,12 @@ class Config:
 
     CFG_FILE = 'ccs.ini'
     DEFAULT_CFG = {
+        'led': {
+            # Please don't ask about the ordering that's just how I wired it
+            'red_pin': 5,
+            'green_pin': 3,
+            'blue_pin': 7,
+        },
         'lcd': {
             'device': '/dev/ttyAMA0',
             'width': 20,

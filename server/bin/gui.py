@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import abc
+import argparse
 import curses
 import logging
 import os
@@ -10,8 +11,9 @@ import time
 import traceback
 from threading import Thread
 
+from ccs.util import config
 from ccs.util.color import Color
-from ccs.led.helper import LED_PWM_SOCKET, LED_RED_PIN, LED_GREEN_PIN, LED_BLUE_PIN
+from ccs.mock.mock_server import PWM_SOCKET, LCD_SOCKET
 from ccs.lcd.helper import *
 
 logging.config.dictConfig({
@@ -92,7 +94,7 @@ class ColorPwmSocket(Resource):
     """
 
     def __init__(self, pin, x=0, y=0):
-        super().__init__('PWM{}'.format(pin), LED_PWM_SOCKET.format(pin=pin))
+        super().__init__('PWM{}'.format(pin), PWM_SOCKET.format(pin=pin))
         self.val = 0
 
     def _process_data(self, data):
@@ -118,7 +120,7 @@ class LcdSocket(Resource):
     """
 
     def __init__(self):
-        super().__init__('LCD', LCD_MOCK_SOCKET)
+        super().__init__('LCD', LCD_SOCKET)
         self._window = curses.newwin(0, 0, 1, 0)
 
         # Unfortunately this has to be hardcoded
@@ -262,10 +264,11 @@ def main(stdscr):
     for i in range(1, curses.COLORS):
         curses.init_pair(i, i, -1)  # Background is always blank
 
+    cfg = config['led']
     resources = [
-        ColorPwmSocket(LED_RED_PIN),
-        ColorPwmSocket(LED_GREEN_PIN),
-        ColorPwmSocket(LED_BLUE_PIN),
+        ColorPwmSocket(cfg['red_pin']),
+        ColorPwmSocket(cfg['green_pin']),
+        ColorPwmSocket(cfg['blue_pin']),
         LcdSocket(),
     ]
 
@@ -291,4 +294,9 @@ def main(stdscr):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('working_dir', nargs='?', default='.',
+                        help="Directory to store settings, config, etc.")
+    args = parser.parse_args()
+    config.init(args.working_dir)
     curses.wrapper(main)

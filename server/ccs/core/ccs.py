@@ -48,8 +48,9 @@ class CaseControlServer:
         # Wait to import these in case their libraries are being mocked
         from ccs.led.led import Led
         from ccs.lcd.lcd import Lcd
-        led = Led()
+        led_cfg = config['led']
         lcd_cfg = config['lcd']
+        led = Led(led_cfg['red_pin'], led_cfg['green_pin'], led_cfg['blue_pin'])
         lcd = Lcd(lcd_cfg['device'], int(lcd_cfg['width']), int(lcd_cfg['height']))
 
         # Add background threads to be run

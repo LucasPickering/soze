@@ -4,6 +4,10 @@ import socket
 from ccs import logger
 
 
+PWM_SOCKET = '/tmp/ccs_pwm_{pin}.sock'
+LCD_SOCKET = '/tmp/ccs_lcd.sock'
+
+
 class MockServer(metaclass=abc.ABCMeta):
     def __init__(self, sock_addr):
         self._addr = sock_addr

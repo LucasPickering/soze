@@ -1,7 +1,6 @@
 import struct
 
-from ccs.mock.mock_server import MockServer
-from ccs.led.helper import LED_PWM_SOCKET
+from ccs.mock.mock_server import MockServer, PWM_SOCKET
 
 # Mocked GPIO constants
 BOARD = None
@@ -10,7 +9,7 @@ OUT = None
 
 class PWM(MockServer):
     def __init__(self, pin, *args, **kwargs):
-        super().__init__(LED_PWM_SOCKET.format(pin=pin))
+        super().__init__(PWM_SOCKET.format(pin=pin))
 
     def start(self, dc):
         super().start()

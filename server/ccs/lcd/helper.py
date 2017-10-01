@@ -96,8 +96,6 @@ CMD_CREATE_CHAR = 0x4e
 CMD_SAVE_CUSTOM_CHAR = 0xc1
 CMD_LOAD_CHAR_BANK = 0xc0
 
-LCD_MOCK_SOCKET = '/tmp/ccs_lcd.sock'
-
 BAUD_RATE = 9600
 
 
@@ -138,7 +136,7 @@ def diff_text(lines1, lines2):
 
     @return     A dict of (x,y):str tuples representing changes from lines1 to lines2
     """
-    diff = defaultdict(lambda: [])  # List is more efficient to be built up
+    diff = defaultdict(lambda: [])  # List of chars is more efficient for building up
     for y, (line1, line2) in enumerate(itertools.zip_longest(lines1, lines2, fillvalue='')):
         pos = None
         for x, (c1, c2) in enumerate(itertools.zip_longest(line1, line2, fillvalue=' ')):
