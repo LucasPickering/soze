@@ -2,8 +2,10 @@ import argparse
 import importlib
 import logging
 import os
-import threading
 import time
+from multiprocessing import Process
+from threading import Thread
+
 from . import api, settings
 from .config import Config
 from ccs import logger
@@ -44,33 +46,37 @@ class CaseControlServer:
         led = Led(led_cfg['red_pin'], led_cfg['green_pin'], led_cfg['blue_pin'])
         lcd = Lcd(lcd_cfg['device'], int(lcd_cfg['width']), int(lcd_cfg['height']))
 
-        # Add background threads to be run
-        def add_thread(target, **kwargs):
-            thread = threading.Thread(target=target, **kwargs)
-            self._threads.append(thread)
-        self._threads = []
-        add_thread(self._led_thread, name='LED-Thread', args=(led,))
-        add_thread(self._lcd_thread, name='LCD-Thread', args=(lcd,))
+        # Add background threads/processes to be run
+        self._api_proc = Process(target=api.app.run, kwargs={'host': '0.0.0.0'})
+        self._threads = [
+            Thread(target=self._led_thread, name='LED-Thread', args=(led,)),
+            Thread(target=self._lcd_thread, name='LCD-Thread', args=(lcd,)),
+        ]
 
     def run(self):
         # Start the helper threads, then launch the REST API
-        for thread in self._threads:
-            thread.start()
         try:
-            api.app.run(host='0.0.0.0')
+            for thread in self._threads:
+                thread.start()
+            self._api_proc.start()
+
+            self._wait()  # Wait for something to die
+        except KeyboardInterrupt:
+            pass
         finally:
-            # When flask receives Ctrl-C and stops, this runs to shut down the other threads
-            self._stop()
+            self._stop()  # Shut down every thread/process
+
+    def _wait(self):
+        for thread in self._threads:
+            thread.join()
+        self._api_proc.join()
 
     def _stop(self):
-        logger.info("Stopping...")
-        self._run = False
-
-        # Wait for all blocking (i.e. non-daemon) threads to terminate
-        logger.debug("Waiting for threads to stop...")
-        for thread in self._threads:
-            if not thread.daemon:
-                thread.join()
+        # Stop, if this hasn't already been called once
+        if self._run:
+            logger.info("Stopping...")
+            self._run = False
+            self._api_proc.terminate()
 
     def _led_thread(self, led):
         """
@@ -83,6 +89,7 @@ class CaseControlServer:
                 time.sleep(CaseControlServer._LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         finally:
+            self._stop()
             led.stop()
 
     def _lcd_thread(self, lcd):
@@ -97,6 +104,7 @@ class CaseControlServer:
                 time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:
+            self._stop()
             lcd.stop()
 
 

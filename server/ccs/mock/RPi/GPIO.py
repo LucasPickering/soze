@@ -20,7 +20,7 @@ class PWM(MockServer):
         super().write(data)
 
     def stop(self):
-        super().stop()
+        super().close()
 
 # Mocked GPIO methods
 

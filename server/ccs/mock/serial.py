@@ -19,4 +19,4 @@ class Serial(MockServer):
         pass
 
     def close(self):
-        super().stop()
+        super().close()

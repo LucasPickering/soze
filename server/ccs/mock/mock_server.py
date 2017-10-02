@@ -21,7 +21,7 @@ class MockServer(metaclass=abc.ABCMeta):
     def write(self, data):
         self._sock.sendall(data)
 
-    def stop(self):
+    def close(self):
         try:
             self._sock.close()
         except OSError:
