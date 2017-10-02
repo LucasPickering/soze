@@ -29,4 +29,4 @@ def route(path):
 
 @app.route('/xkcd')
 def xkcd():
-    return 'https://c.xkcd.com/random/comic'
+    return 'https://c.xkcd.com/random/comic\n'
