@@ -1,17 +1,19 @@
 import time
 
 from ccs.core.color import BLACK
+from ccs.core.named import register
 from .mode import LedMode
 
 
+@register('fade', LedMode.MODES)
 class FadeMode(LedMode):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('fade')
         self._color_index = 0
         self._fade_start_time = 0
 
-    def _get_color(self, settings):
+    def get_color(self, settings):
         fade_colors = settings.get('led.fade.colors')
         fade_time = settings.get('led.fade.fade_time')
 

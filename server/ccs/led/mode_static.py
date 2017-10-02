@@ -1,7 +1,12 @@
+from ccs.core.named import register
 from .mode import LedMode
 
 
+@register('static', LedMode.MODES)
 class StaticMode(LedMode):
 
-    def _get_color(self, settings):
+    def __init__(self):
+        super().__init__('static')
+
+    def get_color(self, settings):
         return settings.get('led.static.color')

@@ -9,8 +9,6 @@ from collections import namedtuple
 from . import api, color, settings
 from .config import Config
 from ccs import logger
-from ccs.led.mode import LedMode
-from ccs.lcd.mode import LcdMode
 
 HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
@@ -111,14 +109,20 @@ class CaseControlServer:
 
     def _hw_data_thread(self):
         """
-        @brief      A thread that periodically re-calculates the hardware data from the settings.
+        @brief      A thread that periodically re-calculates the hardware values from the settings.
         """
         while self._run:
-            # Compute new values and store them
-            led_color = LedMode.get_color(settings)
-            lcd_color, lcd_text = LcdMode.get_color_and_text(settings)
-            if settings.get('lcd.link_to_led'):  # Special setting to let LCD color copy LED color
-                lcd_color = led_color
+            # Get LED color
+            led_mode = settings.get('led.mode')
+            led_color = led_mode.get_color(settings)
+
+            # Get LCD color/text
+            lcd_mode = settings.get('lcd.mode')
+            use_led_color = settings.get('lcd.link_to_led')  # Use LED color for LCD
+            lcd_color = led_color if use_led_color else lcd_mode.get_color(settings)
+            lcd_text = lcd_mode.get_text(settings)
+
+            # Update stuff then sleep
             self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
             time.sleep(CaseControlServer._HW_DATA_THREAD_PAUSE)
 

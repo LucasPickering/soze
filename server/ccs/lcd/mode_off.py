@@ -1,11 +1,16 @@
 from ccs.core.color import BLACK
+from ccs.core.named import register
 from .mode import LcdMode
 
 
+@register('off', LcdMode.MODES)
 class OffMode(LcdMode):
 
-    def _get_color(self, settings):
+    def __init__(self):
+        super().__init__('off')
+
+    def get_color(self, settings):
         return BLACK
 
-    def _get_text(self, settings):
+    def get_text(self, settings):
         return ''

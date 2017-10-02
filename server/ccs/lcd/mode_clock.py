@@ -1,9 +1,11 @@
 from datetime import datetime
 
+from ccs.core.named import register
 from . import helper
 from .mode import LcdMode
 
 
+@register('clock', LcdMode.MODES)
 class ClockMode(LcdMode):
 
     _LCD_WIDTH = 20  # This won't work for any other size LCD so fuck it just hardcode it
@@ -12,10 +14,13 @@ class ClockMode(LcdMode):
     _SECONDS_FORMAT = ' {d:%S}'
     _TIME_FORMAT = '{d:%l}:{d:%M}'
 
-    def _get_color(self, settings):
+    def __init__(self):
+        super().__init__('clock')
+
+    def get_color(self, settings):
         return settings.get('lcd.color')
 
-    def _get_text(self, settings):
+    def get_text(self, settings):
         lines = []  # This will we populated as we go along
 
         now = datetime.now()

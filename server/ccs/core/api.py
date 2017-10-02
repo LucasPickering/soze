@@ -1,17 +1,9 @@
 from flask import Flask, json, request
 
 from . import settings
-from .color import Color
 
 
 app = Flask(__name__)
-
-
-class Encoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Color):
-            return obj.to_hex_str()
-        return obj
 
 
 @app.route('/', defaults={'path': ''}, methods=['GET', 'POST'])
@@ -19,12 +11,12 @@ class Encoder(json.JSONEncoder):
 def route(path):
     def to_json(data):
         if 'pretty' in request.args:
-            return json.dumps(data, cls=Encoder, indent=4) + '\n'
-        return json.dumps(data, cls=Encoder)
+            return json.dumps(data, indent=4) + '\n'
+        return json.dumps(data)
 
     if request.method == 'GET':
         try:
-            data = settings.get(path)
+            data = settings.get(path, serialized=True)
         except (KeyError, ValueError) as e:
             return str(e), 400
     elif request.method == 'POST':
