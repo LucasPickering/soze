@@ -4,7 +4,7 @@ import re
 class Color:
     # Used to convert RGB colors to xterm-256 colors
     # I recommend minimizing this if your editor has such a functionality
-    # If it doesn't stop using a garbage editor and switch to Sublime
+    # If it doesn't, stop using a garbage editor and switch to Sublime
     _RGB_TO_TERM = {  # color look-up table
         # Primary 3-bit (8 colors). Unique representation!
         0x000000: 0,
