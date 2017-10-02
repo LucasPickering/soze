@@ -1,9 +1,9 @@
 import abc
 
-from ccs.core.named import Named
+from ccs.core.mode import Mode
 
 
-class LedMode(Named, metaclass=abc.ABCMeta):
+class LedMode(Mode):
 
     MODES = {}
 
@@ -11,10 +11,6 @@ class LedMode(Named, metaclass=abc.ABCMeta):
     def get_color(self, settings):
         pass
 
-    @staticmethod
-    def get_mode_names():
-        return set(LedMode.MODES.keys())
-
-    @staticmethod
-    def get_by_name(name):
-        return LedMode.MODES[name]
+    @classmethod
+    def _get_modes(cls):
+        return cls.MODES

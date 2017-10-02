@@ -1,5 +1,5 @@
 from ccs.core.color import BLACK
-from ccs.core.named import register
+from ccs.core.mode import register
 from .mode import LedMode
 
 

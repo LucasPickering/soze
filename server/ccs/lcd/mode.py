@@ -1,9 +1,9 @@
 import abc
 
-from ccs.core.named import Named
+from ccs.core.mode import Mode
 
 
-class LcdMode(Named, metaclass=abc.ABCMeta):
+class LcdMode(Mode):
 
     MODES = {}
 
@@ -14,10 +14,6 @@ class LcdMode(Named, metaclass=abc.ABCMeta):
     def get_text(self, settings):
         pass
 
-    @staticmethod
-    def get_mode_names():
-        return set(LcdMode.MODES.keys())
-
-    @staticmethod
-    def get_by_name(name):
-        return LcdMode.MODES[name]
+    @classmethod
+    def _get_modes(cls):
+        return cls.MODES

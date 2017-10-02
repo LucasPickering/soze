@@ -12,7 +12,7 @@ def register(name, registry):
     return inner
 
 
-class Named(metaclass=abc.ABCMeta):
+class Mode(metaclass=abc.ABCMeta):
 
     def __init__(self, name):
         self._name = name
@@ -20,3 +20,15 @@ class Named(metaclass=abc.ABCMeta):
     @property
     def name(self):
         return self._name
+
+    @abc.abstractclassmethod
+    def _get_modes(cls):
+        pass
+
+    @classmethod
+    def get_mode_names(cls):
+        return set(cls._get_modes().keys())
+
+    @classmethod
+    def get_by_name(cls, name):
+        return cls._get_modes()[name]
