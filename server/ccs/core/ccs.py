@@ -4,19 +4,14 @@ import logging
 import os
 import threading
 import time
-from collections import namedtuple
-
-from . import api, color, settings
+from . import api, settings
 from .config import Config
 from ccs import logger
-
-HardwareData = namedtuple('HardwareData', 'led_color lcd_color lcd_text')
 
 
 class CaseControlServer:
     _LED_THREAD_PAUSE = 0.1
     _LCD_THREAD_PAUSE = 0.1
-    _HW_DATA_THREAD_PAUSE = 0.05
 
     def __init__(self, args):
         self._run = True
@@ -30,8 +25,6 @@ class CaseControlServer:
             os.makedirs(args.working_dir)
         config = Config(args.working_dir)
         settings.init(args.working_dir)
-
-        self._hw_data = HardwareData(color.BLACK, color.BLACK, '')
 
         # Mock hardware communication (PWM and serial)
         if args.mock:
@@ -58,7 +51,6 @@ class CaseControlServer:
         self._threads = []
         add_thread(self._led_thread, name='LED-Thread', args=(led,))
         add_thread(self._lcd_thread, name='LCD-Thread', args=(lcd,))
-        add_thread(self._hw_data_thread, name='HW-Data-Thread', daemon=True)
 
     def run(self):
         # Start the helper threads, then launch the REST API
@@ -82,12 +74,12 @@ class CaseControlServer:
 
     def _led_thread(self, led):
         """
-        @brief      A thread that periodically updates the case LEDs based on the current
-                    derived settings.
+        @brief      A thread that periodically updates the case LEDs based on the current settings.
         """
         try:
             while self._run:
-                led.set_color(self._hw_data.led_color)
+                led_mode = settings.get('led.mode')
+                led.set_color(led_mode.get_color(settings))
                 time.sleep(CaseControlServer._LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         finally:
@@ -95,36 +87,17 @@ class CaseControlServer:
 
     def _lcd_thread(self, lcd):
         """
-        @brief      A thread that periodically updates the case LEDs based on the current
-                    derived settings.
+        @brief      A thread that periodically updates the case LEDs based on the current settings.
         """
         try:
             while self._run:
-                lcd.set_color(self._hw_data.lcd_color)
-                lcd.set_text(self._hw_data.lcd_text)
+                lcd_mode = settings.get('lcd.mode')
+                lcd.set_color(lcd_mode.get_color(settings))
+                lcd.set_text(lcd_mode.get_text(settings))
                 time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:
             lcd.stop()
-
-    def _hw_data_thread(self):
-        """
-        @brief      A thread that periodically re-calculates the hardware values from the settings.
-        """
-        while self._run:
-            # Get LED color
-            led_mode = settings.get('led.mode')
-            led_color = led_mode.get_color(settings)
-
-            # Get LCD color/text
-            lcd_mode = settings.get('lcd.mode')
-            use_led_color = settings.get('lcd.link_to_led')  # Use LED color for LCD
-            lcd_color = led_color if use_led_color else lcd_mode.get_color(settings)
-            lcd_text = lcd_mode.get_text(settings)
-
-            # Update stuff then sleep
-            self._hw_data = HardwareData(led_color, lcd_color, lcd_text)
-            time.sleep(CaseControlServer._HW_DATA_THREAD_PAUSE)
 
 
 def main():
