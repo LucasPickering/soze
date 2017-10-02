@@ -1,3 +1,5 @@
+import traceback
+
 from ccs import logger
 from ccs.core.color import BLACK
 from .helper import *
@@ -238,7 +240,11 @@ class Lcd:
         @brief      Turns the LCD off and clears it, then flushes and closes the serial
                     connection with the LCD.
         """
-        self.off()
-        self.clear()
-        self.flush_serial()
-        self._ser.close()
+        try:
+            self.off()
+            self.clear()
+            self.flush_serial()
+        except Exception:
+            logger.error("Error turning off LCD:\n{}".format(traceback.format_exc()))
+        finally:
+            self._ser.close()

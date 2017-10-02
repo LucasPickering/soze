@@ -17,9 +17,8 @@ class CaseControlServer:
 
     def __init__(self, args):
         self._run = True
-        self._debug = args.debug
 
-        if self._debug:
+        if args.debug:
             logger.setLevel(logging.DEBUG)
 
         # Init config and settings
@@ -98,9 +97,14 @@ class CaseControlServer:
         """
         try:
             while self._run:
-                lcd_mode = settings.get('lcd.mode')
-                lcd.set_color(lcd_mode.get_color(settings))
-                lcd.set_text(lcd_mode.get_text(settings))
+                mode = settings.get('lcd.mode')
+                text = mode.get_text(settings)
+                if settings.get('lcd.link_to_led'):  # Special setting to use LED color for LCD
+                    mode = settings.get('led.mode')
+                color = mode.get_color(settings)
+
+                lcd.set_text(text)
+                lcd.set_color(color)
                 time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:

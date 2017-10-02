@@ -1,5 +1,7 @@
 import RPi.GPIO as GPIO
+import traceback
 
+from ccs import logger
 from ccs.core.color import BLACK
 
 
@@ -38,11 +40,15 @@ class Led:
         self._blue_pwm.set_color(color.blue)
 
     def stop(self):
-        self.off()
-        self._red_pwm.stop()
-        self._green_pwm.stop()
-        self._blue_pwm.stop()
-        GPIO.cleanup()
+        try:
+            self.off()
+        except Exception:
+            logger.error("Error turning off LEDs:\n{}".format(traceback.format_exc()))
+        finally:
+            self._red_pwm.stop()
+            self._green_pwm.stop()
+            self._blue_pwm.stop()
+            GPIO.cleanup()
 
     def off(self):
         self.set_color(BLACK)
