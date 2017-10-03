@@ -42,8 +42,10 @@ class CaseControlServer:
         from ccs.lcd.lcd import Lcd
         led_cfg = config['led']
         lcd_cfg = config['lcd']
-        led = Led(led_cfg['red_pin'], led_cfg['green_pin'], led_cfg['blue_pin'])
+        led = Led(int(led_cfg['red_pin']), int(led_cfg['green_pin']), int(led_cfg['blue_pin']))
+        logger.debug("Initialized LED")
         lcd = Lcd(lcd_cfg['device'], int(lcd_cfg['width']), int(lcd_cfg['height']))
+        logger.debug("Initialized LCD")
 
         # Add background threads/processes to be run
         self._api_proc = Process(target=api.app.run, kwargs={'host': '0.0.0.0'})
@@ -55,9 +57,12 @@ class CaseControlServer:
     def run(self):
         # Start the helper threads, then launch the REST API
         try:
+            logger.debug("Starting threads...")
             for thread in self._threads:
                 thread.start()
+            logger.debug("Started threads, now starting Flask...")
             self._api_proc.start()
+            logger.debug("Started Flask")
 
             self._wait()  # Wait for something to die
         except KeyboardInterrupt:

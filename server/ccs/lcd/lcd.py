@@ -1,3 +1,4 @@
+import serial
 import traceback
 
 from ccs import logger
@@ -8,15 +9,12 @@ from .helper import *
 class Lcd:
 
     def __init__(self, serial_port, width, height):
-        self._width = width
-        self._height = height
-
-        import serial  # Import here to all for mocking
         self._ser = serial.Serial(serial_port,
                                   baudrate=BAUD_RATE,
                                   bytesize=serial.EIGHTBITS,
                                   parity=serial.PARITY_NONE,
-                                  stopbits=serial.STOPBITS_ONE)
+                                  stopbits=serial.STOPBITS_ONE,
+                                  writeTimeout=0)
 
         # Declare fields
         self._width, self._height = None, None
@@ -45,13 +43,12 @@ class Lcd:
 
         @return     The number of bytes written
         """
-        # logger.info(' '.join('{:02x}'.format(b) for b in data))
         num_written = self._ser.write(data)
+        if num_written != len(data):
+            logger.error(f"Expected to write {len(data)} bytes ({format_bytes(data)}),"
+                         f" but only wrote {num_written} bytes")
         if flush:
             self.flush_serial()
-        if num_written != len(data):
-            logger.error(f"Expected to write {format_bytes(data)} ({len(data)} bytes),"
-                         f" but only wrote {num_written} bytes")
         return num_written
 
     def _send_command(self, command, *args, flush=False):
