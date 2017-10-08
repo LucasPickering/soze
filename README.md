@@ -8,9 +8,8 @@ also written in Python.
 
 # Installation
 ## Server
-1. Install RPIO library (skip if only using mocking mode)
-    * `git clone https://github.com/metachris/RPIO.git --branch v2 --single-branch`
-    * `sudo pip3 install -e RPIO`
+1. Install RPi.GPIO library (skip if only using mocking mode)
+    * `sudo pip3 install RPI.GPIO`
 2. Install CCS
     * `git clone https://github.com/LucasPickering/case-control.git`
     * `sudo pip3 install -e case-control/server`
