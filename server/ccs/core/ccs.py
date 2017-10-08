@@ -48,10 +48,10 @@ class CaseControlServer:
         logger.debug("Initialized LCD")
 
         # Add background threads/processes to be run
-        self._api_proc = Process(target=api.app.run, kwargs={'host': '0.0.0.0'})
         self._threads = [
             Thread(target=self._led_thread, name='LED-Thread', args=(led,)),
             Thread(target=self._lcd_thread, name='LCD-Thread', args=(lcd,)),
+            Thread(target=api.app.run, kwargs={'host': '0.0.0.0'}, daemon=True),
         ]
 
     def run(self):
@@ -61,7 +61,6 @@ class CaseControlServer:
             for thread in self._threads:
                 thread.start()
             logger.debug("Started threads, now starting Flask...")
-            self._api_proc.start()
             logger.debug("Started Flask")
 
             self._wait()  # Wait for something to die
@@ -73,14 +72,12 @@ class CaseControlServer:
     def _wait(self):
         for thread in self._threads:
             thread.join()
-        self._api_proc.join()
 
     def _stop(self):
         # Stop, if this hasn't already been called once
         if self._run:
             logger.info("Stopping...")
             self._run = False
-            self._api_proc.terminate()
 
     def _led_thread(self, led):
         """

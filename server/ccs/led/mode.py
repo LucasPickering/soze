@@ -14,3 +14,6 @@ class LedMode(Mode):
     @classmethod
     def _get_modes(cls):
         return cls.MODES
+
+    def __str__(self):
+        return f"LED/{self.name}"

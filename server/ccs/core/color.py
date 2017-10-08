@@ -303,7 +303,7 @@ class Color:
             return Color.from_hexcode(data)
         elif (isinstance(data, list) or isinstance(data, tuple)) and len(data) == 3:
             return Color(*data)  # Data is in a list, unpack the list into a color tuple
-        raise ValueError(f"Invalid format for color data: {data}")
+        raise ValueError(f"Invalid format for color data: {data!r}")
 
     @property
     def red(self):

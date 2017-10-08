@@ -14,16 +14,13 @@ def route(path):
             return json.dumps(data, indent=4) + '\n'
         return json.dumps(data)
 
-    if request.method == 'GET':
-        try:
+    try:
+        if request.method == 'GET':
             data = settings.get(path, serialized=True)
-        except (KeyError, ValueError) as e:
-            return str(e), 400
-    elif request.method == 'POST':
-        try:
+        elif request.method == 'POST':
             data = settings.set(path, request.get_json())
-        except (KeyError, ValueError) as e:
-            return str(e), 400
+    except (KeyError, ValueError) as e:
+        return str(e), 400
     return to_json(data)
 
 
