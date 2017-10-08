@@ -2,8 +2,8 @@ import argparse
 import importlib
 import logging
 import os
+import signal
 import time
-from multiprocessing import Process
 from threading import Thread
 
 from . import api, settings
@@ -54,6 +54,8 @@ class CaseControlServer:
             Thread(target=api.app.run, kwargs={'host': '0.0.0.0'}, daemon=True),
         ]
 
+        signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())  # Catch SIGTERM
+
     def run(self):
         # Start the helper threads, then launch the REST API
         try:
@@ -67,13 +69,14 @@ class CaseControlServer:
         except KeyboardInterrupt:
             pass
         finally:
-            self._stop()  # Shut down every thread/process
+            self.stop()  # Shut down every thread/process
 
     def _wait(self):
         for thread in self._threads:
-            thread.join()
+            if not thread.daemon:
+                thread.join()
 
-    def _stop(self):
+    def stop(self):
         # Stop, if this hasn't already been called once
         if self._run:
             logger.info("Stopping...")
@@ -90,7 +93,7 @@ class CaseControlServer:
                 time.sleep(CaseControlServer._LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         finally:
-            self._stop()
+            self.stop()
             led.stop()
 
     def _lcd_thread(self, lcd):
@@ -110,7 +113,7 @@ class CaseControlServer:
                 time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:
-            self._stop()
+            self.stop()
             lcd.stop()
 
 
