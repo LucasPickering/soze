@@ -5,11 +5,19 @@ import requests
 from pprint import pprint
 from configparser import SafeConfigParser
 
-
 CFG_FILE = os.path.expanduser('~/.ccc.ini')
 CFG_SECTION = 'all'
 DEFAULT_CFG = {'host': 'localhost', 'port': 5000}
 COMMANDS = {}
+
+
+def command(name, *cmd_args, **kwargs):
+    def inner(func):
+        def wrapper(*args):
+            func(*args)
+        COMMANDS[name] = (func, cmd_args, kwargs)
+        return wrapper
+    return inner
 
 
 def get_url(setting):
@@ -35,15 +43,6 @@ def post(setting, value):
 
 def parse_settings(settings):
     return (tuple(setting.split('=', 1)) for setting in settings)
-
-
-def command(name, *cmd_args, **kwargs):
-    def inner(func):
-        def wrapper(*args):
-            func(*args)
-        COMMANDS[name] = (func, cmd_args, kwargs)
-        return wrapper
-    return inner
 
 
 @command('get', (['settings'],
@@ -192,3 +191,7 @@ def main():
     except requests.exceptions.HTTPError as e:
         print(f"{e}: {e.response.text}")
         exit(2)
+
+
+if __name__ == '__main__':
+    main()
