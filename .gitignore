@@ -28,4 +28,4 @@ target/
 *.log
 *.p
 *.egg-info/
-*.ini
+*.json

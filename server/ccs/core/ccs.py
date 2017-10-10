@@ -3,19 +3,23 @@ import importlib
 import logging
 import os
 import signal
+import subprocess
 import time
 from threading import Thread
 
 from . import api, config, settings
+from .color import BLACK
 from ccs import logger
 
 
 class CaseControlServer:
-    _LED_THREAD_PAUSE = 0.1
-    _LCD_THREAD_PAUSE = 0.1
+    LED_THREAD_PAUSE = 0.05
+    LCD_THREAD_PAUSE = 0.1
+    KEEPALIVE_THREAD_PAUSE = 1.0
 
     def __init__(self, args):
         self._run = True
+        self._keepalive_up = True
 
         if args.debug:
             logger.setLevel(logging.DEBUG)
@@ -39,18 +43,20 @@ class CaseControlServer:
         # Wait to import these in case their libraries are being mocked
         from ccs.led.led import Led
         from ccs.lcd.lcd import Lcd
-        led = Led(cfg.getint('led', 'red_pin'),
-                  cfg.getint('led', 'green_pin'),
-                  cfg.getint('led', 'blue_pin'))
+        led = Led(cfg['red_pin'], cfg['green_pin'], cfg['blue_pin'])
         logger.debug("Initialized LED")
-        lcd = Lcd(cfg.get('lcd', 'device'), cfg.getint('lcd', 'width'), cfg.getint('lcd', 'height'))
+        lcd = Lcd(cfg['lcd_device'], cfg['lcd_width'], cfg['lcd_height'])
         logger.debug("Initialized LCD")
+
+        keepalive_hosts = cfg['keepalive_hosts']
 
         # Add background threads/processes to be run
         self._threads = [
             Thread(target=self._led_thread, name='LED-Thread', args=(led,)),
             Thread(target=self._lcd_thread, name='LCD-Thread', args=(lcd,)),
-            Thread(target=api.app.run, kwargs={'host': '0.0.0.0'}, daemon=True),
+            Thread(target=self._keepalive_thread, name='Keepalive-Thread', daemon=True,
+                   args=(keepalive_hosts,)),
+            Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),
         ]
 
         signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())  # Catch SIGTERM
@@ -87,9 +93,12 @@ class CaseControlServer:
         """
         try:
             while self._run:
-                led_mode = settings.get('led.mode')
-                led.set_color(led_mode.get_color(settings))
-                time.sleep(CaseControlServer._LED_THREAD_PAUSE)
+                if self._keepalive_up:
+                    color = settings.get('led.mode').get_color(settings)
+                else:
+                    color = BLACK
+                led.set_color(color)
+                time.sleep(CaseControlServer.LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         finally:
             self.stop()
@@ -101,19 +110,45 @@ class CaseControlServer:
         """
         try:
             while self._run:
-                mode = settings.get('lcd.mode')
-                text = mode.get_text(settings)
-                if settings.get('lcd.link_to_led'):  # Special setting to use LED color for LCD
-                    mode = settings.get('led.mode')
-                color = mode.get_color(settings)
+                if self._keepalive_up:
+                    mode = settings.get('lcd.mode')
+                    text = mode.get_text(settings)
+                    if settings.get('lcd.link_to_led'):  # Special setting to use LED color for LCD
+                        mode = settings.get('led.mode')
+                    color = mode.get_color(settings)
+                else:
+                    text = ''
+                    color = BLACK
 
                 lcd.set_text(text)
                 lcd.set_color(color)
-                time.sleep(CaseControlServer._LCD_THREAD_PAUSE)
+                time.sleep(CaseControlServer.LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:
             self.stop()
             lcd.stop()
+
+    def _keepalive_thread(self, hosts):
+        # No hosts given, don't even bother
+        if not hosts:
+            return
+
+        def ping(host):
+            try:
+                subprocess.check_call(['ping', '-c', '1', host], timeout=1,
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return True
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+                return False
+        try:
+            while self._run:
+                alive = any(ping(host) for host in hosts)
+                if alive != self._keepalive_up:
+                    logger.info(f"Keepalive host(s) went {'up' if alive else 'down'}")
+                    self._keepalive_up = alive
+                time.sleep(CaseControlServer.KEEPALIVE_THREAD_PAUSE)
+        finally:
+            self.stop()
 
 
 def main():
