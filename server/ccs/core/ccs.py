@@ -6,8 +6,7 @@ import signal
 import time
 from threading import Thread
 
-from . import api, settings
-from .config import Config
+from . import api, config, settings
 from ccs import logger
 
 
@@ -24,7 +23,7 @@ class CaseControlServer:
         # Init config and settings
         if not os.path.exists(args.working_dir):
             os.makedirs(args.working_dir)
-        config = Config(args.working_dir)
+        cfg = config.load(args.working_dir)
         settings.init(args.working_dir)
 
         # Mock hardware communication (PWM and serial)
@@ -40,11 +39,11 @@ class CaseControlServer:
         # Wait to import these in case their libraries are being mocked
         from ccs.led.led import Led
         from ccs.lcd.lcd import Lcd
-        led_cfg = config['led']
-        lcd_cfg = config['lcd']
-        led = Led(int(led_cfg['red_pin']), int(led_cfg['green_pin']), int(led_cfg['blue_pin']))
+        led = Led(cfg.getint('led', 'red_pin'),
+                  cfg.getint('led', 'green_pin'),
+                  cfg.getint('led', 'blue_pin'))
         logger.debug("Initialized LED")
-        lcd = Lcd(lcd_cfg['device'], int(lcd_cfg['width']), int(lcd_cfg['height']))
+        lcd = Lcd(cfg.get('lcd', 'device'), cfg.getint('lcd', 'width'), cfg.getint('lcd', 'height'))
         logger.debug("Initialized LCD")
 
         # Add background threads/processes to be run
