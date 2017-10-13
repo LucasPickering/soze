@@ -16,6 +16,7 @@ class CaseControlServer:
     LED_THREAD_PAUSE = 0.05
     LCD_THREAD_PAUSE = 0.1
     KEEPALIVE_THREAD_PAUSE = 1.0
+    KEEPALIVE_TIMEOUT = 3
 
     def __init__(self, args):
         self._run = True
@@ -133,9 +134,11 @@ class CaseControlServer:
         if not hosts:
             return
 
+        timeout = str(CaseControlServer.KEEPALIVE_TIMEOUT)
+
         def ping(host):
             try:
-                subprocess.check_call(['ping', '-c', '1', host], timeout=1,
+                subprocess.check_call(['ping', '-c', '1', '-W', timeout, host],
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 return True
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
