@@ -6,6 +6,7 @@ from ccs import logger
 CFG_FILE = 'config.json'
 DEFAULT_CFG = {
     'keepalive_hosts': [],
+    'keepalive_timeout': 10,
     # Please don't ask about the ordering that's just how I wired it
     'red_pin': 5,
     'green_pin': 3,

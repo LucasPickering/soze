@@ -16,7 +16,6 @@ class CaseControlServer:
     LED_THREAD_PAUSE = 0.05
     LCD_THREAD_PAUSE = 0.1
     KEEPALIVE_THREAD_PAUSE = 1.0
-    KEEPALIVE_TIMEOUT = 3
 
     def __init__(self, args):
         self._run = True
@@ -50,13 +49,14 @@ class CaseControlServer:
         logger.debug("Initialized LCD")
 
         keepalive_hosts = cfg['keepalive_hosts']
+        keepalive_timeout = cfg['keepalive_timeout']
 
         # Add background threads/processes to be run
         self._threads = [
             Thread(target=self._led_thread, name='LED-Thread', args=(led,)),
             Thread(target=self._lcd_thread, name='LCD-Thread', args=(lcd,)),
             Thread(target=self._keepalive_thread, name='Keepalive-Thread', daemon=True,
-                   args=(keepalive_hosts,)),
+                   args=(keepalive_hosts, keepalive_timeout)),
             Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),
         ]
 
@@ -129,16 +129,14 @@ class CaseControlServer:
             self.stop()
             lcd.stop()
 
-    def _keepalive_thread(self, hosts):
+    def _keepalive_thread(self, hosts, timeout):
         # No hosts given, don't even bother
         if not hosts:
             return
 
-        timeout = str(CaseControlServer.KEEPALIVE_TIMEOUT)
-
         def ping(host):
             try:
-                subprocess.check_call(['ping', '-c', '1', '-W', timeout, host],
+                subprocess.check_call(['ping', '-c', '1', '-W', str(timeout), host],
                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 return True
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
