@@ -3,10 +3,8 @@ import json
 import os
 import requests
 from pprint import pprint
-from configparser import SafeConfigParser
 
-CFG_FILE = os.path.expanduser('~/.ccc.ini')
-CFG_SECTION = 'all'
+CFG_FILE = os.path.expanduser('~/.ccc.json')
 DEFAULT_CFG = {'host': 'localhost', 'port': 5000}
 COMMANDS = {}
 
@@ -21,8 +19,8 @@ def command(name, *cmd_args, **kwargs):
 
 
 def get_url(setting):
-    host = cfg['host']
-    port = cfg['port']
+    host = config['host']
+    port = config['port']
     route = setting.replace('.', '/')
     return f'http://{host}:{port}/{route}'
 
@@ -133,18 +131,13 @@ def del_fade(name):
 @command('config', (['settings'],
                     {'nargs': '*', 'help': "Config settings to change"}),
          help="Set local config value(s)")
-def set_cfg(settings):
+def set_config(settings):
     if settings:
-        cfg_dict = dict(parse_settings(settings))
-        cfg.update(cfg_dict)
+        new_cfg = dict(parse_settings(settings))  # Parse key/value pairs from the user
+        config.update(new_cfg)  # Add the new settings to the config
+        save_config(config)  # Save the config
 
-        # Save the config
-        config = SafeConfigParser()
-        config[CFG_SECTION] = cfg
-        with open(CFG_FILE, 'w') as f:
-            config.write(f)
-
-    pprint(dict(cfg))
+    pprint(config)
 
 
 def parse_args():
@@ -165,20 +158,30 @@ def parse_args():
     return parser.parse_args()
 
 
-def parse_cfg():
-    config = SafeConfigParser()
-    config[CFG_SECTION] = DEFAULT_CFG
-    config.read(CFG_FILE)
+def parse_config():
+    cfg = dict(DEFAULT_CFG)  # Copy the defaults to start with
+
+    # Read the file and update our dict. Do nothing if the file doesn't exist yet.
+    try:
+        with open(CFG_FILE) as f:
+            cfg.update(json.load(f))
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        pass
+
+    save_config(cfg)  # Write the full config back to the file
+    return cfg
+
+
+def save_config(cfg):
     with open(CFG_FILE, 'w') as f:
-        config.write(f)
-    return config[CFG_SECTION]
+        json.dump(cfg, f)
 
 
 def main():
     argd = vars(parse_args())
 
-    global cfg  # I'm sorry
-    cfg = parse_cfg()
+    global config  # I'm sorry
+    config = parse_config()
 
     try:
         func = argd.pop('func')
