@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='ccs',
     description="Server that controls configuration of connected LCD and LEDs",
-    url='https://github.com/LucasPickering/Case-Control-CLI',
+    url='https://github.com/LucasPickering/case-control',
     author='Lucas Pickering',
     packages=find_packages(),
     # RPIO library has to be installed manually: https://github.com/limuxy/RPIO
