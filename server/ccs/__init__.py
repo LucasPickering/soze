@@ -5,7 +5,7 @@ logging.config.dictConfig({
     'version': 1,
     'formatters': {
         'f': {
-            'format': '{asctime} - {levelname} - {message}',
+            'format': '{asctime} [{threadName} {levelname}] {message}',
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'style': '{',
         }

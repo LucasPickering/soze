@@ -1,25 +1,50 @@
-# Case-Control-CLI
-CLI to control the LEDs and LCD in my computer case. The controller is a Raspberry Pi Zero W
-inside my PC, powered by a USB-header to Micro-USB cable from my motherboard to the Pi. This is
-also usable as an ethernet connection, but the Pi is mainly network-connected via WiFi.
+# case-control
+Software suite to control the LEDs and LCD in my computer case.
+The controller is a Raspberry Pi Zero W inside my PC, powered by a USB-header to Micro-USB cable
+from the motherboard to the Pi. This is also usable as an ethernet connection, but the Pi is mainly
+network-connected via WiFi.
 
-The Pi hosts a REST API written in Python, while the PC uses a CLI to make HTTP calls,
-also written in Python.
 
-# Installation
-## Server
-1. Install RPi.GPIO library (skip if only using mocking mode)
-    * `sudo pip3 install RPI.GPIO`
-2. Install CCS
-    * `git clone https://github.com/LucasPickering/case-control.git`
-    * `sudo pip3 install -e case-control/server`
-3. Install CCS systemd service
-    * `sudo ln -s /path/to/case-control/server/ccs.service /etc/systemd/system`
+## Software
+### Display (Python)
+Handles interaction with the hardware. Communicates with the server via Unix Domain Sockets. This
+is stateless, and merely forwards the LED/LCD settings received over the socket to the hardware.
 
-## Client
-1. Install CCC
-    1. `git clone git@github.com:LucasPickering/case-control.git`
-    2. `sudo pip3 install -e case-control/client`
+There is also a mock display which, instead of communicating with hardware, displays the LED colors and
+LCD in the console via a curses UI. This is useful for working on the client or server without
+having the hardware available for testing.
+
+Must be run on the same machine as the server.
+
+### Server (Python)
+Handles processing of user requests, and computes which values should be sent to the display.
+Communicates with the client via an HTTP API and the display via Unix Domain Sockets. This holds the
+state for the entire program
+
+Must be run on the same machine as the display.
+
+### Client (Python)
+A lightweight Python abstraction for making HTTP calls to the server. This is where the user changes
+settings for the system. Maintains minor state, via a config file, to make usage more convenient.
+For example, you can set the server's hostname/IP and have it save in the config file, so that you
+don't have to specify it for each command.
+
+This can be run from any machine that has network access to the server.
+
+
+## Installation
+### Server
+In the repo, run:
+```
+sudo pip3 install server
+sudo ln -s /path/to/case-control/server/ccs.service /etc/systemd/system
+```
+
+### Client
+In the repo, run:
+```
+sudo pip3 install client
+```
 
 
 ## Hardware
@@ -28,9 +53,12 @@ also written in Python.
 * [Adafruit LCD Backpack](https://www.adafruit.com/product/781)
 * [RGB LED Strip](https://www.adafruit.com/product/346)
 
+
 ## Connections
 The PC is connected to the RPi via a USB cable, which goes from the motherboard's internal
-5-pin USB header to the Pi's USB data port. This provides both power and data.
+5-pin USB header to the Pi's USB data port. This provides power, and has the capability of
+providing a network connection as well. Normally, the RPi is connected to WiFi and is communicated
+with via that interface.
 
 The RPi is connected to the LCD backpack with a 3-pin connector that carries 5V, GND, and TX.
 The RPi sends commands and data to the backpack with a serial connection. The serial settings are:

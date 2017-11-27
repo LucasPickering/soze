@@ -1,5 +1,4 @@
 import argparse
-import importlib
 import logging
 import os
 import signal
@@ -10,13 +9,15 @@ from threading import Thread
 from . import api, config, settings
 from .color import BLACK
 from ccs import logger
+from ccs.led.led import Led
+from ccs.lcd.lcd import Lcd
+
+LED_THREAD_PAUSE = 0.05
+LCD_THREAD_PAUSE = 0.1
+KEEPALIVE_THREAD_PAUSE = 1.0
 
 
 class CaseControlServer:
-    LED_THREAD_PAUSE = 0.05
-    LCD_THREAD_PAUSE = 0.1
-    KEEPALIVE_THREAD_PAUSE = 1.0
-
     def __init__(self, args):
         self._run = True
         self._keepalive_up = True
@@ -30,22 +31,10 @@ class CaseControlServer:
         cfg = config.load(args.working_dir)
         settings.init(args.working_dir)
 
-        # Mock hardware communication (PWM and serial)
-        if args.mock:
-            # Swap out some libraries with out mocked versions
-            # Fake imports, SAD!!
-            logger.info("Running in mocking mode")
-            import sys
-            sys.modules['RPi'] = importlib.import_module('ccs.mock.RPi')
-            sys.modules['serial'] = importlib.import_module('ccs.mock.serial')
-
         # Init the LED/LCD handlers
-        # Wait to import these in case their libraries are being mocked
-        from ccs.led.led import Led
-        from ccs.lcd.lcd import Lcd
-        led = Led(cfg['red_pin'], cfg['green_pin'], cfg['blue_pin'])
+        led = Led(cfg['led_socket'])
         logger.debug("Initialized LED")
-        lcd = Lcd(cfg['lcd_device'], cfg['lcd_width'], cfg['lcd_height'])
+        lcd = Lcd(cfg['lcd_socket'], cfg['lcd_width'], cfg['lcd_height'])
         logger.debug("Initialized LCD")
 
         keepalive_hosts = cfg['keepalive_hosts']
@@ -93,13 +82,14 @@ class CaseControlServer:
         @brief      A thread that periodically updates the case LEDs based on the current settings.
         """
         try:
+            led.open()
             while self._run:
                 if self._keepalive_up:
                     color = settings.get('led.mode').get_color(settings)
                 else:
                     color = BLACK
                 led.set_color(color)
-                time.sleep(CaseControlServer.LED_THREAD_PAUSE)
+                time.sleep(LED_THREAD_PAUSE)
             logger.debug("LED thread stopped")
         finally:
             self.stop()
@@ -110,6 +100,7 @@ class CaseControlServer:
         @brief      A thread that periodically updates the case LEDs based on the current settings.
         """
         try:
+            lcd.open()
             while self._run:
                 if self._keepalive_up:
                     mode = settings.get('lcd.mode')
@@ -123,7 +114,7 @@ class CaseControlServer:
 
                 lcd.set_text(text)
                 lcd.set_color(color)
-                time.sleep(CaseControlServer.LCD_THREAD_PAUSE)
+                time.sleep(LCD_THREAD_PAUSE)
             logger.debug("LCD thread stopped")
         finally:
             self.stop()
@@ -147,7 +138,7 @@ class CaseControlServer:
                 if alive != self._keepalive_up:
                     logger.info(f"Keepalive host(s) went {'up' if alive else 'down'}")
                     self._keepalive_up = alive
-                time.sleep(CaseControlServer.KEEPALIVE_THREAD_PAUSE)
+                time.sleep(KEEPALIVE_THREAD_PAUSE)
         finally:
             self.stop()
 
@@ -157,8 +148,6 @@ def main():
     parser.add_argument('working_dir', nargs='?', default='.',
                         help="Directory to store settings, config, etc.")
     parser.add_argument('--debug', '-d', action='store_true', help="Enable debug mode")
-    parser.add_argument('--mock', '-m', action='store_const', default=False, const=True,
-                        help="Mock the LEDs/LCD in the console for development")
     args = parser.parse_args()
 
     c = CaseControlServer(args)

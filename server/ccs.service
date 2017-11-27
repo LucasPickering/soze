@@ -1,9 +1,10 @@
 [Unit]
-Description=Case LED/LCD control service
+Description=Case LED/LCD control server
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/ccs /etc/ccs
+Requires=ccd
+ExecStart=/usr/local/bin/ccs /etc/cc
 
 [Install]
 WantedBy=multi-user.target

@@ -6,8 +6,7 @@ setup(
     url='https://github.com/LucasPickering/case-control',
     author='Lucas Pickering',
     packages=find_packages(),
-    # RPIO library has to be installed manually: https://github.com/limuxy/RPIO
-    install_requires=['flask', 'pyserial'],
+    install_requires=['flask'],
     entry_points={
         'console_scripts': ['ccs = ccs.core.ccs:main']
     },

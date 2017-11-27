@@ -6,14 +6,17 @@ import curses
 import logging
 import os
 import socket
-import struct
 import time
 import traceback
 from threading import Thread
 
-from ccs.core.color import Color
-from ccs.mock.mock_server import PWM_SOCKET, LCD_SOCKET
+from ccs.core.color import Color, BLACK
 from ccs.lcd.helper import *
+
+
+def format_bytes(data):
+    return ' '.join('{:02x}'.format(b) for b in data)
+
 
 logging.config.dictConfig({
     'version': 1,
@@ -43,11 +46,11 @@ logger = logging.getLogger(__name__)
 
 
 class Resource(metaclass=abc.ABCMeta):
-
-    def __init__(self, name, sock_addr):
+    def __init__(self, name, sock_addr, x, y, width, height):
         self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         self._addr = sock_addr
         self._thread = Thread(target=self._loop, name='{}-Thread'.format(name), daemon=True)
+        self._window = curses.newwin(height, width, y, x)
         self._run = True
 
     def _read_data(self):
@@ -87,18 +90,23 @@ class Resource(metaclass=abc.ABCMeta):
         return self._addr
 
 
-class ColorPwmSocket(Resource):
+class LedSocket(Resource):
     """
     @brief      A mocked version of the LED handler.
     """
 
-    def __init__(self, pin, x=0, y=0):
-        super().__init__('PWM{}'.format(pin), PWM_SOCKET.format(pin=pin))
-        self.val = 0
+    def __init__(self, sock_addr):
+        super().__init__('LED', sock_addr, 0, 0, 50, 1)
+        self._set_color(BLACK)
+
+    def _set_color(self, color):
+        curses_color = curses.color_pair(color.to_term_color())
+        self._window.clear()
+        self._window.addstr(f"LED Color: {color}", curses_color)
+        self._window.noutrefresh()
 
     def _process_data(self, data):
-        dc = struct.unpack('f', data)[0]
-        self.val = int(dc / 100.0 * 255.0)
+        self._set_color(Color.from_bytes(data))
 
 
 _lcd_commands = {}
@@ -118,9 +126,8 @@ class LcdSocket(Resource):
     @brief      Where the magic happens for mocking the LCD.
     """
 
-    def __init__(self):
-        super().__init__('LCD', LCD_SOCKET)
-        self._window = curses.newwin(0, 0, 1, 0)
+    def __init__(self, sock_addr):
+        super().__init__('LCD', sock_addr, 0, 1, 0, 0)
 
         # Unfortunately this has to be hardcoded
         self._custom_chars = {
@@ -134,7 +141,6 @@ class LcdSocket(Resource):
             }
         }
         self._current_char_bank = None
-        self._socket_buffer = bytearray()
 
         self._width, self._height = None, None
         self._cursor_x, self._cursor_y = 0, 0
@@ -239,19 +245,10 @@ class LcdSocket(Resource):
             s = ''.join(decode_byte(b) for b in data)
             self._write_str(s)
 
-
-def update_window(red_pwm, green_pwm, blue_pwm, interval):
-    window = curses.newwin(1, 30, 0, 0)
+def update_window():
     while True:
-        r, g, b = red_pwm.val, green_pwm.val, blue_pwm.val
-        curses_color = curses.color_pair(Color(r, g, b).to_term_color())
-
-        window.clear()
-        window.addstr(f"LED Color: ({r}, {g}, {b})", curses_color)
-        window.noutrefresh()
-
         curses.doupdate()
-        time.sleep(interval)
+        time.sleep(0.05)
 
 
 def main(stdscr):
@@ -264,19 +261,16 @@ def main(stdscr):
         curses.init_pair(i, i, -1)  # Background is always blank
 
     resources = [
-        ColorPwmSocket(args.red),
-        ColorPwmSocket(args.green),
-        ColorPwmSocket(args.blue),
-        LcdSocket(),
+        LedSocket(args.led_socket),
+        LcdSocket(args.lcd_socket),
     ]
 
     try:
-        # Start each resource, then wait for it to stop
+        # Start each resource
         for res in resources:
             res.start()
 
-        curses_thread = Thread(target=update_window, name='Curses-Thread',
-                               args=[*resources[:3], 0.05], daemon=True)
+        curses_thread = Thread(target=update_window, name='Curses-Thread', daemon=True)
         curses_thread.start()
 
         # Wait for Ctrl-c
@@ -292,9 +286,10 @@ def main(stdscr):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--red', '-r', type=int, default=5, help="Red pin #")
-    parser.add_argument('--green', '-g', type=int, default=3, help="Red pin #")
-    parser.add_argument('--blue', '-b', type=int, default=7, help="Red pin #")
+    parser = argparse.ArgumentParser("Mock LED/LCD display for debugging the client/server")
+    parser.add_argument('--led-socket', default='/tmp/cc_led.sock',
+                        help="Socket to receive LCD data on")
+    parser.add_argument('--lcd-socket', default='/tmp/cc_lcd.sock',
+                        help="Socket to receive LCD data on")
     args = parser.parse_args()
     curses.wrapper(main)

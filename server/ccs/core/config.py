@@ -5,13 +5,10 @@ from ccs import logger
 
 CFG_FILE = 'config.json'
 DEFAULT_CFG = {
+    'led_socket': '/tmp/cc_led.sock',
+    'lcd_socket': '/tmp/cc_lcd.sock',
     'keepalive_hosts': [],
     'keepalive_timeout': 10,
-    # Please don't ask about the ordering that's just how I wired it
-    'red_pin': 5,
-    'green_pin': 3,
-    'blue_pin': 7,
-    'lcd_device': '/dev/ttyAMA0',
     'lcd_width': 20,
     'lcd_height': 4,
 }

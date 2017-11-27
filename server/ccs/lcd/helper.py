@@ -105,10 +105,6 @@ class CursorMode(Enum):
     block = 3
 
 
-def format_bytes(data):
-    return ' '.join('{:02x}'.format(b) for b in data)
-
-
 def make_big_text(text):
     """
     @brief      Converts the given string into "big text". Big text is text that is three lines

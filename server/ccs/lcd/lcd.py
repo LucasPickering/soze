@@ -1,27 +1,23 @@
-import serial
 import traceback
 
 from ccs import logger
 from ccs.core.color import BLACK
+from ccs.core.socket_resource import SocketResource
 from .helper import *
 
 
-class Lcd:
-
-    def __init__(self, serial_port, width, height):
-        self._ser = serial.Serial(serial_port,
-                                  baudrate=BAUD_RATE,
-                                  bytesize=serial.EIGHTBITS,
-                                  parity=serial.PARITY_NONE,
-                                  stopbits=serial.STOPBITS_ONE,
-                                  writeTimeout=0)
-
+class Lcd(SocketResource):
+    def __init__(self, sock_addr, width, height):
+        super().__init__(sock_addr)
         # Declare fields
-        self._width, self._height = None, None
+        self._width, self._height = width, height
         self._color = None
 
-        # Use the setters to initialize them
-        self.set_size(width, height)
+    def open(self):
+        super().open()
+
+        # Initialize stuff
+        self.set_size(self._width, self._height, True)
         self.set_color(BLACK)
 
         self.clear()
@@ -33,25 +29,18 @@ class Lcd:
             self.create_char(0, index, char)
         self.load_char_bank(0)
 
-    def _write(self, data, flush=False):
+    def _write(self, data):
         """
-        @brief      Writes the given bytes to the serial stream. The given data must be a bytes-like
+        @brief      Writes the given bytes to the socket. The given data must be a bytes-like
                     object.
 
         @param      data   The data (must be bytes-like)
-        @param      flush  Whether or not to flush the serial buffer after writing the data
 
         @return     The number of bytes written
         """
-        num_written = self._ser.write(data)
-        if num_written != len(data):
-            logger.error(f"Expected to write {len(data)} bytes ({format_bytes(data)}),"
-                         f" but only wrote {num_written} bytes")
-        if flush:
-            self.flush_serial()
-        return num_written
+        return self.send(data)
 
-    def _send_command(self, command, *args, flush=False):
+    def _send_command(self, command, *args):
         """
         @brief      Sends the given command to the LCD, with the given arguments.
 
@@ -59,7 +48,7 @@ class Lcd:
         @param      args     The arguments for the command (if any)
         """
         all_bytes = bytes([SIG_COMMAND, command]) + bytes(args)
-        self._write(all_bytes, flush)
+        self._write(all_bytes)
 
     @property
     def width(self):
@@ -68,12 +57,6 @@ class Lcd:
     @property
     def height(self):
         return self._height
-
-    def flush_serial(self):
-        """
-        @brief      Flushes the serial buffer, i.e. waits until everything in the buffer sends.
-        """
-        self._ser.flush()
 
     def clear(self):
         """
@@ -94,7 +77,7 @@ class Lcd:
         """
         self._send_command(CMD_BACKLIGHT_OFF)
 
-    def set_size(self, width, height):
+    def set_size(self, width, height, force_update=False):
         """
         @brief      Configures the size of the LCD. Only needs to be called once ever, and the LCD
                     will remember its size.
@@ -102,7 +85,7 @@ class Lcd:
         @param      width   The width of the LCD (in characters)
         @param      height  The height of the LCD (in characters)
         """
-        if self._width != width or self._height != height:
+        if force_update or self._width != width or self._height != height:
             self._width, self._height = width, height
             self._send_command(CMD_SIZE, width, height)
             self._lines = [''] * height  # Resize the text buffer
@@ -229,19 +212,17 @@ class Lcd:
         diff = diff_text(self._lines, lines)
         for (x, y), s in diff.items():
             self.set_cursor_pos(x + 1, y + 1)  # Move to the cursor to the right spot
-            self._write(encode_str(s), flush=True)
+            self._write(encode_str(s))
         self._lines = lines
 
     def stop(self):
         """
-        @brief      Turns the LCD off and clears it, then flushes and closes the serial
-                    connection with the LCD.
+        @brief      Turns the LCD off and clears it, then closes the socket with the display.
         """
         try:
             self.off()
             self.clear()
-            self.flush_serial()
         except Exception:
             logger.error("Error turning off LCD:\n{}".format(traceback.format_exc()))
         finally:
-            self._ser.close()
+            self.close()
