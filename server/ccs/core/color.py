@@ -1,6 +1,10 @@
 import re
 
 
+def coerce(val):
+    return min(max(int(val), 0), 255)
+
+
 class Color:
     # Used to convert RGB colors to xterm-256 colors
     # I recommend minimizing this if your editor has such a functionality
@@ -284,25 +288,25 @@ class Color:
             raise ValueError(f"Value must be [0, 255], but was {val}")
         return val
 
-    @staticmethod
-    def _coerce(val):
-        return min(max(int(val), 0), 255)
+    @classmethod
+    def from_hexcode(cls, hex_val):
+        return cls((hex_val >> 16) & 0xff, (hex_val >> 8) & 0xff, hex_val & 0xff)
 
-    @staticmethod
-    def from_hexcode(hex_val):
-        return Color((hex_val >> 16) & 0xff, (hex_val >> 8) & 0xff, hex_val & 0xff)
+    @classmethod
+    def from_bytes(cls, b):
+        return cls(*b[:3])  # Pass the first 3 bytes to the constructor
 
-    @staticmethod
-    def unpack(data):
+    @classmethod
+    def unpack(cls, data):
         if isinstance(data, str):
             m = re.match(r'^(?:#|0x)?([A-Za-z0-9]{6})$', data)  # Parse hexcode format
             if m:
-                return Color.from_hexcode(int(m.group(1), 16))
+                return cls.from_hexcode(int(m.group(1), 16))
             # Match failed, fall through to error
         elif isinstance(data, int):
-            return Color.from_hexcode(data)
+            return cls.from_hexcode(data)
         elif (isinstance(data, list) or isinstance(data, tuple)) and len(data) == 3:
-            return Color(*data)  # Data is in a list, unpack the list into a color tuple
+            return cls(*data)  # Data is in a list, unpack the list into a color tuple
         raise ValueError(f"Invalid format for color data: {data!r}")
 
     @property
@@ -333,31 +337,41 @@ class Color:
         closest_hex = min(Color._RGB_TO_TERM.keys(), key=lambda x: abs(x - hexcode))
         return Color._RGB_TO_TERM[closest_hex]
 
+    def __bytes__(self):
+        return bytes(self.to_list())
+
+    def __str__(self):
+        return f"({self.red}, {self.green}, {self.blue})"
+
+    def __repr__(self):
+        s = str(self)
+        return f"<Color: {s}>"
+
     def __add__(self, other):
         if not isinstance(other, Color):
             raise TypeError("unsupported operand type(s) for +:"
                             f" '{type(self)}' and '{type(other)}'")
-        r = Color._coerce(self.red + other.red)
-        g = Color._coerce(self.green + other.green)
-        b = Color._coerce(self.blue + other.blue)
+        r = coerce(self.red + other.red)
+        g = coerce(self.green + other.green)
+        b = coerce(self.blue + other.blue)
         return Color(r, g, b)
 
     def __sub__(self, other):
         if not isinstance(other, Color):
             raise TypeError("unsupported operand type(s) for -:"
                             f" '{type(self)}' and '{type(other)}'")
-        r = Color._coerce(self.red - other.red)
-        g = Color._coerce(self.green - other.green)
-        b = Color._coerce(self.blue - other.blue)
+        r = coerce(self.red - other.red)
+        g = coerce(self.green - other.green)
+        b = coerce(self.blue - other.blue)
         return Color(r, g, b)
 
     def __mul__(self, coeff):
         if not isinstance(coeff, int) and not isinstance(coeff, float):
             raise TypeError("unsupported operand type(s) for *:"
                             f" '{type(self)}' and '{type(coeff)}'")
-        r = Color._coerce(self.red * coeff)
-        g = Color._coerce(self.green * coeff)
-        b = Color._coerce(self.blue * coeff)
+        r = coerce(self.red * coeff)
+        g = coerce(self.green * coeff)
+        b = coerce(self.blue * coeff)
         return Color(r, g, b)
 
     def blend(self, other, bias=0.5):
@@ -384,13 +398,6 @@ class Color:
     def default(self):
         # Convert to JSON
         return [self.red, self.green, self.blue]
-
-    def __str__(self):
-        return f"({self.red}, {self.green}, {self.blue})"
-
-    def __repr__(self):
-        s = str(self)
-        return f"<Color: {s}>"
 
 
 BLACK = Color(0, 0, 0)
