@@ -6,16 +6,27 @@ from ccs.core.socket_resource import SocketResource
 
 
 class Led(SocketResource):
+    @property
+    def name(self):
+        return 'LED'
+
     def set_color(self, color):
         self.send(bytes(color))
 
-    def stop(self):
+    def off(self):
+        self.set_color(BLACK)
+
+    def cleanup(self):
         try:
             self.off()
         except Exception:
             logger.error("Error turning off LEDs:\n{}".format(traceback.format_exc()))
-        finally:
-            self.close()
 
-    def off(self):
-        self.set_color(BLACK)
+    def _get_default_values(self, settings):
+        return (BLACK,)
+
+    def _get_values(self, settings):
+        return (settings.get('led.mode').get_color(settings),)
+
+    def _apply_values(self, color):
+        self.set_color(color)

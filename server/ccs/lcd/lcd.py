@@ -13,21 +13,50 @@ class Lcd(SocketResource):
         self._width, self._height = width, height
         self._color = None
 
-    def open(self):
-        super().open()
+    @property
+    def name(self):
+        return 'LCD'
 
-        # Initialize stuff
-        self.set_size(self._width, self._height, True)
-        self.set_color(BLACK)
+    def init(self):
+        # If the socket opened up, initialize stuff
+        if self.is_open:
+            self.set_size(self._width, self._height, True)
+            self.set_color(BLACK)
 
-        self.clear()
-        self.set_autoscroll(False)  # Fugg that
-        self.on()
+            self.clear()
+            self.set_autoscroll(False)  # Fugg that
+            self.on()
 
-        # Register custom characters
-        for index, char in CUSTOM_CHARS.items():
-            self.create_char(0, index, char)
-        self.load_char_bank(0)
+            # Register custom characters
+            for index, char in CUSTOM_CHARS.items():
+                self.create_char(0, index, char)
+            self.load_char_bank(0)
+
+    def cleanup(self):
+        """
+        @brief      Turns the LCD off and clears it, then closes the socket with the display.
+        """
+        try:
+            self.off()
+            self.clear()
+        except Exception:
+            logger.error("Error turning off LCD:\n{}".format(traceback.format_exc()))
+
+    def _get_default_values(self, settings):
+        return (BLACK, '')
+
+    def _get_values(self, settings):
+        mode = settings.get('lcd.mode')
+        text = mode.get_text(settings)
+        if settings.get('lcd.link_to_led'):  # Special setting to use LED color
+            mode = settings.get('led.mode')
+        color = mode.get_color(settings)
+
+        return (color, text)
+
+    def _apply_values(self, color, text):
+        self.set_text(text)
+        self.set_color(color)
 
     def _write(self, data):
         """
@@ -214,15 +243,3 @@ class Lcd(SocketResource):
             self.set_cursor_pos(x + 1, y + 1)  # Move to the cursor to the right spot
             self._write(encode_str(s))
         self._lines = lines
-
-    def stop(self):
-        """
-        @brief      Turns the LCD off and clears it, then closes the socket with the display.
-        """
-        try:
-            self.off()
-            self.clear()
-        except Exception:
-            logger.error("Error turning off LCD:\n{}".format(traceback.format_exc()))
-        finally:
-            self.close()

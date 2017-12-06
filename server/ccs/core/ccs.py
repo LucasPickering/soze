@@ -12,14 +12,11 @@ from ccs import logger
 from ccs.led.led import Led
 from ccs.lcd.lcd import Lcd
 
-LED_THREAD_PAUSE = 0.05
-LCD_THREAD_PAUSE = 0.1
 KEEPALIVE_THREAD_PAUSE = 1.0
 
 
 class CaseControlServer:
     def __init__(self, args):
-        self._run = True
         self._keepalive_up = True
 
         if args.debug:
@@ -32,18 +29,17 @@ class CaseControlServer:
         settings.init(args.working_dir)
 
         # Init the LED/LCD handlers
-        led = Led(cfg['led_socket'])
-        logger.debug("Initialized LED")
-        lcd = Lcd(cfg['lcd_socket'], cfg['lcd_width'], cfg['lcd_height'])
-        logger.debug("Initialized LCD")
+        self._resources = [
+            Led(cfg['led_socket']),
+            Lcd(cfg['lcd_socket'], cfg['lcd_width'], cfg['lcd_height']),
+        ]
+        logger.debug("Initialized resources")
 
         keepalive_hosts = cfg['keepalive_hosts']
         keepalive_timeout = cfg['keepalive_timeout']
 
-        # Add background threads/processes to be run
-        self._threads = [
-            Thread(target=self._led_thread, name='LED-Thread', args=(led,)),
-            Thread(target=self._lcd_thread, name='LCD-Thread', args=(lcd,)),
+        # Add background threads to be run
+        self._threads = [res.make_thread(settings) for res in self._resources] + [
             Thread(target=self._keepalive_thread, name='Keepalive-Thread', daemon=True,
                    args=(keepalive_hosts, keepalive_timeout)),
             Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),
@@ -67,58 +63,16 @@ class CaseControlServer:
             self.stop()  # Shut down every thread/process
 
     def _wait(self):
+        # Wait for all non-daemon threads to die
         for thread in self._threads:
             if not thread.daemon:
                 thread.join()
 
     def stop(self):
         # Stop, if this hasn't already been called once
-        if self._run:
-            logger.info("Stopping...")
-            self._run = False
-
-    def _led_thread(self, led):
-        """
-        @brief      A thread that periodically updates the case LEDs based on the current settings.
-        """
-        try:
-            led.open()
-            while self._run:
-                if self._keepalive_up:
-                    color = settings.get('led.mode').get_color(settings)
-                else:
-                    color = BLACK
-                led.set_color(color)
-                time.sleep(LED_THREAD_PAUSE)
-            logger.debug("LED thread stopped")
-        finally:
-            self.stop()
-            led.stop()
-
-    def _lcd_thread(self, lcd):
-        """
-        @brief      A thread that periodically updates the case LEDs based on the current settings.
-        """
-        try:
-            lcd.open()
-            while self._run:
-                if self._keepalive_up:
-                    mode = settings.get('lcd.mode')
-                    text = mode.get_text(settings)
-                    if settings.get('lcd.link_to_led'):  # Special setting to use LED color for LCD
-                        mode = settings.get('led.mode')
-                    color = mode.get_color(settings)
-                else:
-                    text = ''
-                    color = BLACK
-
-                lcd.set_text(text)
-                lcd.set_color(color)
-                time.sleep(LCD_THREAD_PAUSE)
-            logger.debug("LCD thread stopped")
-        finally:
-            self.stop()
-            lcd.stop()
+        logger.info("Stopping...")
+        for res in self._resources:
+            res.stop_loop()
 
     def _keepalive_thread(self, hosts, timeout):
         # No hosts given, don't even bother
@@ -133,11 +87,12 @@ class CaseControlServer:
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
                 return False
         try:
-            while self._run:
-                alive = any(ping(host) for host in hosts)
-                if alive != self._keepalive_up:
-                    logger.info(f"Keepalive host(s) went {'up' if alive else 'down'}")
-                    self._keepalive_up = alive
+            while True:
+                awake = any(ping(host) for host in hosts)  # If any hosts are alive...
+                if awake != self._keepalive_up:
+                    logger.info(f"Keepalive host(s) went {'up' if awake else 'down'}")
+                    for res in self._resources:
+                        res.awake = awake
                 time.sleep(KEEPALIVE_THREAD_PAUSE)
         finally:
             self.stop()
