@@ -7,7 +7,6 @@ import time
 from threading import Thread
 
 from . import api, config, settings
-from .color import BLACK
 from ccs import logger
 from ccs.led.led import Led
 from ccs.lcd.lcd import Lcd
@@ -30,13 +29,13 @@ class CaseControlServer:
 
         # Init the LED/LCD handlers
         self._resources = [
-            Led(cfg['led_socket']),
-            Lcd(cfg['lcd_socket'], cfg['lcd_width'], cfg['lcd_height']),
+            Led(cfg['led']['socket']),
+            Lcd(cfg['lcd']['socket'], cfg['lcd']['width'], cfg['lcd']['height']),
         ]
         logger.debug("Initialized resources")
 
-        keepalive_hosts = cfg['keepalive_hosts']
-        keepalive_timeout = cfg['keepalive_timeout']
+        keepalive_hosts = cfg['keepalive']['hosts']
+        keepalive_timeout = cfg['keepalive']['timeout']
 
         # Add background threads to be run
         self._threads = [res.make_thread(settings) for res in self._resources] + [

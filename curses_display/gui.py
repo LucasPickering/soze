@@ -245,6 +245,7 @@ class LcdSocket(Resource):
             s = ''.join(decode_byte(b) for b in data)
             self._write_str(s)
 
+
 def update_window():
     while True:
         curses.doupdate()

@@ -3,14 +3,20 @@ import os
 
 from ccs import logger
 
-CFG_FILE = 'config.json'
+CFG_FILE = 'ccs.json'
 DEFAULT_CFG = {
-    'led_socket': '/tmp/cc_led.sock',
-    'lcd_socket': '/tmp/cc_lcd.sock',
-    'keepalive_hosts': [],
-    'keepalive_timeout': 10,
-    'lcd_width': 20,
-    'lcd_height': 4,
+    'led': {
+        'socket': '/tmp/cc_led.sock',
+    },
+    'lcd': {
+        'socket': '/tmp/cc_lcd.sock',
+        'width': 20,
+        'height': 4,
+    },
+    'keepalive': {
+        'hosts': [],
+        'timeout': 10,
+    },
 }
 
 
