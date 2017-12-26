@@ -117,7 +117,7 @@ class DictSetting(Setting):
     def _deserialize(self, val):
         if not isinstance(val, dict):
             raise ValueError(f"Expected dict, got {val}")
-        return {k: v._deserialize(v) for k, v in val.items()}
+        return {k: self._setting._deserialize(v) for k, v in val.items()}
 
 
 class Settings:

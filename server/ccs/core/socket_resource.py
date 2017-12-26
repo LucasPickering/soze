@@ -46,7 +46,7 @@ class SocketResource(metaclass=abc.ABCMeta):
                 logger.debug(f"Connected to {self._sock_addr}")
                 return True  # Job's done
             except (FileNotFoundError, ConnectionRefusedError) as e:
-                logger.warning(f"Failed to connect to display socket {self._sock_addr} "
+                logger.warning(f"Failed to connect to display socket {self._sock_addr}. "
                                f"Retrying in {RETRY_PAUSE} seconds...")
                 time.sleep(RETRY_PAUSE)  # Sleep for a bit, then try again
         self._sock = None  # Reset the value of sock so we know init failed
