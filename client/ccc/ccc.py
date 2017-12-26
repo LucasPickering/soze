@@ -28,6 +28,11 @@ def get_url(setting):
 
 def http_get(setting):
     url = get_url(setting)
+
+    # Print debug info
+    if debug:
+        print(f"GET {url}")
+
     response = requests.get(url)
     response.raise_for_status()
     return response.json()
@@ -35,6 +40,12 @@ def http_get(setting):
 
 def http_post(setting, value):
     url = get_url(setting)
+
+    # Print debug info
+    if debug:
+        print(f"POST {url}")
+        pprint(value)
+
     response = requests.post(url, json=value)
     response.raise_for_status()
     return response.json()
@@ -116,8 +127,9 @@ def load_fade(name):
 def save_fade(name):
     fade = http_get('led.fade')
     colors = fade['colors']
-    fade['saved'][name] = colors
-    http_post('led.fade', fade)
+    saved = fade['saved']
+    saved[name] = colors
+    http_post('led.fade.saved', saved)
     print(f"Saved {colors} as '{name}'")
 
 
@@ -152,6 +164,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', '-c', default=[], action='append', help="Override config value")
+    parser.add_argument('--debug', '-d', action='store_true', help="Print debug info")
     subparsers = parser.add_subparsers()
 
     for cmd, (func, cmd_args, kwargs) in COMMANDS.items():
@@ -191,6 +204,9 @@ def main():
 
     global config  # I'm sorry
     config = parse_config(config_overrides)
+
+    global debug
+    debug = argd.pop('debug')
 
     try:
         func = argd.pop('func')
