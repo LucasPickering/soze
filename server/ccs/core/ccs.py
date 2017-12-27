@@ -2,22 +2,17 @@ import argparse
 import logging
 import os
 import signal
-import subprocess
-import time
 from threading import Thread
 
 from . import api, config, settings
+from .keepalive import Keepalive
 from ccs import logger
 from ccs.led.led import Led
 from ccs.lcd.lcd import Lcd
 
-KEEPALIVE_THREAD_PAUSE = 1.0
-
 
 class CaseControlServer:
     def __init__(self, args):
-        self._keepalive_up = True
-
         if args.debug:
             logger.setLevel(logging.DEBUG)
 
@@ -27,22 +22,23 @@ class CaseControlServer:
         cfg = config.load(args.working_dir)
         settings.init(args.working_dir)
 
+        # Init keepalive handler. This pings a list of hosts periodically, and if they are all
+        # down, we turn everything off.
+        keepalive = Keepalive(cfg['keepalive']['hosts'], cfg['keepalive']['timeout'])
+
         # Init the LED/LCD handlers
         self._resources = [
-            Led(cfg['led']['socket']),
-            Lcd(cfg['lcd']['socket'], cfg['lcd']['width'], cfg['lcd']['height']),
+            Led(keepalive, cfg['led']['socket']),
+            Lcd(keepalive, cfg['lcd']['socket'], cfg['lcd']['width'], cfg['lcd']['height']),
         ]
         logger.debug("Initialized resources")
 
-        keepalive_hosts = cfg['keepalive']['hosts']
-        keepalive_timeout = cfg['keepalive']['timeout']
-
         # Add background threads to be run
-        self._threads = [res.make_thread(settings) for res in self._resources] + [
-            Thread(target=self._keepalive_thread, name='Keepalive-Thread', daemon=True,
-                   args=(keepalive_hosts, keepalive_timeout)),
-            Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),
-        ]
+        self._threads = \
+            [res.make_thread(settings) for res in self._resources] + [  # Thread for each resource
+                keepalive.make_thread(),  # Keepalive thread
+                Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),  # API thread
+            ]
 
         signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())  # Catch SIGTERM
 
@@ -72,29 +68,6 @@ class CaseControlServer:
         logger.info("Stopping...")
         for res in self._resources:
             res.stop_loop()
-
-    def _keepalive_thread(self, hosts, timeout):
-        # No hosts given, don't even bother
-        if not hosts:
-            return
-
-        def ping(host):
-            try:
-                subprocess.check_call(['ping', '-c', '1', '-W', str(timeout), host],
-                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                return True
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-                return False
-        try:
-            while True:
-                awake = any(ping(host) for host in hosts)  # If any hosts are alive...
-                if awake != self._keepalive_up:
-                    logger.info(f"Keepalive host(s) went {'up' if awake else 'down'}")
-                    for res in self._resources:
-                        res.awake = awake
-                time.sleep(KEEPALIVE_THREAD_PAUSE)
-        finally:
-            self.stop()
 
 
 def main():

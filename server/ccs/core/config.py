@@ -15,7 +15,7 @@ DEFAULT_CFG = {
     },
     'keepalive': {
         'hosts': [],
-        'timeout': 10,
+        'timeout': 30,
     },
 }
 

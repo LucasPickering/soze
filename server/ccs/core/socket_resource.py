@@ -14,25 +14,17 @@ def format_bytes(data):
 
 
 class SocketResource(metaclass=abc.ABCMeta):
-    def __init__(self, sock_addr):
+    def __init__(self, keepalive, sock_addr):
         # Open the socket
+        self._keepalive = keepalive
         self._sock_addr = sock_addr
         self._sock = None
         self._run = True
-        self._awake = True
 
     @property
     @abc.abstractmethod
     def name(self):
         pass
-
-    @property
-    def awake(self):
-        return self._awake
-
-    @awake.setter
-    def awake(self, awake):
-        self._awake = awake
 
     @property
     def is_open(self):
@@ -89,7 +81,8 @@ class SocketResource(metaclass=abc.ABCMeta):
         try:
             while self._run:
                 if self.is_open:
-                    values = self._get_values(settings) if self.awake \
+                    # Calculate real values if the keepalive is alive, otherwise use default values
+                    values = self._get_values(settings) if self._keepalive.is_alive \
                         else self._get_default_values(settings)
 
                     try:

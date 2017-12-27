@@ -7,8 +7,8 @@ from .helper import *
 
 
 class Lcd(SocketResource):
-    def __init__(self, sock_addr, width, height):
-        super().__init__(sock_addr)
+    def __init__(self, keepalive, sock_addr, width, height):
+        super().__init__(keepalive, sock_addr)
         # Declare fields
         self._width, self._height = width, height
         self._color = None
