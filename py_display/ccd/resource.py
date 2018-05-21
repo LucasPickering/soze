@@ -34,22 +34,40 @@ class Resource(metaclass=abc.ABCMeta):
         except Exception:
             logger.error(traceback.format_exc())
         finally:
+            logger.info(f"Closing {self}")
             self.close()
 
     def start(self):
+        """
+        @brief      Starts this resource. Opens up the socket and starts a thread that runs the
+                    socket loop.
+        """
         self._sock.bind(self._addr)
         self._thread.start()
 
+    def stop(self):
+        """
+        @brief      Stop the socket loop. When the loop stops, the resource will be closed.
+        """
+        self._run = False
+
     def close(self):
+        """
+        @brief      Close the resource. This will close the socket and any other associated I/O
+                    resources, such as serial, I2C, etc. This does NOT stop the socket loop. You
+                    probably don't want to call this - try Resource.stop instead.
+        """
         try:
             self._sock.shutdown(socket.SHUT_RDWR)
             self._sock.close()
-            logger.info(f"Closed {self}")
         except Exception:
             pass
         finally:
+            logger.info(f"Maybe closing {self._addr}")
             if os.path.exists(self._addr):
+                logger.info(f'Closing {self._addr}')
                 os.unlink(self._addr)
+                logger.info(f"Closed {self}")
 
     def __str__(self):
-        return self._addr
+        return f"<Resource: {self._addr}>"

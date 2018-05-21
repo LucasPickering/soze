@@ -1,55 +1,31 @@
-import RPi.GPIO as GPIO
-import traceback
+from Adafruit_MotorHAT import Adafruit_MotorHAT
 
-from . import logger
 from .resource import Resource
 
 
-class PwmPin:
-
-    PWM_FREQ = 100  # Frequency of PWM wave, in Hz
-
-    def __init__(self, pin_num):
-        GPIO.setup(pin_num, GPIO.OUT)
-        self._pwm = GPIO.PWM(pin_num, PwmPin.PWM_FREQ)
-        self._pwm.start(0)
-
-    def set_color(self, color_val):
-        duty_cycle = color_val / 255.0 * 100  # Convert color val [0, 255] to duty cycle [0, 100]
-        self._pwm.ChangeDutyCycle(duty_cycle)
-
-    def stop(self):
-        self._pwm.stop()
-
-
 class Led(Resource):
-    def __init__(self, sock_addr, red_pin, green_pin, blue_pin):
+    def __init__(self, sock_addr, hat_addr, pins):
         super().__init__('LED', sock_addr)
+        if len(pins) != 3:
+            raise ValueError(f"LED pins must be length 3 (RGB), got {pins}")
+        self._pins = pins
 
-        # Init pins
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setwarnings(False)
-
-        # Init and start a PWM controller for each pin
-        self._red_pwm = PwmPin(red_pin)
-        self._green_pwm = PwmPin(green_pin)
-        self._blue_pwm = PwmPin(blue_pin)
+        # Initialize the hat and each LED
+        self._hat = Adafruit_MotorHAT(addr=hat_addr)
+        for pin in self._pins:
+            self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
 
     def _process_data(self, data):
-        # Unpack colors from data
-        red, green, blue = data
-        self._red_pwm.set_color(red)
-        self._green_pwm.set_color(green)
-        self._blue_pwm.set_color(blue)
+        if len(data) != 3:
+            raise ValueError(f"Input data must be length 3 (RGB), got {data}")
+        # Color values are [0,255]. The HAT also expects values in this range, but because of the
+        # way it is wired, 0 means full on and 255 means full off. We need to invert the color
+        # values to correct for this.
+        for pin, val in zip(self._pins, data):
+            self._hat.getMotor(pin).setSpeed(255 - val)
 
-    def stop(self):
-        super().stop()
-        try:
-            self.off()
-        except Exception:
-            logger.error("Error turning off LEDs:\n{}".format(traceback.format_exc()))
-        finally:
-            self._red_pwm.stop()
-            self._green_pwm.stop()
-            self._blue_pwm.stop()
-            GPIO.cleanup()
+    def close(self):
+        super().close()
+        # Stop all PWM
+        for pin in self._pins:
+            self._hat.getMotor(pin).run(Adafruit_MotorHAT.RELEASE)

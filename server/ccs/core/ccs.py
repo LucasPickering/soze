@@ -1,7 +1,7 @@
 import argparse
+import atexit
 import logging
 import os
-import signal
 from threading import Thread
 
 from . import api, config, settings
@@ -40,22 +40,17 @@ class CaseControlServer:
                 Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),  # API thread
             ]
 
-        signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())  # Catch SIGTERM
+        atexit.register(self.stop)  # Register exit handler
 
     def run(self):
         # Start the helper threads, then launch the REST API
-        try:
-            logger.debug("Starting threads...")
-            for thread in self._threads:
-                thread.start()
-            logger.debug("Started threads, now starting Flask...")
-            logger.debug("Started Flask")
+        logger.debug("Starting threads...")
+        for thread in self._threads:
+            thread.start()
+        logger.debug("Started threads, now starting Flask...")
+        logger.debug("Started Flask")
 
-            self._wait()  # Wait for something to die
-        except KeyboardInterrupt:
-            pass
-        finally:
-            self.stop()  # Shut down every thread/process
+        self._wait()  # Wait for something to die
 
     def _wait(self):
         # Wait for all non-daemon threads to die

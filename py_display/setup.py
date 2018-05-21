@@ -6,8 +6,7 @@ setup(
     url='https://github.com/LucasPickering/case-control',
     author='Lucas Pickering',
     packages=find_packages(),
-    # GPIO library has to be installed separately:
-    # https://sourceforge.net/p/raspberry-gpio-python/wiki/install/
+    # Motor HAT library can be installed from the submodule in this repo
     install_requires=['pyserial'],
     entry_points={
         'console_scripts': ['ccd = ccd.ccd:main']

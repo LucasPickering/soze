@@ -7,9 +7,8 @@ CFG_FILE = 'ccd.json'
 DEFAULT_CFG = {
     'led': {
         'socket': '/tmp/cc_led.sock',
-        'red_pin': 5,
-        'green_pin': 3,
-        'blue_pin': 7,
+        'hat_addr': 0x60,
+        'pins': [3, 1, 2],  # RGB
     },
     'lcd': {
         'socket': '/tmp/cc_lcd.sock',

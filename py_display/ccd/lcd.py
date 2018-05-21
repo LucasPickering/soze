@@ -25,6 +25,6 @@ class Lcd(Resource):
             logger.error(f"Expected to send {len(data)} bytes ({format_bytes(data)}),"
                          f" but only sent {num_written} bytes")
 
-    def stop(self):
-        super().stop()
+    def close(self):
+        super().close()
         self._ser.close()
