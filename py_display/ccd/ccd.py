@@ -2,6 +2,7 @@ import argparse
 import atexit
 import logging
 import os
+import signal
 import time
 
 from . import config, logger
@@ -29,7 +30,9 @@ class CaseControlDisplay:
         ]
         logger.debug("Initialized resources")
 
-        atexit.register(self.stop)  # Register exit handler
+        # Register exit handlers
+        atexit.register(self.stop)
+        signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())
 
     def run(self):
         # Start each resource

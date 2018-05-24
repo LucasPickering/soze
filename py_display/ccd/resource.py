@@ -34,7 +34,6 @@ class Resource(metaclass=abc.ABCMeta):
         except Exception:
             logger.error(traceback.format_exc())
         finally:
-            logger.info(f"Closing {self}")
             self.close()
 
     def start(self):
@@ -63,11 +62,9 @@ class Resource(metaclass=abc.ABCMeta):
         except Exception:
             pass
         finally:
-            logger.info(f"Maybe closing {self._addr}")
             if os.path.exists(self._addr):
-                logger.info(f'Closing {self._addr}')
                 os.unlink(self._addr)
-                logger.info(f"Closed {self}")
+                logger.info(f"Closed {self._addr}")
 
     def __str__(self):
         return f"<Resource: {self._addr}>"

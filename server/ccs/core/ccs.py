@@ -2,6 +2,7 @@ import argparse
 import atexit
 import logging
 import os
+import signal
 from threading import Thread
 
 from . import api, config, settings
@@ -40,7 +41,9 @@ class CaseControlServer:
                 Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),  # API thread
             ]
 
-        atexit.register(self.stop)  # Register exit handler
+        # Register exit handlers
+        atexit.register(self.stop)
+        signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())
 
     def run(self):
         # Start the helper threads, then launch the REST API
