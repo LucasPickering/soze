@@ -2,13 +2,13 @@ import traceback
 
 from ccs import logger
 from ccs.core.color import BLACK
-from ccs.core.socket_resource import SocketResource
+from ccs.core.socket_resource import SettingsResource
 from .helper import *
 
 
-class Lcd(SocketResource):
-    def __init__(self, keepalive, sock_addr, width, height):
-        super().__init__(keepalive, sock_addr)
+class Lcd(SettingsResource):
+    def __init__(self, width, height, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # Declare fields
         self._width, self._height = width, height
         self._color = None
@@ -67,7 +67,7 @@ class Lcd(SocketResource):
 
         @return     The number of bytes written
         """
-        return self.send(data)
+        return self._send(data)
 
     def _send_command(self, command, *args):
         """
@@ -151,9 +151,8 @@ class Lcd(SocketResource):
         @param      green  The green value [0, 255]
         @param      blue   The blue value [0, 255]
         """
-        if color != self._color:
-            self._color = color
-            self._send_command(CMD_COLOR, color.red, color.green, color.blue)
+        self._color = color
+        self._send_command(CMD_COLOR, color.red, color.green, color.blue)
 
     def set_autoscroll(self, enabled):
         """

@@ -4,8 +4,8 @@ from .resource import Resource
 
 
 class Led(Resource):
-    def __init__(self, sock_addr, hat_addr, pins):
-        super().__init__('LED', sock_addr)
+    def __init__(self, hat_addr, pins, *args, **kwargs):
+        super().__init__('LED', *args, **kwargs)
         if len(pins) != 3:
             raise ValueError(f"LED pins must be length 3 (RGB), got {pins}")
         self._pins = pins

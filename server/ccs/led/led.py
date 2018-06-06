@@ -2,16 +2,16 @@ import traceback
 
 from ccs import logger
 from ccs.core.color import BLACK
-from ccs.core.socket_resource import SocketResource
+from ccs.core.socket_resource import SettingsResource
 
 
-class Led(SocketResource):
+class Led(SettingsResource):
     @property
     def name(self):
         return 'LED'
 
     def set_color(self, color):
-        self.send(bytes(color))
+        self._send(bytes(color))
 
     def off(self):
         self.set_color(BLACK)

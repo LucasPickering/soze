@@ -7,8 +7,8 @@ BAUD_RATE = 9600
 
 
 class Lcd(Resource):
-    def __init__(self, sock_addr, serial_port):
-        super().__init__('LCD', sock_addr)
+    def __init__(self, serial_port, *args, **kwargs):
+        super().__init__('LCD', *args, **kwargs)
 
         self._ser = serial.Serial(serial_port,
                                   baudrate=BAUD_RATE,

@@ -14,6 +14,10 @@ DEFAULT_CFG = {
         'socket': '/tmp/cc_lcd.sock',
         'serial_port': '/dev/ttyAMA0',
     },
+    'keepalive': {
+        'socket': '/tmp/cc_keepalive.sock',
+        'pin': 4,
+    },
 }
 
 

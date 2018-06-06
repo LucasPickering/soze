@@ -1,5 +1,4 @@
 import argparse
-import atexit
 import logging
 import os
 import signal
@@ -25,35 +24,37 @@ class CaseControlServer:
 
         # Init keepalive handler. This pings a list of hosts periodically, and if they are all
         # down, we turn everything off.
-        keepalive = Keepalive(cfg['keepalive']['hosts'], cfg['keepalive']['timeout'])
+        self._keepalive = Keepalive(**cfg['keepalive'])
 
         # Init the LED/LCD handlers
         self._resources = [
-            Led(keepalive, cfg['led']['socket']),
-            Lcd(keepalive, cfg['lcd']['socket'], cfg['lcd']['width'], cfg['lcd']['height']),
+            self._keepalive,
+            Led(keepalive=self._keepalive, **cfg['led']),
+            Lcd(keepalive=self._keepalive, **cfg['lcd']),
         ]
         logger.debug("Initialized resources")
 
-        # Add background threads to be run
-        self._threads = \
-            [res.make_thread(settings) for res in self._resources] + [  # Thread for each resource
-                keepalive.make_thread(),  # Keepalive thread
-                Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}),  # API thread
-            ]
+        # Add background threads to be run. One for each resource, then one for the API
+        self._threads = [res.make_thread(settings) for res in self._resources]
+        self._threads.append(Thread(target=api.app.run, daemon=True, kwargs={'host': '0.0.0.0'}))
 
-        # Register exit handlers
-        atexit.register(self.stop)
+        # Register exit handler
         signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())
 
     def run(self):
-        # Start the helper threads, then launch the REST API
-        logger.debug("Starting threads...")
-        for thread in self._threads:
-            thread.start()
-        logger.debug("Started threads, now starting Flask...")
-        logger.debug("Started Flask")
+        try:
+            # Start the helper threads, then launch the REST API
+            logger.debug("Starting threads...")
+            for thread in self._threads:
+                thread.start()
+            logger.debug("Started threads, now starting Flask...")
+            logger.debug("Started Flask")
 
-        self._wait()  # Wait for something to die
+            self._wait()  # Wait for something to die
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.stop()
 
     def _wait(self):
         # Wait for all non-daemon threads to die

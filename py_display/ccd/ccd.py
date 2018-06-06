@@ -1,5 +1,4 @@
 import argparse
-import atexit
 import logging
 import os
 import signal
@@ -8,6 +7,7 @@ import time
 from . import config, logger
 from .led import Led
 from .lcd import Lcd
+from .keepalive import Keepalive
 
 
 class CaseControlDisplay:
@@ -21,24 +21,27 @@ class CaseControlDisplay:
             os.makedirs(args.working_dir)
         cfg = config.load(args.working_dir)
 
-        # Init the LED/LCD handlers
-        led_cfg = cfg['led']
-        lcd_cfg = cfg['lcd']
+        # Init the resource handlers
         self._resources = [
-            Led(led_cfg['socket'], led_cfg['hat_addr'], led_cfg['pins']),
-            Lcd(lcd_cfg['socket'], lcd_cfg['serial_port']),
+            Led(**cfg['led']),
+            Lcd(**cfg['lcd']),
+            Keepalive(**cfg['keepalive']),
         ]
         logger.debug("Initialized resources")
 
-        # Register exit handlers
-        atexit.register(self.stop)
+        # Register exit handler
         signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())
 
     def run(self):
-        # Start each resource
-        for res in self._resources:
-            res.start()
-        self._wait()
+        try:
+            # Start each resource
+            for res in self._resources:
+                res.start()
+            self._wait()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            self.stop()
 
     def _wait(self):
         # Wait for Ctrl-c

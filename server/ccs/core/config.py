@@ -14,8 +14,7 @@ DEFAULT_CFG = {
         'height': 4,
     },
     'keepalive': {
-        'hosts': [],
-        'timeout': 30,
+        'socket': '/tmp/cc_keepalive.sock',
     },
 }
 

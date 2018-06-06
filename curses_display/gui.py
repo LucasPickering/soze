@@ -14,6 +14,9 @@ from ccs.core.color import Color, BLACK
 from ccs.lcd.helper import *
 
 
+RETRY_PAUSE = 3  # Time to wait after a failed socket connect before trying again
+
+
 def format_bytes(data):
     return ' '.join('{:02x}'.format(b) for b in data)
 
@@ -22,7 +25,7 @@ logging.config.dictConfig({
     'version': 1,
     'formatters': {
         'f': {
-            'format': '[{asctime} {threadName:<11} {levelname}] {message}',
+            'format': '{asctime} [{threadName:<11} {levelname}] {message}',
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'style': '{',
         }
@@ -46,15 +49,45 @@ logger = logging.getLogger(__name__)
 
 
 class Resource(metaclass=abc.ABCMeta):
-    def __init__(self, name, sock_addr, x, y, width, height):
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    def __init__(self, name, sock_addr, dims):
+        self._sock = None
+        self._conn = None
         self._addr = sock_addr
         self._thread = Thread(target=self._loop, name='{}-Thread'.format(name), daemon=True)
-        self._window = curses.newwin(height, width, y, x)
+
+        if dims:
+            x, y, width, height = dims
+            self._window = curses.newwin(height, width, y, x)
+
         self._run = True
 
-    def _read_data(self):
-        return self._sock.recv(64)
+    @property
+    def is_open(self):
+        return bool(self._sock and self._conn)
+
+    def _open(self):
+        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self._sock.bind(self._addr)
+        self._sock.listen(1)
+        self._conn, addr = self._sock.accept()
+        logger.info(f"Connection on {self._addr}")
+
+    def _read(self):
+        return self._conn.recv(64)
+
+    def _send(self, data):
+        num_written = self._conn.send(data)
+        if num_written != len(data):
+            logger.error(f"Expected to send {len(data)} bytes ({format_bytes(data)}),"
+                         f" but only sent {num_written} bytes")
+        return num_written
+
+    def _close_socket(self):
+        self._conn = None
+        self._sock.shutdown(socket.SHUT_RDWR)
+        self._sock.close()
+        self._sock = None
+        logger.info(f"Closed {self}")
 
     @abc.abstractmethod
     def _process_data(self, data):
@@ -63,23 +96,25 @@ class Resource(metaclass=abc.ABCMeta):
     def _loop(self):
         try:
             while self._run:
-                data = self._read_data()
-                logger.debug(format_bytes(data))
-                self._process_data(data)
+                if self.is_open:
+                    try:
+                        data = self._read()
+                        self._process_data(data)
+                    except (ConnectionResetError, OSError) as e:
+                        self._close_socket()
+                else:
+                    self._open()
         except Exception:
             logger.error(traceback.format_exc())
         finally:
             self.close()
 
     def start(self):
-        self._sock.bind(self._addr)
         self._thread.start()
 
     def close(self):
         try:
-            self._sock.shutdown(socket.SHUT_RDWR)
-            self._sock.close()
-            logger.info(f"Closed {self}")
+            self._close_socket()
         except Exception:
             pass
         finally:
@@ -96,7 +131,7 @@ class LedSocket(Resource):
     """
 
     def __init__(self, sock_addr):
-        super().__init__('LED', sock_addr, 0, 0, 50, 1)
+        super().__init__('LED', sock_addr, (0, 0, 50, 1))
         self._set_color(BLACK)
 
     def _set_color(self, color):
@@ -127,7 +162,7 @@ class LcdSocket(Resource):
     """
 
     def __init__(self, sock_addr):
-        super().__init__('LCD', sock_addr, 0, 1, 0, 0)
+        super().__init__('LCD', sock_addr, (0, 1, 0, 0))
 
         # Unfortunately this has to be hardcoded
         self._custom_chars = {
@@ -236,14 +271,22 @@ class LcdSocket(Resource):
             except KeyError:
                 logger.error(f"Unknown command {hex(cmd)} in {format_bytes(data)}")
             args = data[2:]
-            if len(args) != num_args:
+            if len(args) == num_args:
+                cmd_func(self, *args)  # Call the function with the args
+            else:
                 logger.error(f"Expected {num_args} args, got {len(args)}: {format_bytes(data)}")
-
-            cmd_func(self, *args)  # Call the function with the args
         else:
             # Data is just text, write to the screen
             s = ''.join(decode_byte(b) for b in data)
             self._write_str(s)
+
+
+class KeepaliveSocket(Resource):
+    def __init__(self, sock_addr):
+        super().__init__('Keepalive', sock_addr, None)
+
+    def _process_data(self, data):
+        self._send(b'\x01')
 
 
 def update_window():
@@ -264,6 +307,7 @@ def main(stdscr):
     resources = [
         LedSocket(args.led_socket),
         LcdSocket(args.lcd_socket),
+        KeepaliveSocket(args.keepalive_socket),
     ]
 
     try:
@@ -292,5 +336,8 @@ if __name__ == '__main__':
                         help="Socket to receive LCD data on")
     parser.add_argument('--lcd-socket', default='/tmp/cc_lcd.sock',
                         help="Socket to receive LCD data on")
+    parser.add_argument('--keepalive-socket', default='/tmp/cc_keepalive.sock',
+                        help="Socket to send keepalive data on")
     args = parser.parse_args()
+
     curses.wrapper(main)
