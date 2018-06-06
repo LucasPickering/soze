@@ -94,11 +94,11 @@ so no level converter is needed.
 ## Raspberry Pi Pin Layout
 Specified pin numbers use the hardware pin numbering system.
 
-Purpose|Pin #
----|---
-LED Red|5
-LED Green|3
-LED Blue|7
-LCD 5V|4
-LCD GND|6
-LCD TX|8
+Purpose        |Pin #
+---------------|---
+Motor HAT 3.3V |1
+Motor HAT I2C  |3,5
+LCD 5V         |4
+LCD GND        |6
+LCD TX         |8
+PSU Power In   |7
