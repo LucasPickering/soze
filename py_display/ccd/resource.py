@@ -43,12 +43,6 @@ class Resource(metaclass=abc.ABCMeta):
                          f" but only sent {num_written} bytes")
         return num_written
 
-    def _close_socket(self):
-        self._conn = None
-        self._sock.shutdown(socket.SHUT_RDWR)
-        self._sock.close()
-        self._sock = None
-
     @abc.abstractmethod
     def _process_data(self, data):
         pass
@@ -59,11 +53,12 @@ class Resource(metaclass=abc.ABCMeta):
                 if self.is_open:
                     try:
                         data = self._read()
+                        logger.debug(format_bytes(data))
                         self._process_data(data)
                     except socket.timeout:
                         continue  # Read timeout, loop back again
                     except (ConnectionResetError, OSError) as e:
-                        self._close_socket()
+                        self.close()
                 else:
                     self._open()
         except Exception:
@@ -91,7 +86,10 @@ class Resource(metaclass=abc.ABCMeta):
                     probably don't want to call this - try Resource.stop instead.
         """
         try:
-            self._close_socket()
+            self._conn = None
+            self._sock.shutdown(socket.SHUT_RDWR)
+            self._sock.close()
+            self._sock = None
         except Exception:
             logger.error(traceback.format_exc())
         finally:
