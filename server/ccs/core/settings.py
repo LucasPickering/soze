@@ -3,7 +3,8 @@ import copy
 import os
 import pickle
 
-from ccs import logger
+from cc_core import logger
+
 from .color import Color, BLACK
 from ccs.lcd.mode import LcdMode
 from ccs.led.mode import LedMode
@@ -227,6 +228,8 @@ class Settings:
                 loaded = pickle.load(f)
             update_dict(self._settings, loaded)
             logger.info(f"Loaded settings from '{self._settings_file}'")
+        except FileNotFoundError:
+            logger.info(f"Created '{self._settings_file}'")
         except Exception as e:
             logger.warning(f"Failed to load settings from '{self._settings_file}': {e}")
 

@@ -1,66 +1,39 @@
-import argparse
-import logging
-import os
-import signal
-import time
+from cc_core.cce import CaseControlElement
 
-from . import config, logger
 from .led import Led
 from .lcd import Lcd
 from .keepalive import Keepalive
 
+CFG_FILE = 'ccd.json'
+DEFAULT_CFG = {
+    'led': {
+        'socket_addr': '/tmp/cc_led.sock',
+        'hat_addr': 0x60,
+        'pins': [3, 1, 2],  # RGB
+    },
+    'lcd': {
+        'socket_addr': '/tmp/cc_lcd.sock',
+        'serial_port': '/dev/ttyAMA0',
+    },
+    'keepalive': {
+        'socket_addr': '/tmp/cc_keepalive.sock',
+        'pin': 4,
+    },
+}
 
-class CaseControlDisplay:
-    def __init__(self, args):
-        # Change logging level if debug flag is set
-        if args.debug:
-            logger.setLevel(logging.DEBUG)
 
-        # Init config
-        if not os.path.exists(args.working_dir):
-            os.makedirs(args.working_dir)
-        cfg = config.load(args.working_dir)
+class CaseControlDisplay(CaseControlElement):
+    def __init__(self, args, **kwargs):
+        super().__init__(args, cfg_file=CFG_FILE, default_cfg=DEFAULT_CFG, **kwargs)
 
-        # Init the resource handlers
-        self._resources = [
+    def _init_resources(self, cfg):
+        return [
             Led(**cfg['led']),
             Lcd(**cfg['lcd']),
             Keepalive(**cfg['keepalive']),
         ]
-        logger.debug("Initialized resources")
-
-        # Register exit handler
-        signal.signal(signal.SIGTERM, lambda sig, frame: self.stop())
-
-    def run(self):
-        try:
-            # Start each resource
-            for res in self._resources:
-                res.start()
-            self._wait()
-        except KeyboardInterrupt:
-            pass
-        finally:
-            self.stop()
-
-    def _wait(self):
-        # Wait for Ctrl-c
-        while True:
-            time.sleep(1000)
-
-    def stop(self):
-        # Stop, if this hasn't already been called once
-        logger.info("Stopping...")
-        for res in self._resources:
-            res.stop()
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('working_dir', nargs='?', default='.',
-                        help="Directory to store settings, config, etc.")
-    parser.add_argument('--debug', '-d', action='store_true', help="Enable debug mode")
-    args = parser.parse_args()
-
-    c = CaseControlDisplay(args)
+    c = CaseControlDisplay.from_cmd_args()
     c.run()

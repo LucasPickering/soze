@@ -1,31 +1,21 @@
 #!/usr/bin/env python3
 
-import abc
-import argparse
 import curses
 import logging
-import os
-import socket
 import time
-import traceback
 from threading import Thread
+
+from cc_core.cce import CaseControlElement
+from cc_core.resource import ReadResource, WriteResource, format_bytes
 
 from ccs.core.color import Color, BLACK
 from ccs.lcd.helper import *
-
-
-RETRY_PAUSE = 3  # Time to wait after a failed socket connect before trying again
-
-
-def format_bytes(data):
-    return ' '.join('{:02x}'.format(b) for b in data)
-
 
 logging.config.dictConfig({
     'version': 1,
     'formatters': {
         'f': {
-            'format': '{asctime} [{threadName:<11} {levelname}] {message}',
+            'format': '{asctime} [{threadName} {levelname}] {message}',
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'style': '{',
         }
@@ -47,92 +37,44 @@ logging.config.dictConfig({
 })
 logger = logging.getLogger(__name__)
 
-
-class Resource(metaclass=abc.ABCMeta):
-    def __init__(self, name, sock_addr, dims):
-        self._sock = None
-        self._conn = None
-        self._addr = sock_addr
-        self._thread = Thread(target=self._loop, name='{}-Thread'.format(name), daemon=True)
-
-        if dims:
-            x, y, width, height = dims
-            self._window = curses.newwin(height, width, y, x)
-
-        self._run = True
-
-    @property
-    def is_open(self):
-        return bool(self._sock and self._conn)
-
-    def _open(self):
-        self._sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self._sock.bind(self._addr)
-        self._sock.listen(1)
-        self._conn, addr = self._sock.accept()
-        logger.info(f"Connection on {self._addr}")
-
-    def _read(self):
-        return self._conn.recv(64)
-
-    def _send(self, data):
-        num_written = self._conn.send(data)
-        if num_written != len(data):
-            logger.error(f"Expected to send {len(data)} bytes ({format_bytes(data)}),"
-                         f" but only sent {num_written} bytes")
-        return num_written
-
-    def _close_socket(self):
-        self._conn = None
-        self._sock.shutdown(socket.SHUT_RDWR)
-        self._sock.close()
-        self._sock = None
-        logger.info(f"Closed {self}")
-
-    @abc.abstractmethod
-    def _process_data(self, data):
-        pass
-
-    def _loop(self):
-        try:
-            while self._run:
-                if self.is_open:
-                    try:
-                        data = self._read()
-                        self._process_data(data)
-                    except (ConnectionResetError, OSError) as e:
-                        self._close_socket()
-                else:
-                    self._open()
-        except Exception:
-            logger.error(traceback.format_exc())
-        finally:
-            self.close()
-
-    def start(self):
-        self._thread.start()
-
-    def close(self):
-        try:
-            self._close_socket()
-        except Exception:
-            pass
-        finally:
-            if os.path.exists(self._addr):
-                os.unlink(self._addr)
-
-    def __str__(self):
-        return self._addr
+CFG_FILE = 'ccd.json'
+DEFAULT_CFG = {
+    'led': {
+        'socket_addr': '/tmp/cc_led',
+        'hat_addr': 0x60,
+        'pins': [3, 1, 2],  # RGB
+    },
+    'lcd': {
+        'socket_addr': '/tmp/cc_lcd',
+        'serial_port': '/dev/ttyAMA0',
+    },
+    'keepalive': {
+        'socket_addr': '/tmp/cc_keepalive',
+        'pin': 4,
+    },
+}
 
 
-class LedSocket(Resource):
+class CursesResource(ReadResource):
+    def __init__(self, dimensions, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        x, y, width, height = dimensions
+        self._window = curses.newwin(height, width, y, x)
+
+
+class Led(CursesResource):
     """
     @brief      A mocked version of the LED handler.
     """
 
-    def __init__(self, sock_addr):
-        super().__init__('LED', sock_addr, (0, 0, 50, 1))
+    def __init__(self, *args, **kwargs):
+        super().__init__(dimensions=(0, 0, 50, 1), *args, **kwargs)
         self._set_color(BLACK)
+
+    @property
+    def name(self):
+        return 'LED'
 
     def _set_color(self, color):
         curses_color = curses.color_pair(color.to_term_color())
@@ -147,22 +89,21 @@ class LedSocket(Resource):
 _lcd_commands = {}
 
 
-def command(code, num_args=0):
-    def inner(func):
-        def wrapper(*args):
-            func(*args)
-        _lcd_commands[code] = (num_args, func)
-        return wrapper
-    return inner
-
-
-class LcdSocket(Resource):
+class Lcd(CursesResource):
     """
     @brief      Where the magic happens for mocking the LCD.
     """
 
-    def __init__(self, sock_addr):
-        super().__init__('LCD', sock_addr, (0, 1, 0, 0))
+    def command(code, num_args=0):
+        def inner(func):
+            def wrapper(*args):
+                func(*args)
+            _lcd_commands[code] = (num_args, func)
+            return wrapper
+        return inner
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(dimensions=(0, 1, 0, 0), *args, **kwargs)
 
         # Unfortunately this has to be hardcoded
         self._custom_chars = {
@@ -179,6 +120,10 @@ class LcdSocket(Resource):
 
         self._width, self._height = None, None
         self._cursor_x, self._cursor_y = 0, 0
+
+    @property
+    def name(self):
+        return 'LCD'
 
     @command(CMD_CLEAR)
     def _clear(self):
@@ -281,63 +226,47 @@ class LcdSocket(Resource):
             self._write_str(s)
 
 
-class KeepaliveSocket(Resource):
-    def __init__(self, sock_addr):
-        super().__init__('Keepalive', sock_addr, None)
+class Keepalive(WriteResource):
+    @property
+    def name(self):
+        return 'Keepalive'
 
-    def _process_data(self, data):
-        self._send(b'\x01')
+    def _update(self):
+        self._write(b'\x01')
 
 
-def update_window():
-    while True:
-        curses.doupdate()
-        time.sleep(0.05)
+class CaseControlDisplay(CaseControlElement):
+    def __init__(self, **kwargs):
+        super().__init__(cfg_file=CFG_FILE, default_cfg=DEFAULT_CFG, **kwargs)
+
+        curses.curs_set(0)  # Hide the cursor
+
+        # Add curses colors
+        curses.start_color()
+        curses.use_default_colors()
+        for i in range(1, curses.COLORS):
+            curses.init_pair(i, i, -1)  # Background is always blank
+
+    def _init_resources(self, cfg):
+        return [
+            Led(**cfg['led']),
+            Lcd(**cfg['lcd']),
+            Keepalive(**cfg['keepalive']),
+        ]
+
+    def _get_extra_threads(self, cfg):
+        return [Thread(target=self._update_window, name='Curses-Thread', daemon=True)]
+
+    def _update_window(self):
+        while True:
+            curses.doupdate()
+            time.sleep(0.05)
 
 
 def main(stdscr):
-    curses.curs_set(0)  # Hide the cursor
-
-    # Add curses colors
-    curses.start_color()
-    curses.use_default_colors()
-    for i in range(1, curses.COLORS):
-        curses.init_pair(i, i, -1)  # Background is always blank
-
-    resources = [
-        LedSocket(args.led_socket),
-        LcdSocket(args.lcd_socket),
-        KeepaliveSocket(args.keepalive_socket),
-    ]
-
-    try:
-        # Start each resource
-        for res in resources:
-            res.start()
-
-        curses_thread = Thread(target=update_window, name='Curses-Thread', daemon=True)
-        curses_thread.start()
-
-        # Wait for Ctrl-c
-        while True:
-            time.sleep(1000)
-    except KeyboardInterrupt:
-        pass
-    except Exception:
-        logger.error(traceback.format_exc())
-    finally:
-        for res in resources:
-            res.close()
+    c = CaseControlDisplay.from_cmd_args()
+    c.run()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("Mock LED/LCD display for debugging the client/server")
-    parser.add_argument('--led-socket', default='/tmp/cc_led.sock',
-                        help="Socket to receive LCD data on")
-    parser.add_argument('--lcd-socket', default='/tmp/cc_lcd.sock',
-                        help="Socket to receive LCD data on")
-    parser.add_argument('--keepalive-socket', default='/tmp/cc_keepalive.sock',
-                        help="Socket to send keepalive data on")
-    args = parser.parse_args()
-
     curses.wrapper(main)

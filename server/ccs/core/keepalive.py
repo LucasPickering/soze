@@ -1,13 +1,11 @@
-import struct
-
-from ccs import logger
-from .socket_resource import SocketResource
+from cc_core import logger
+from cc_core.resource import ReadResource
 
 
-class Keepalive(SocketResource):
+class Keepalive(ReadResource):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, pause=1.0, **kwargs)
+        super().__init__(*args, **kwargs)
         self._alive = False
 
     @property
@@ -24,11 +22,8 @@ class Keepalive(SocketResource):
             logger.info(f"Keepalive went {'up' if alive else 'down'}")
         self._alive = alive
 
-    def _update(self, *args):
-        self._send(b'\x00')
-        val = self._read()
-        alive = bool(val and struct.unpack('?', val)[0])  # Unpack returns a tuple of (bool,)
-        self._set_alive(alive)
+    def _process_data(self, data):
+        self._set_alive(bool(data[-1]))  # Only the last byte matters
 
     def _close(self):
         super()._close()

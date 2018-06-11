@@ -1,11 +1,12 @@
 from Adafruit_MotorHAT import Adafruit_MotorHAT
 
-from .resource import Resource
+from cc_core.resource import ReadResource
 
 
-class Led(Resource):
+class Led(ReadResource):
     def __init__(self, hat_addr, pins, *args, **kwargs):
-        super().__init__('LED', *args, **kwargs)
+        super().__init__(*args, **kwargs)
+
         if len(pins) != 3:
             raise ValueError(f"LED pins must be length 3 (RGB), got {pins}")
         self._pins = pins
@@ -15,6 +16,23 @@ class Led(Resource):
         for pin in self._pins:
             self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
 
+    @property
+    def name(self):
+        return 'LED'
+
+    def _open(self):
+        if super()._open():
+            for pin in self._pins:
+                self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
+            return True
+        return False
+
+    def _close(self):
+        # Stop all PWM
+        for pin in self._pins:
+            self._hat.getMotor(pin).run(Adafruit_MotorHAT.RELEASE)
+        return super()._close()
+
     def _process_data(self, data):
         if len(data) != 3:
             raise ValueError(f"Input data must be length 3 (RGB), got {data}")
@@ -23,9 +41,3 @@ class Led(Resource):
         # values to correct for this.
         for pin, val in zip(self._pins, data):
             self._hat.getMotor(pin).setSpeed(255 - val)
-
-    def close(self):
-        super().close()
-        # Stop all PWM
-        for pin in self._pins:
-            self._hat.getMotor(pin).run(Adafruit_MotorHAT.RELEASE)

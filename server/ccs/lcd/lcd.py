@@ -1,8 +1,5 @@
-import traceback
-
-from ccs import logger
 from ccs.core.color import BLACK
-from ccs.core.socket_resource import SettingsResource
+from ccs.core.settings_resource import SettingsResource
 from .helper import *
 
 
@@ -17,57 +14,41 @@ class Lcd(SettingsResource):
     def name(self):
         return 'LCD'
 
-    def init(self):
-        # If the socket opened up, initialize stuff
-        if self.is_open:
-            self.set_size(self._width, self._height, True)
-            self.set_color(BLACK)
+    def _init(self):
+        self.set_size(self._width, self._height, True)
+        self.set_color(BLACK)
 
-            self.clear()
-            self.set_autoscroll(False)  # Fugg that
-            self.on()
+        self.clear()
+        self.set_autoscroll(False)  # Fugg that
+        self.on()
 
-            # Register custom characters
-            for index, char in CUSTOM_CHARS.items():
-                self.create_char(0, index, char)
-            self.load_char_bank(0)
+        # Register custom characters
+        for index, char in CUSTOM_CHARS.items():
+            self.create_char(0, index, char)
+        self.load_char_bank(0)
 
-    def cleanup(self):
+    def _cleanup(self):
         """
-        @brief      Turns the LCD off and clears it, then closes the socket with the display.
+        @brief      Turns the LCD off and clears it.
         """
-        try:
-            self.off()
-            self.clear()
-        except Exception:
-            logger.error("Error turning off LCD:\n{}".format(traceback.format_exc()))
+        self.off()
+        self.clear()
 
-    def _get_default_values(self, settings):
+    def _get_default_values(self):
         return (BLACK, '')
 
-    def _get_values(self, settings):
-        mode = settings.get('lcd.mode')
-        text = mode.get_text(settings)
-        if settings.get('lcd.link_to_led'):  # Special setting to use LED color
-            mode = settings.get('led.mode')
-        color = mode.get_color(settings)
+    def _get_values(self):
+        mode = self._settings.get('lcd.mode')
+        text = mode.get_text(self._settings)
+        if self._settings.get('lcd.link_to_led'):  # Special setting to use LED color
+            mode = self._settings.get('led.mode')
+        color = mode.get_color(self._settings)
 
         return (color, text)
 
     def _apply_values(self, color, text):
         self.set_text(text)
         self.set_color(color)
-
-    def _write(self, data):
-        """
-        @brief      Writes the given bytes to the socket. The given data must be a bytes-like
-                    object.
-
-        @param      data   The data (must be bytes-like)
-
-        @return     The number of bytes written
-        """
-        return self._send(data)
 
     def _send_command(self, command, *args):
         """
