@@ -1,4 +1,4 @@
-from flask import Flask, json, request
+from flask import Flask, json, redirect, request
 
 from . import settings
 
@@ -26,4 +26,4 @@ def route(path):
 
 @app.route('/xkcd')
 def xkcd():
-    return 'https://c.xkcd.com/random/comic\n'
+    return redirect('https://c.xkcd.com/random/comic')
