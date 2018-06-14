@@ -33,7 +33,12 @@ This can be run from any machine that has network access to the server.
 
 
 ## Installation
-## Display
+### Common (Display/Server)
+```
+sudo pip3 install -e core
+```
+
+### Display
 Only on RPi - no point in doing this on any other machine
 1. Follow [these steps](https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c) to set up I2C on the RPi.
 1. Do this:
@@ -69,8 +74,8 @@ sudo pip3 install -e client
 ### Power/Network
 The PC is connected to the RPi via a USB cable, which goes from the motherboard's internal
 5-pin USB header to the Pi's USB data port. This provides power, and has the capability of
-providing a network connection as well. Normally, the RPi is connected to WiFi and is communicated
-with via that interface.
+providing a network connection as well. However the RPi is normally connected to WiFi and is
+communicated with via that interface.
 
 ### LED
 The RPi is connected directly to the motor HAT, and communicates with it via I2C. The HAT has four
@@ -90,8 +95,13 @@ Note that the backpack is meant to take 5V input on the data line, but the RPi o
 on its GPIO pins. Fortunately, 3.3V is high enough for the backpack to recognize as logical high,
 so no level converter is needed.
 
+### PSU Keepalive
+A voltage divider is used to feed the PSU's 12V output to the Raspberry Pi at ~3V. This is used to
+detect when the PSU is turned off so that the LCD can be shut off too. This is necessary because
+the RPi is powered by USB power, which stays on when the PSU is off.
 
-## Raspberry Pi Pin Layout
+## Pin Layout
+### Raspberry Pi
 Specified pin numbers use the hardware pin numbering system.
 
 Purpose        |Pin #
@@ -102,3 +112,12 @@ LCD 5V         |4
 LCD GND        |6
 LCD TX         |8
 PSU Power In   |7
+
+### Motor HAT
+Each motor controller has two pins: `x` and `x'`, which are the two ouputs of the H-bridge.
+
+Purpose |Pin #
+--------|-----
+Red     |3
+Green   |1
+Blue    |2'
