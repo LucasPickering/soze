@@ -11,10 +11,8 @@ class Led(ReadResource):
             raise ValueError(f"LED pins must be length 3 (RGB), got {pins}")
         self._pins = pins
 
-        # Initialize the hat and each LED
-        self._hat = Adafruit_MotorHAT(addr=hat_addr)
-        for pin in self._pins:
-            self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
+        self._hat_addr = hat_addr
+        self._hat = None
 
     @property
     def name(self):
@@ -22,6 +20,8 @@ class Led(ReadResource):
 
     def _open(self):
         if super()._open():
+            # Initialize the hat and each LED
+            self._hat = Adafruit_MotorHAT(addr=self._hat_addr)
             for pin in self._pins:
                 self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
             return True
