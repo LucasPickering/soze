@@ -1,9 +1,0 @@
-[Unit]
-Description=Case LED/LCD control display
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/ccd /etc/cc
-
-[Install]
-WantedBy=multi-user.target

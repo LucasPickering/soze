@@ -1,7 +1,7 @@
 import serial
 
-from cc_core import logger
-from cc_core.resource import ReadResource, format_bytes
+from soze_core import logger
+from soze_core.resource import ReadResource, format_bytes
 
 
 class Lcd(ReadResource):
@@ -20,15 +20,11 @@ class Lcd(ReadResource):
     def name(self):
         return 'LCD'
 
-    def _open(self):
-        if super()._open():
-            self._ser.open()
-            return True
-        return False
+    def _init(self):
+        self._ser.open()
 
-    def _close(self):
+    def _cleanup(self):
         self._ser.close()
-        return super()._close()
 
     def _process_data(self, data):
         self._ser.flush()  # Make sure the buffer is empty before writing more to it

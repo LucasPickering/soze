@@ -5,11 +5,11 @@ import logging
 import time
 from threading import Thread
 
-from cc_core.cce import CaseControlElement
-from cc_core.resource import ReadResource, WriteResource, format_bytes
+from soze_core.component import SozeComponent
+from soze_core.resource import ReadResource, WriteResource, format_bytes
 
-from ccs.core.color import Color, BLACK
-from ccs.lcd.helper import *
+from soze_server.core.color import Color, BLACK
+from soze_server.lcd.helper import *
 
 logging.config.dictConfig({
     'version': 1,
@@ -37,19 +37,19 @@ logging.config.dictConfig({
 })
 logger = logging.getLogger(__name__)
 
-CFG_FILE = 'ccd.json'
+CFG_FILE = 'sozed.json'
 DEFAULT_CFG = {
     'led': {
-        'socket_addr': '/tmp/cc_led',
+        'socket_addr': '/tmp/soze_led.sock',
         'hat_addr': 0x60,
         'pins': [3, 1, 2],  # RGB
     },
     'lcd': {
-        'socket_addr': '/tmp/cc_lcd',
+        'socket_addr': '/tmp/soze_lcd.sock',
         'serial_port': '/dev/ttyAMA0',
     },
     'keepalive': {
-        'socket_addr': '/tmp/cc_keepalive',
+        'socket_addr': '/tmp/soze_keepalive.sock',
         'pin': 4,
     },
 }
@@ -235,7 +235,7 @@ class Keepalive(WriteResource):
         self._write(b'\x01')
 
 
-class CaseControlDisplay(CaseControlElement):
+class SozeDisplay(SozeComponent):
     def __init__(self, **kwargs):
         super().__init__(cfg_file=CFG_FILE, default_cfg=DEFAULT_CFG, **kwargs)
 
@@ -264,7 +264,7 @@ class CaseControlDisplay(CaseControlElement):
 
 
 def main(stdscr):
-    c = CaseControlDisplay.from_cmd_args()
+    c = SozeDisplay.from_cmd_args()
     c.run()
 
 

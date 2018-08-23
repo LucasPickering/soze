@@ -1,6 +1,6 @@
 from Adafruit_MotorHAT import Adafruit_MotorHAT
 
-from cc_core.resource import ReadResource
+from soze_core.resource import ReadResource
 
 
 class Led(ReadResource):
@@ -18,20 +18,16 @@ class Led(ReadResource):
     def name(self):
         return 'LED'
 
-    def _open(self):
-        if super()._open():
-            # Initialize the hat and each LED
-            self._hat = Adafruit_MotorHAT(addr=self._hat_addr)
-            for pin in self._pins:
-                self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
-            return True
-        return False
+    def _init(self):
+        # Initialize the hat and each LED
+        self._hat = Adafruit_MotorHAT(addr=self._hat_addr)
+        for pin in self._pins:
+            self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
 
-    def _close(self):
+    def _cleanup(self):
         # Stop all PWM
         for pin in self._pins:
             self._hat.getMotor(pin).run(Adafruit_MotorHAT.RELEASE)
-        return super()._close()
 
     def _process_data(self, data):
         if len(data) != 3:

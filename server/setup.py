@@ -1,13 +1,13 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='ccs',
+    name='soze_server',
     description="Server that controls configuration of connected LCD and LEDs",
-    url='https://github.com/LucasPickering/case-control',
+    url='https://github.com/LucasPickering/soze',
     author='Lucas Pickering',
     packages=find_packages(),
     install_requires=['flask'],
     entry_points={
-        'console_scripts': ['ccs = ccs.core.ccs:main']
+        'console_scripts': ['sozes = soze_server.core.server:main']
     },
 )

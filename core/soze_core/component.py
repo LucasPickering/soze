@@ -7,7 +7,7 @@ import signal
 from . import config, logger
 
 
-class CaseControlElement:
+class SozeComponent:
     def __init__(self, args, cfg_file, default_cfg):
         # Change logging level if debug flag is set
         if args.debug:

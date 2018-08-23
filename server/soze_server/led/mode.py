@@ -1,6 +1,6 @@
 import abc
 
-from ccs.core.mode import Mode
+from soze_server.core.mode import Mode
 
 
 class LedMode(Mode):

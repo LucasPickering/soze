@@ -45,9 +45,32 @@ class Resource(Thread, metaclass=abc.ABCMeta):
         logger.info(f"Disconnected from {self._socket_addr}")
 
     def _init(self):
+        """
+        @brief      Runs before the main loop, and before any socket is opened. This should be used
+                    for opening hardware resources.
+        """
         pass
 
     def _cleanup(self):
+        """
+        @brief      Runs after the socket is shut down and the main loop exits. This should be used
+                    to close hardware resources.
+        """
+        pass
+
+    def _after_open(self):
+        """
+        @brief      Runs immediately after the socket is opened. Should be used for initialization
+                    that requires the socket.
+        """
+        pass
+
+    def _before_close(self):
+        """
+        @brief      Runs immediately before the socket closes, but only during a graceful stop. If
+                    the socket is closing because of an error, this will NOT be called. Should be
+                    used for cleanup that requires the socket.
+        """
         pass
 
     @abc.abstractmethod
@@ -56,25 +79,28 @@ class Resource(Thread, metaclass=abc.ABCMeta):
 
     def _loop(self):
         try:
+            self._init()
             while self.should_run:
                 if self._open():
                     try:
-                        self._init()
+                        self._after_open()
                         while self.should_run:
                             self._update()
                             time.sleep(self._pause)
-                        self._cleanup()
-                    except (ConnectionRefusedError):
+                        self._before_close()
+                    except (ConnectionRefusedError, socket.timeout):
                         pass
                     finally:
                         self._close()
-                        self._init_socket()
+                        self._init_socket()  # Re-create the socket so we can try again
                 else:
-                    logger.warning(f"Failed to open socket {self._socket_addr}. "
-                                   f"Retrying in {self.OPEN_RETRY_PAUSE} seconds...")
+                    logger.debug(f"Failed to open socket {self._socket_addr}. "
+                                 f"Retrying in {self.OPEN_RETRY_PAUSE} seconds...")
                     time.sleep(self.OPEN_RETRY_PAUSE)  # Sleep for a bit, then try again
         except Exception:
             logger.error(traceback.format_exc())
+        finally:
+            self._cleanup()
 
     def stop(self):
         if self.should_run:
@@ -122,7 +148,7 @@ class WriteResource(Resource):
     def _open(self):
         try:
             self._socket.connect(self._socket_addr)
-            logger.debug(f"Connected to {self._socket_addr}")
+            logger.info(f"Connected to {self._socket_addr}")
             return True  # Job's done
         except (FileNotFoundError, ConnectionRefusedError) as e:
             return False

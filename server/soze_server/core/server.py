@@ -1,29 +1,29 @@
 from threading import Thread
 
-from cc_core.cce import CaseControlElement
+from soze_core.component import SozeComponent
 
 from . import api, settings
 from .keepalive import Keepalive
-from ccs.led.led import Led
-from ccs.lcd.lcd import Lcd
+from soze_server.led.led import Led
+from soze_server.lcd.lcd import Lcd
 
-CFG_FILE = 'ccs.json'
+CFG_FILE = 'sozes.json'
 DEFAULT_CFG = {
     'led': {
-        'socket_addr': '/tmp/cc_led.sock',
+        'socket_addr': '/tmp/soze_led.sock',
     },
     'lcd': {
-        'socket_addr': '/tmp/cc_lcd.sock',
+        'socket_addr': '/tmp/soze_lcd.sock',
         'width': 20,
         'height': 4,
     },
     'keepalive': {
-        'socket_addr': '/tmp/cc_keepalive.sock',
+        'socket_addr': '/tmp/soze_keepalive.sock',
     },
 }
 
 
-class CaseControlServer(CaseControlElement):
+class SozeServer(SozeComponent):
     def __init__(self, args, **kwargs):
         super().__init__(args, cfg_file=CFG_FILE, default_cfg=DEFAULT_CFG, **kwargs)
         settings.init(args.working_dir)
@@ -41,5 +41,5 @@ class CaseControlServer(CaseControlElement):
 
 
 def main():
-    c = CaseControlServer.from_cmd_args()
-    c.run()
+    s = SozeServer.from_cmd_args()
+    s.run()

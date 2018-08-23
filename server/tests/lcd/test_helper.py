@@ -1,6 +1,6 @@
 import unittest
 
-from ccs.lcd.helper import diff_text
+from soze_server.lcd.helper import diff_text
 
 
 class HelperTestCase(unittest.TestCase):

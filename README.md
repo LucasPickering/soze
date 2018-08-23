@@ -1,4 +1,6 @@
-# case-control
+# Söze
+*The greatest trick the devil ever pulled was convincing the world he did not exist.*
+
 Software suite to control the LEDs and LCD in my computer case.
 The controller is a Raspberry Pi Zero W inside my PC, powered by a USB-header to Micro-USB cable
 from the motherboard to the Pi. This is also usable as an ethernet connection, but the Pi is mainly
@@ -45,15 +47,15 @@ Only on RPi - no point in doing this on any other machine
 ```
 sudo pip3 install -e Adafruit-Motor-HAT-Python-Library
 sudo pip3 install -e py_display
-sudo ln -s /path/to/case-control/py_display/ccd.service /etc/systemd/system
-sudo systemctl enable ccd
+sudo ln -s /path/to/soze/py_display/sozed.service /etc/systemd/system
+sudo systemctl enable sozed
 ```
 
 ### Server
 ```
 sudo pip3 install -e server
-sudo ln -s /path/to/case-control/server/ccs.service /etc/systemd/system
-sudo systemctl enable ccs
+sudo ln -s /path/to/soze/server/sozes.service /etc/systemd/system
+sudo systemctl enable sozes
 ```
 
 ### Client

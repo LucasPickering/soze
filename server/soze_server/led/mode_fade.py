@@ -1,7 +1,7 @@
 import time
 
-from ccs.core.color import BLACK
-from ccs.core.mode import register
+from soze_server.core.color import BLACK
+from soze_server.core.mode import register
 from .mode import LedMode
 
 

@@ -1,5 +1,5 @@
-from cc_core import logger
-from cc_core.resource import ReadResource
+from soze_core import logger
+from soze_core.resource import ReadResource
 
 
 class Keepalive(ReadResource):
@@ -25,6 +25,5 @@ class Keepalive(ReadResource):
     def _process_data(self, data):
         self._set_alive(bool(data[-1]))  # Only the last byte matters
 
-    def _close(self):
-        super()._close()
+    def _before_close(self):
         self._set_alive(False)

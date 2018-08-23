@@ -1,5 +1,5 @@
-from ccs.core.color import BLACK
-from ccs.core.settings_resource import SettingsResource
+from soze_server.core.color import BLACK
+from soze_server.core.settings_resource import SettingsResource
 from .helper import *
 
 
@@ -14,7 +14,7 @@ class Lcd(SettingsResource):
     def name(self):
         return 'LCD'
 
-    def _init(self):
+    def _after_open(self):
         self.set_size(self._width, self._height, True)
         self.set_color(BLACK)
 
@@ -27,7 +27,7 @@ class Lcd(SettingsResource):
             self.create_char(0, index, char)
         self.load_char_bank(0)
 
-    def _cleanup(self):
+    def _before_close(self):
         """
         @brief      Turns the LCD off and clears it.
         """

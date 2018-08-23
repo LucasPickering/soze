@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from ccs.core.mode import register
+from soze_server.core.mode import register
 from . import helper
 from .mode import LcdMode
 

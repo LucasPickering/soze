@@ -4,7 +4,7 @@ import os
 import requests
 from pprint import pprint
 
-CFG_FILE = os.path.expanduser('~/.ccc.json')
+CFG_FILE = os.path.expanduser('~/.sozec.json')
 DEFAULT_CFG = {'host': 'localhost', 'port': 5000}
 COMMANDS = {}
 

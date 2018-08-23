@@ -1,6 +1,6 @@
 import abc
 
-from cc_core.resource import WriteResource
+from soze_core.resource import WriteResource
 
 
 class SettingsResource(WriteResource):

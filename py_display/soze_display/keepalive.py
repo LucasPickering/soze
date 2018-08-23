@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import struct
 
-from cc_core.resource import WriteResource
+from soze_core.resource import WriteResource
 
 
 class Keepalive(WriteResource):
@@ -14,16 +14,12 @@ class Keepalive(WriteResource):
     def name(self):
         return 'Keepalive'
 
-    def _open(self):
-        if super()._open():
-            GPIO.setmode(GPIO.BCM)
-            GPIO.setup(self._pin, GPIO.IN)
-            return True
-        return False
+    def _init(self):
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self._pin, GPIO.IN)
 
-    def _close(self):
+    def _cleanup(self):
         GPIO.cleanup(self._pin)
-        return super()._close()
 
     def _update(self):
         val = GPIO.input(self._pin)

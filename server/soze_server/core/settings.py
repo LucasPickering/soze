@@ -3,11 +3,11 @@ import copy
 import os
 import pickle
 
-from cc_core import logger
+from soze_core import logger
 
 from .color import Color, BLACK
-from ccs.lcd.mode import LcdMode
-from ccs.led.mode import LedMode
+from soze_server.lcd.mode import LcdMode
+from soze_server.led.mode import LedMode
 
 
 class Setting(metaclass=abc.ABCMeta):

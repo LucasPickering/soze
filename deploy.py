@@ -8,7 +8,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dirs', nargs='+', help="Directories to sync")
     parser.add_argument('host', help="Destination host")
-    parser.add_argument('--target-dir', '-t', default='case-control', help="Destination directory")
+    parser.add_argument('--target-dir', '-t', default='soze', help="Destination directory")
     args = parser.parse_args()
 
     curdir = os.path.dirname(os.path.realpath(__file__))

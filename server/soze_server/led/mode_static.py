@@ -1,4 +1,4 @@
-from ccs.core.mode import register
+from soze_server.core.mode import register
 from .mode import LedMode
 
 

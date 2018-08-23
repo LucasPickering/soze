@@ -1,5 +1,5 @@
-from ccs.core.color import BLACK
-from ccs.core.settings_resource import SettingsResource
+from soze_server.core.color import BLACK
+from soze_server.core.settings_resource import SettingsResource
 
 
 class Led(SettingsResource):
@@ -13,7 +13,7 @@ class Led(SettingsResource):
     def off(self):
         self.set_color(BLACK)
 
-    def _cleanup(self):
+    def _before_close(self):
         self.off()
 
     def _get_default_values(self):
