@@ -10,21 +10,10 @@ const App = () => {
   // Load data from the API (on mount only)
   useEffect(() => {
     setLoading(true);
-    fetch('tyranitar:5000').then(response => {
+    fetch('/api').then(response => {
       setLoading(false);
       setData(response.json());
     });
-    // setTimeout(() => {
-    //   setLoading(false);
-    //   setData({
-    //     lcd: { color: '0x000000', link_to_led: false, mode: 'off' },
-    //     led: {
-    //       fade: { colors: [], fade_time: 5.0, saved: {} },
-    //       mode: 'off',
-    //       static: { color: '0x000000' },
-    //     },
-    //   });
-    // }, 3000);
   }, []);
 
   return (
