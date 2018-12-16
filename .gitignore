@@ -1,8 +1,26 @@
 # Python
 */__pycache__
 *.pyc
-
+*.egg-info/
 *.log
 *.p
-*.egg-info/
-*.json
+
+# JS
+node_modules/
+.pnp/
+.pnp.js
+
+# testing
+coverage/
+
+# production
+build/
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
