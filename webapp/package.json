@@ -5,7 +5,9 @@
   "dependencies": {
     "@material-ui/core": "^3.6.2",
     "http-proxy-middleware": "^0.19.1",
+    "lodash.set": "^4.3.2",
     "node-sass": "^4.11.0",
+    "prop-types": "^15.6.2",
     "react": "^16.7.0-alpha.2",
     "react-dom": "^16.7.0-alpha.2",
     "react-scripts": "2.1.1"
