@@ -86,6 +86,11 @@ class FloatSetting(Setting):
         super().__init__(default_val)
 
     def _deserialize(self, val):
+        # JSON has no distinction between an int and a float so we have to
+        # cast here
+        if isinstance(val, int):
+            val = float(val)
+
         if not isinstance(val, float):
             raise ValueError(f"Expected float, got {val}")
         if self._min is not None and val < self._min:
