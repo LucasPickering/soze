@@ -5,7 +5,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 
 const ColorPicker = ({ color, setColor }) => (
-  <Select value={color} onChange={setColor}>
+  <Select value={color} onChange={e => setColor(e.target.value)}>
     <MenuItem value="0x000000">Black</MenuItem>
     <MenuItem value="0xff0000">Red</MenuItem>
     <MenuItem value="0x00ff00">Green</MenuItem>

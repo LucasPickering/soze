@@ -1,5 +1,5 @@
-import PropTypes from 'prop-types';
 import React, { useEffect, useReducer } from 'react';
+import axios from 'axios';
 import set from 'lodash.set';
 
 import Button from '@material-ui/core/Button';
@@ -16,6 +16,7 @@ const reducer = (state, { type, payload }) => {
         error: null,
       };
     case 'response':
+      console.log('response', payload);
       return {
         ...state,
         loading: false,
@@ -52,23 +53,15 @@ const apiRequest = (dispatch, data) => {
   dispatch({ type: 'request' });
 
   // If data is given, assume it's a POST
-  const options = data
-    ? {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      }
-    : {};
+  const options = data ? { method: 'POST', data } : { method: 'GET' };
 
-  fetch('/api', options)
-    .then(response => response.json())
-    .then(resData => {
-      dispatch({ type: 'response', payload: resData });
+  axios('/api', options)
+    .then(response => {
+      dispatch({ type: 'response', payload: response.data });
     })
-    .catch(error => dispatch({ type: 'error', payload: error }));
+    .catch(error => {
+      dispatch({ type: 'error', payload: error.response });
+    });
 };
 
 const Settings = () => {
@@ -80,17 +73,14 @@ const Settings = () => {
   // Load data from the API (on mount only)
   useEffect(() => apiRequest(dispatch), []);
 
+  const setData = (setting, value) =>
+    dispatch({ type: 'set', payload: { setting, value } });
+
   // Data is available, so render settings
   if (data) {
     return (
       <>
-        <LcdSettings
-          lcd={data.lcd}
-          setData={(setting, value) =>
-            dispatch({ type: 'set', payload: { setting, value } })
-          }
-        />
-
+        <LcdSettings lcd={data.lcd} setData={setData} />
         <Button
           variant="contained"
           color="primary"

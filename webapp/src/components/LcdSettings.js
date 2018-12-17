@@ -12,31 +12,44 @@ import Typography from '@material-ui/core/Typography';
 
 import ColorPicker from './ColorPicker';
 
-const LcdSettings = ({ lcd, setData }) => (
-  <Paper>
-    <Typography variant="h4">LCD</Typography>
-    <FormGroup>
-      <FormControl>
-        <Select
-          value={lcd.mode}
-          onChange={e => setData('lcd.mode', e.target.value)}
-        >
-          <MenuItem value="off">Off</MenuItem>
-          <MenuItem value="clock">Clock</MenuItem>
-        </Select>
-      </FormControl>
-      <FormControl>
-        <FormControlLabel
-          label="Link to LED color"
-          control={<Switch checked={lcd.link_to_led} value="checkedA" />}
-        />
-      </FormControl>
-      <FormControl disabled={lcd.link_to_led}>
-        <ColorPicker color={lcd.color} setColor={() => {}} />
-      </FormControl>
-    </FormGroup>
-  </Paper>
-);
+const LcdSettings = ({ lcd, setData }) => {
+  // Have to do this to get around prettier being shitty
+  const linkToLedSwitch = (
+    <Switch
+      checked={lcd.link_to_led}
+      onChange={(e, checked) => setData('lcd.link_to_led', checked)}
+    />
+  );
+
+  return (
+    <Paper>
+      <Typography variant="h4">LCD</Typography>
+      <FormGroup>
+        <FormControl>
+          <Select
+            value={lcd.mode}
+            onChange={e => setData('lcd.mode', e.target.value)}
+          >
+            <MenuItem value="off">Off</MenuItem>
+            <MenuItem value="clock">Clock</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormControlLabel
+            label="Link to LED color"
+            control={linkToLedSwitch}
+          />
+        </FormControl>
+        <FormControl disabled={lcd.link_to_led}>
+          <ColorPicker
+            color={lcd.color}
+            setColor={color => setData('lcd.color', color)}
+          />
+        </FormControl>
+      </FormGroup>
+    </Paper>
+  );
+};
 
 LcdSettings.propTypes = {
   lcd: PropTypes.shape({
