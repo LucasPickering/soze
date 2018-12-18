@@ -6,6 +6,7 @@ import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 
 import LcdSettings from './LcdSettings';
+import LedSettings from './LedSettings';
 
 const reducer = (state, { type, payload }) => {
   switch (type) {
@@ -80,7 +81,8 @@ const Settings = () => {
   if (data) {
     return (
       <>
-        <LcdSettings lcd={data.lcd} setData={setData} />
+        <LedSettings data={data.led} setData={setData} />
+        <LcdSettings data={data.lcd} setData={setData} />
         <Button
           variant="contained"
           color="primary"

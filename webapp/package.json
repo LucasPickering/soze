@@ -4,6 +4,7 @@
   "private": false,
   "dependencies": {
     "@material-ui/core": "^3.6.2",
+    "@material-ui/lab": "^3.0.0-alpha.26",
     "axios": "^0.18.0",
     "http-proxy-middleware": "^0.19.1",
     "lodash.set": "^4.3.2",

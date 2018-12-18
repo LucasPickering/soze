@@ -12,22 +12,25 @@ import Typography from '@material-ui/core/Typography';
 
 import ColorPicker from './ColorPicker';
 
-const LcdSettings = ({ lcd, setData }) => {
+const LcdSettings = ({
+  data: { mode, link_to_led: linkToLed, color },
+  setData,
+}) => {
   // Have to do this to get around prettier being shitty
   const linkToLedSwitch = (
     <Switch
-      checked={lcd.link_to_led}
+      checked={linkToLed}
       onChange={(e, checked) => setData('lcd.link_to_led', checked)}
     />
   );
 
   return (
     <Paper>
-      <Typography variant="h4">LCD</Typography>
+      <Typography variant="h5">LCD</Typography>
       <FormGroup>
         <FormControl>
           <Select
-            value={lcd.mode}
+            value={mode}
             onChange={e => setData('lcd.mode', e.target.value)}
           >
             <MenuItem value="off">Off</MenuItem>
@@ -40,11 +43,8 @@ const LcdSettings = ({ lcd, setData }) => {
             control={linkToLedSwitch}
           />
         </FormControl>
-        <FormControl disabled={lcd.link_to_led}>
-          <ColorPicker
-            color={lcd.color}
-            setColor={color => setData('lcd.color', color)}
-          />
+        <FormControl disabled={linkToLed}>
+          <ColorPicker color={color} setColor={c => setData('lcd.color', c)} />
         </FormControl>
       </FormGroup>
     </Paper>
@@ -52,7 +52,7 @@ const LcdSettings = ({ lcd, setData }) => {
 };
 
 LcdSettings.propTypes = {
-  lcd: PropTypes.shape({
+  data: PropTypes.shape({
     mode: PropTypes.string.isRequired,
     color: PropTypes.string.isRequired,
     link_to_led: PropTypes.bool.isRequired,
