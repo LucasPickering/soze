@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import { withStyles } from '@material-ui/core/styles';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormGroup from '@material-ui/core/FormGroup';
@@ -11,8 +12,10 @@ import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 
 import ColorPicker from './ColorPicker';
+import styles from '../styles';
 
 const LcdSettings = ({
+  classes,
   data: { mode, link_to_led: linkToLed, color },
   setData,
 }) => {
@@ -25,7 +28,7 @@ const LcdSettings = ({
   );
 
   return (
-    <Paper>
+    <Paper className={classes.paper}>
       <Typography variant="h5">LCD</Typography>
       <FormGroup>
         <FormControl>
@@ -44,7 +47,7 @@ const LcdSettings = ({
           />
         </FormControl>
         <FormControl disabled={linkToLed}>
-          <ColorPicker color={color} setColor={c => setData('lcd.color', c)} />
+          <ColorPicker color={color} onChange={c => setData('lcd.color', c)} />
         </FormControl>
       </FormGroup>
     </Paper>
@@ -52,6 +55,7 @@ const LcdSettings = ({
 };
 
 LcdSettings.propTypes = {
+  classes: PropTypes.shape().isRequired,
   data: PropTypes.shape({
     mode: PropTypes.string.isRequired,
     color: PropTypes.string.isRequired,
@@ -60,4 +64,4 @@ LcdSettings.propTypes = {
   setData: PropTypes.func.isRequired,
 };
 
-export default LcdSettings;
+export default withStyles(styles)(LcdSettings);

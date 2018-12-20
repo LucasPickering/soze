@@ -4,6 +4,7 @@ import set from 'lodash.set';
 
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
 
 import LcdSettings from './LcdSettings';
 import LedSettings from './LedSettings';
@@ -17,7 +18,6 @@ const reducer = (state, { type, payload }) => {
         error: null,
       };
     case 'response':
-      console.log('response', payload);
       return {
         ...state,
         loading: false,
@@ -26,7 +26,6 @@ const reducer = (state, { type, payload }) => {
         error: null,
       };
     case 'error':
-      console.error(payload);
       return {
         ...state,
         loading: false,
@@ -81,16 +80,22 @@ const Settings = () => {
   if (data) {
     return (
       <>
-        <LedSettings data={data.led} setData={setData} />
-        <LcdSettings data={data.lcd} setData={setData} />
-        <Button
-          variant="contained"
-          color="primary"
-          disabled={loading || !modified}
-          onClick={() => apiRequest(dispatch, data)}
-        >
-          {loading ? <CircularProgress /> : 'Save'}
-        </Button>
+        <Grid item>
+          <LedSettings data={data.led} setData={setData} />
+        </Grid>
+        <Grid item>
+          <LcdSettings data={data.lcd} setData={setData} />
+        </Grid>
+        <Grid item>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={loading || !modified}
+            onClick={() => apiRequest(dispatch, data)}
+          >
+            {loading ? <CircularProgress /> : 'Save'}
+          </Button>
+        </Grid>
       </>
     );
   }

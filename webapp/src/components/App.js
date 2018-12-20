@@ -11,20 +11,22 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
 import Settings from './Settings';
+import styles from '../styles';
 
 const theme = createMuiTheme({
   palette: {
-    type: 'light',
+    type: 'dark',
   },
   typography: {
     useNextVariants: true,
   },
-});
-
-const styles = ({ spacing }) => ({
-  root: {
-    flexGrow: 1,
-    padding: spacing.unit,
+  overrides: {
+    MuiFormControl: {
+      root: {
+        // Keep controls from growing to their parent
+        display: 'inline-block',
+      },
+    },
   },
 });
 
@@ -39,7 +41,15 @@ const App = ({ classes }) => (
         spacing={theme.spacing.unit}
       >
         <Typography variant="h2">Söze</Typography>
-        <Settings />
+        <Grid
+          item
+          container
+          direction="column"
+          alignItems="center"
+          spacing={theme.spacing.unit}
+        >
+          <Settings />
+        </Grid>
       </Grid>
     </div>
   </MuiThemeProvider>

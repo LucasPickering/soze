@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import { withStyles } from '@material-ui/core/styles';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -10,8 +11,10 @@ import Slider from '@material-ui/lab/Slider';
 import Typography from '@material-ui/core/Typography';
 
 import ColorPicker from './ColorPicker';
+import styles from '../styles';
 
 const LedSettings = ({
+  classes,
   data: {
     mode,
     static: { color: staticColor },
@@ -19,7 +22,7 @@ const LedSettings = ({
   },
   setData,
 }) => (
-  <Paper>
+  <Paper className={classes.paper}>
     <Typography variant="h5">LED</Typography>
     <FormGroup>
       <FormControl>
@@ -33,10 +36,12 @@ const LedSettings = ({
         </Select>
       </FormControl>
       {mode === 'static' && (
-        <ColorPicker
-          color={staticColor}
-          setColor={c => setData('led.static.color', c)}
-        />
+        <FormControl>
+          <ColorPicker
+            color={staticColor}
+            onChange={c => setData('led.static.color', c)}
+          />
+        </FormControl>
       )}
       {mode === 'fade' && (
         <>
@@ -56,6 +61,7 @@ const LedSettings = ({
 );
 
 LedSettings.propTypes = {
+  classes: PropTypes.shape().isRequired,
   data: PropTypes.shape({
     mode: PropTypes.string.isRequired,
     static: PropTypes.shape({
@@ -72,4 +78,4 @@ LedSettings.propTypes = {
   setData: PropTypes.func.isRequired,
 };
 
-export default LedSettings;
+export default withStyles(styles)(LedSettings);
