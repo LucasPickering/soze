@@ -89,11 +89,11 @@ const Settings = () => {
         <Grid item>
           <Button
             variant="contained"
-            color="primary"
+            color="secondary"
             disabled={loading || !modified}
             onClick={() => apiRequest(dispatch, data)}
           >
-            {loading ? <CircularProgress /> : 'Save'}
+            {loading ? <CircularProgress size={21} /> : 'Save'}
           </Button>
         </Grid>
       </>
