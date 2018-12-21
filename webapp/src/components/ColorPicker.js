@@ -2,7 +2,7 @@ import { CompactPicker as Picker } from 'react-color';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 
-import Fab from '@material-ui/core/Fab';
+import IconButton from '@material-ui/core/IconButton';
 import Popover from '@material-ui/core/Popover';
 
 /**
@@ -17,21 +17,20 @@ const fromApiFormat = color => `#${color.substring(2)}`;
  */
 const toApiFormat = color => `0x${color.substring(1)}`;
 
-const ColorPicker = ({ className, color, onChange }) => {
+const ColorPicker = React.memo(({ className, color, disabled, onChange }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const htmlColor = fromApiFormat(color);
 
   return (
     <>
-      <Fab
+      <IconButton
         className={className}
+        disabled={disabled}
         aria-haspopup="true"
         size="small"
         onClick={e => setAnchorEl(e.currentTarget)}
-        style={{ backgroundColor: htmlColor }}
-      >
-        {''}
-      </Fab>
+        style={disabled ? {} : { backgroundColor: htmlColor }}
+      />
       <Popover
         open={Boolean(anchorEl)}
         onClose={() => setAnchorEl(null)}
@@ -49,16 +48,18 @@ const ColorPicker = ({ className, color, onChange }) => {
       </Popover>
     </>
   );
-};
+});
 
 ColorPicker.propTypes = {
   className: PropTypes.string,
   color: PropTypes.string.isRequired,
+  disabled: PropTypes.bool,
   onChange: PropTypes.func.isRequired,
 };
 
 ColorPicker.defaultProps = {
   className: null,
+  disabled: false,
 };
 
 export default ColorPicker;

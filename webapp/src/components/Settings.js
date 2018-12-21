@@ -89,7 +89,7 @@ const Settings = () => {
         <Grid item>
           <Button
             variant="contained"
-            color="secondary"
+            color="primary"
             disabled={loading || !modified}
             onClick={() => apiRequest(dispatch, data)}
           >

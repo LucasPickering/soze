@@ -11,6 +11,7 @@ import Slider from '@material-ui/lab/Slider';
 import Typography from '@material-ui/core/Typography';
 
 import ColorPicker from './ColorPicker';
+import ColorSeries from './ColorSeries';
 import styles from '../styles';
 
 const LedSettings = ({
@@ -18,7 +19,7 @@ const LedSettings = ({
   data: {
     mode,
     static: { color: staticColor },
-    fade: { fade_time: fadeTime },
+    fade: { colors: fadeColors, fade_time: fadeTime },
   },
   setData,
 }) => (
@@ -50,9 +51,13 @@ const LedSettings = ({
             aria-labelledby="fade-time-label"
             min={1}
             max={30}
-            step={0.5}
+            step={1}
             value={fadeTime}
             onChange={(e, value) => setData('led.fade.fade_time', value)}
+          />
+          <ColorSeries
+            colors={fadeColors}
+            setColors={colors => setData('led.fade.colors', colors)}
           />
         </>
       )}

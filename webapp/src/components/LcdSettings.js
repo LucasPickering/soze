@@ -46,9 +46,11 @@ const LcdSettings = ({
             control={linkToLedSwitch}
           />
         </FormControl>
-        <FormControl disabled={linkToLed}>
-          <ColorPicker color={color} onChange={c => setData('lcd.color', c)} />
-        </FormControl>
+        <ColorPicker
+          color={color}
+          disabled={linkToLed}
+          onChange={c => setData('lcd.color', c)}
+        />
       </FormGroup>
     </Paper>
   );

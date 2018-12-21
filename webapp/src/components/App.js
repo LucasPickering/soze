@@ -9,12 +9,16 @@ import {
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import blue from '@material-ui/core/colors/blue';
+import pink from '@material-ui/core/colors/pink';
 
 import Settings from './Settings';
 import styles from '../styles';
 
 const theme = createMuiTheme({
   palette: {
+    primary: pink,
+    secondary: blue,
     type: 'dark',
   },
   typography: {
