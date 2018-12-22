@@ -29,7 +29,7 @@ const ColorPicker = React.memo(({ className, color, disabled, onChange }) => {
         aria-haspopup="true"
         size="small"
         onClick={e => setAnchorEl(e.currentTarget)}
-        style={disabled ? {} : { backgroundColor: htmlColor }}
+        style={disabled ? null : { backgroundColor: htmlColor }}
       />
       <Popover
         open={Boolean(anchorEl)}

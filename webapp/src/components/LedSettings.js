@@ -14,6 +14,13 @@ import ColorPicker from './ColorPicker';
 import ColorSeries from './ColorSeries';
 import styles from '../styles';
 
+const moreStyles = theme => ({
+  ...styles(theme),
+  sliderControl: {
+    padding: `${theme.spacing.unit * 2}px 0px`,
+  },
+});
+
 const LedSettings = ({
   classes,
   data: {
@@ -46,19 +53,24 @@ const LedSettings = ({
       )}
       {mode === 'fade' && (
         <>
-          <Typography id="fade-time-label">Fade Time</Typography>
-          <Slider
-            aria-labelledby="fade-time-label"
-            min={1}
-            max={30}
-            step={1}
-            value={fadeTime}
-            onChange={(e, value) => setData('led.fade.fade_time', value)}
-          />
-          <ColorSeries
-            colors={fadeColors}
-            setColors={colors => setData('led.fade.colors', colors)}
-          />
+          <FormControl className={classes.sliderControl}>
+            <Typography>Fade Time</Typography>
+            <Slider
+              min={1}
+              max={30}
+              step={1}
+              value={fadeTime}
+              onChange={(e, value) => setData('led.fade.fade_time', value)}
+            />
+          </FormControl>
+
+          <FormControl>
+            <Typography>Color Series</Typography>
+            <ColorSeries
+              colors={fadeColors}
+              setColors={colors => setData('led.fade.colors', colors)}
+            />
+          </FormControl>
         </>
       )}
     </FormGroup>
@@ -83,4 +95,4 @@ LedSettings.propTypes = {
   setData: PropTypes.func.isRequired,
 };
 
-export default withStyles(styles)(LedSettings);
+export default withStyles(moreStyles)(LedSettings);

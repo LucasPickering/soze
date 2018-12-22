@@ -5,6 +5,6 @@ export default ({ spacing }) => ({
   },
   paper: {
     padding: 12,
-    width: 300,
+    width: 400,
   },
 });
