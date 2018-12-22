@@ -10,15 +10,17 @@ class Lcd(ReadResource):
 
         # By deferring the port assignment until after construction, we prevent the port from
         # opening immediately, so that it can be opened manually
-        self._ser = serial.Serial(baudrate=9600,
-                                  bytesize=serial.EIGHTBITS,
-                                  parity=serial.PARITY_NONE,
-                                  stopbits=serial.STOPBITS_ONE)
+        self._ser = serial.Serial(
+            baudrate=9600,
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+        )
         self._ser.port = serial_port
 
     @property
     def name(self):
-        return 'LCD'
+        return "LCD"
 
     def _init(self):
         self._ser.open()
@@ -32,5 +34,7 @@ class Lcd(ReadResource):
 
         # Make sure we wrote the expected number of bytes
         if num_written != len(data):
-            logger.error(f"Expected to send {len(data)} bytes ({format_bytes(data)}),"
-                         f" but only sent {num_written} bytes")
+            logger.error(
+                f"Expected to send {len(data)} bytes ({format_bytes(data)}),"
+                f" but only sent {num_written} bytes"
+            )

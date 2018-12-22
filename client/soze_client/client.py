@@ -4,8 +4,8 @@ import os
 import requests
 from pprint import pprint
 
-CFG_FILE = os.path.expanduser('~/.sozec.json')
-DEFAULT_CFG = {'host': 'localhost', 'port': 5000}
+CFG_FILE = os.path.expanduser("~/.sozec.json")
+DEFAULT_CFG = {"host": "localhost", "port": 5000}
 COMMANDS = {}
 
 
@@ -13,17 +13,19 @@ def command(*cmd_args, **kwargs):
     def inner(func):
         def wrapper(*args):
             func(*args)
-        name = func.__name__.replace('_', '-')  # Hyphens are more aesthetic
+
+        name = func.__name__.replace("_", "-")  # Hyphens are more aesthetic
         COMMANDS[name] = (func, cmd_args, kwargs)
         return wrapper
+
     return inner
 
 
 def get_url(setting):
-    host = config['host']
-    port = config['port']
-    route = setting.replace('.', '/')
-    return f'http://{host}:{port}/{route}'
+    host = config["host"]
+    port = config["port"]
+    route = setting.replace(".", "/")
+    return f"http://{host}:{port}/{route}"
 
 
 def http_get(setting):
@@ -52,20 +54,30 @@ def http_post(setting, value):
 
 
 def parse_settings(settings):
-    return (tuple(setting.split('=', 1)) for setting in settings)
+    return (tuple(setting.split("=", 1)) for setting in settings)
 
 
-@command((['settings'], {'nargs': '*', 'help': "Settings to get the value of, e.g. 'led.mode'"}),
-         help="Get one or more settings")
+@command(
+    (
+        ["settings"],
+        {"nargs": "*", "help": "Settings to get the value of, e.g. 'led.mode'"},
+    ),
+    help="Get one or more settings",
+)
 def get(settings):
     if not settings:
-        settings = ['']
+        settings = [""]
     for setting in settings:
         pprint(http_get(setting))
 
 
-@command((['settings'], {'nargs': '+', 'help': "Settings to change, e.g. 'led.mode=off'"}),
-         help="Set one or more settings")
+@command(
+    (
+        ["settings"],
+        {"nargs": "+", "help": "Settings to change, e.g. 'led.mode=off'"},
+    ),
+    help="Set one or more settings",
+)
 def set(settings):
     for setting, value in parse_settings(settings):
         try:
@@ -78,78 +90,97 @@ def set(settings):
 
 @command(help="Turn off all peripherals")
 def off():
-    pprint(http_post('led.mode', 'off'))
-    pprint(http_post('lcd.mode', 'off'))
+    pprint(http_post("led.mode", "off"))
+    pprint(http_post("lcd.mode", "off"))
 
 
-@command((['colors'], {'nargs': '+', 'help': "Color(s) to add to the active fade"}),
-         help="Add color(s) to the active fade")
+@command(
+    (["colors"], {"nargs": "+", "help": "Color(s) to add to the active fade"}),
+    help="Add color(s) to the active fade",
+)
 def add_colors(colors):
-    fade_colors = http_get('led.fade.colors')
+    fade_colors = http_get("led.fade.colors")
     fade_colors += colors
-    http_post('led.fade.colors', fade_colors)
+    http_post("led.fade.colors", fade_colors)
     print(fade_colors)
 
 
-@command((['indexes'], {'type': int, 'nargs': '+', 'help': "Index(es) of the color(s) to remove"}),
-         help="Delete color(s) from the active fade")
+@command(
+    (
+        ["indexes"],
+        {
+            "type": int,
+            "nargs": "+",
+            "help": "Index(es) of the color(s) to remove",
+        },
+    ),
+    help="Delete color(s) from the active fade",
+)
 def del_colors(indexes):
-    fade_colors = http_get('led.fade.colors')
+    fade_colors = http_get("led.fade.colors")
 
     # Pop off items, starting at the back so we don't affect lower indexes
     for index in sorted(indexes, reverse=True):
         fade_colors.pop(index)
-    http_post('led.fade.colors', fade_colors)
+    http_post("led.fade.colors", fade_colors)
     print(fade_colors)
 
 
 @command(help="Clear all colors from the active fade")
 def clear_colors():
-    http_post('led.fade.colors', [])
+    http_post("led.fade.colors", [])
     print("Cleared")
 
 
-@command((['name'], {'help': "Name of the fade to load"}), help="Load a fade")
+@command((["name"], {"help": "Name of the fade to load"}), help="Load a fade")
 def load_fade(name):
-    fade = http_get('led.fade')
+    fade = http_get("led.fade")
     try:
-        colors = fade['saved'][name]
+        colors = fade["saved"][name]
     except KeyError:
         print(f"No fade by the name '{name}'")
         return
-    fade['colors'] = colors
-    http_post('led.fade', fade)
+    fade["colors"] = colors
+    http_post("led.fade", fade)
     print(colors)
 
 
-@command((['name'], {'help': "Name for the fade (will overwrite)"}),
-         help="Save the current fade colors")
+@command(
+    (["name"], {"help": "Name for the fade (will overwrite)"}),
+    help="Save the current fade colors",
+)
 def save_fade(name):
-    fade = http_get('led.fade')
-    colors = fade['colors']
-    saved = fade['saved']
+    fade = http_get("led.fade")
+    colors = fade["colors"]
+    saved = fade["saved"]
     saved[name] = colors
-    http_post('led.fade.saved', saved)
+    http_post("led.fade.saved", saved)
     print(f"Saved {colors} as '{name}'")
 
 
-@command((['names'], {'nargs': '+', 'help': "Name(s) of the fade(s) to delete"}),
-         help="Delete a fade")
+@command(
+    (["names"], {"nargs": "+", "help": "Name(s) of the fade(s) to delete"}),
+    help="Delete a fade",
+)
 def del_fade(name):
-    saved_fades = http_get('led.fade.saved')
+    saved_fades = http_get("led.fade.saved")
     try:
         deleted = saved_fades.pop(name)
-        http_post('led.fade.saved', saved_fades)
+        http_post("led.fade.saved", saved_fades)
         print(f"Deleted '{name}': {deleted}")
     except KeyError:
         print(f"No fade by the name '{name}'")
 
 
-@command((['settings'], {'nargs': '*', 'help': "Config settings to change"}),
-         help="Set local config value(s)")
+@command(
+    (["settings"], {"nargs": "*", "help": "Config settings to change"}),
+    help="Set local config value(s)",
+)
 def set_config(settings):
     if settings:
-        new_cfg = dict(parse_settings(settings))  # Parse key/value pairs from the user
+        new_cfg = dict(
+            parse_settings(settings)
+        )  # Parse key/value pairs from the user
         config.update(new_cfg)  # Add the new settings to the config
         save_config(config)  # Save the config
 
@@ -163,8 +194,16 @@ def parse_args():
         return subparser
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', '-c', default=[], action='append', help="Override config value")
-    parser.add_argument('--debug', '-d', action='store_true', help="Print debug info")
+    parser.add_argument(
+        "--config",
+        "-c",
+        default=[],
+        action="append",
+        help="Override config value",
+    )
+    parser.add_argument(
+        "--debug", "-d", action="store_true", help="Print debug info"
+    )
     subparsers = parser.add_subparsers()
 
     for cmd, (func, cmd_args, kwargs) in COMMANDS.items():
@@ -192,7 +231,7 @@ def parse_config(overrides):
 
 
 def save_config(cfg):
-    with open(CFG_FILE, 'w') as f:
+    with open(CFG_FILE, "w") as f:
         json.dump(cfg, f)
 
 
@@ -200,16 +239,16 @@ def main():
     argd = vars(parse_args())
 
     # Parse command-lien config overrides
-    config_overrides = parse_settings(argd.pop('config'))
+    config_overrides = parse_settings(argd.pop("config"))
 
     global config  # I'm sorry
     config = parse_config(config_overrides)
 
     global debug
-    debug = argd.pop('debug')
+    debug = argd.pop("debug")
 
     try:
-        func = argd.pop('func')
+        func = argd.pop("func")
     except KeyError:
         print("No subcommand specified")
         exit(1)
@@ -221,5 +260,5 @@ def main():
         exit(2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

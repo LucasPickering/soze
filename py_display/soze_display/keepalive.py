@@ -5,14 +5,13 @@ from soze_core.resource import WriteResource
 
 
 class Keepalive(WriteResource):
-
     def __init__(self, pin, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._pin = pin
 
     @property
     def name(self):
-        return 'Keepalive'
+        return "Keepalive"
 
     def _init(self):
         GPIO.setmode(GPIO.BCM)
@@ -23,4 +22,4 @@ class Keepalive(WriteResource):
 
     def _update(self):
         val = GPIO.input(self._pin)
-        self._write(struct.pack('?', val))
+        self._write(struct.pack("?", val))

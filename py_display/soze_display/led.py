@@ -16,7 +16,7 @@ class Led(ReadResource):
 
     @property
     def name(self):
-        return 'LED'
+        return "LED"
 
     def _init(self):
         # Initialize the hat and each LED

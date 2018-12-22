@@ -5,17 +5,16 @@ from soze_server.core.mode import register
 from .mode import LedMode
 
 
-@register('fade', LedMode.MODES)
+@register("fade", LedMode.MODES)
 class FadeMode(LedMode):
-
     def __init__(self):
-        super().__init__('fade')
+        super().__init__("fade")
         self._color_index = 0
         self._fade_start_time = 0
 
     def get_color(self, settings):
-        fade_colors = settings.get('led.fade.colors')
-        fade_time = settings.get('led.fade.fade_time')
+        fade_colors = settings.get("led.fade.colors")
+        fade_time = settings.get("led.fade.fade_time")
 
         if len(fade_colors) == 0:
             return BLACK

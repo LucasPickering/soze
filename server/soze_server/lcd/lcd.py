@@ -12,7 +12,7 @@ class Lcd(SettingsResource):
 
     @property
     def name(self):
-        return 'LCD'
+        return "LCD"
 
     def _after_open(self):
         self.set_size(self._width, self._height, True)
@@ -35,13 +35,15 @@ class Lcd(SettingsResource):
         self.clear()
 
     def _get_default_values(self):
-        return (BLACK, '')
+        return (BLACK, "")
 
     def _get_values(self):
-        mode = self._settings.get('lcd.mode')
+        mode = self._settings.get("lcd.mode")
         text = mode.get_text(self._settings)
-        if self._settings.get('lcd.link_to_led'):  # Special setting to use LED color
-            mode = self._settings.get('led.mode')
+        if self._settings.get(
+            "lcd.link_to_led"
+        ):  # Special setting to use LED color
+            mode = self._settings.get("led.mode")
         color = mode.get_color(self._settings)
 
         return (color, text)
@@ -98,7 +100,7 @@ class Lcd(SettingsResource):
         if force_update or self._width != width or self._height != height:
             self._width, self._height = width, height
             self._send_command(CMD_SIZE, width, height)
-            self._lines = [''] * height  # Resize the text buffer
+            self._lines = [""] * height  # Resize the text buffer
 
     def set_splash_text(self, splash_text):
         """
@@ -217,9 +219,13 @@ class Lcd(SettingsResource):
             # UTF-8 encodes 128+ as two bytes but we want just one byte for [0, 255]
             return bytes(ord(c) for c in s)
 
-        lines = [line[:self._width] for line in text.splitlines()[:self._height]]
+        lines = [
+            line[: self._width] for line in text.splitlines()[: self._height]
+        ]
         diff = diff_text(self._lines, lines)
         for (x, y), s in diff.items():
-            self.set_cursor_pos(x + 1, y + 1)  # Move to the cursor to the right spot
+            self.set_cursor_pos(
+                x + 1, y + 1
+            )  # Move to the cursor to the right spot
             self._write(encode_str(s))
         self._lines = lines

@@ -11,47 +11,38 @@ from soze_core.resource import ReadResource, WriteResource, format_bytes
 from soze_server.core.color import Color, BLACK
 from soze_server.lcd.helper import *
 
-logging.config.dictConfig({
-    'version': 1,
-    'formatters': {
-        'f': {
-            'format': '{asctime} [{threadName} {levelname}] {message}',
-            'datefmt': '%Y-%m-%d %H:%M:%S',
-            'style': '{',
-        }
-    },
-    'handlers': {
-        'file': {
-            'class': 'logging.FileHandler',
-            'formatter': 'f',
-            'filename': 'gui.log',
-            'mode': 'w',
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "f": {
+                "format": "{asctime} [{threadName} {levelname}] {message}",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+                "style": "{",
+            }
         },
-    },
-    'loggers': {
-        __name__: {
-            'handlers': ['file'],
-            'level': 'DEBUG',
+        "handlers": {
+            "file": {
+                "class": "logging.FileHandler",
+                "formatter": "f",
+                "filename": "gui.log",
+                "mode": "w",
+            }
         },
-    },
-})
+        "loggers": {__name__: {"handlers": ["file"], "level": "DEBUG"}},
+    }
+)
 logger = logging.getLogger(__name__)
 
-CFG_FILE = 'sozed.json'
+CFG_FILE = "sozed.json"
 DEFAULT_CFG = {
-    'led': {
-        'socket_addr': '/tmp/soze_led.sock',
-        'hat_addr': 0x60,
-        'pins': [3, 1, 2],  # RGB
+    "led": {
+        "socket_addr": "/tmp/soze_led.sock",
+        "hat_addr": 0x60,
+        "pins": [3, 1, 2],  # RGB
     },
-    'lcd': {
-        'socket_addr': '/tmp/soze_lcd.sock',
-        'serial_port': '/dev/ttyAMA0',
-    },
-    'keepalive': {
-        'socket_addr': '/tmp/soze_keepalive.sock',
-        'pin': 4,
-    },
+    "lcd": {"socket_addr": "/tmp/soze_lcd.sock", "serial_port": "/dev/ttyAMA0"},
+    "keepalive": {"socket_addr": "/tmp/soze_keepalive.sock", "pin": 4},
 }
 
 
@@ -74,7 +65,7 @@ class Led(CursesResource):
 
     @property
     def name(self):
-        return 'LED'
+        return "LED"
 
     def _set_color(self, color):
         curses_color = curses.color_pair(color.to_term_color())
@@ -98,8 +89,10 @@ class Lcd(CursesResource):
         def inner(func):
             def wrapper(*args):
                 func(*args)
+
             _lcd_commands[code] = (num_args, func)
             return wrapper
+
         return inner
 
     def __init__(self, *args, **kwargs):
@@ -108,12 +101,12 @@ class Lcd(CursesResource):
         # Unfortunately this has to be hardcoded
         self._custom_chars = {
             0: {
-                0x00: '▗',  # Half-bottom right
-                0x01: '▖',  # Half-bottom left
-                0x02: '▄',  # Half-bottom
-                0x03: '▜',  # Full-bottom right
-                0x04: '▛',  # Full-bottom left
-                0xff: '█',  # Full
+                0x00: "▗",  # Half-bottom right
+                0x01: "▖",  # Half-bottom left
+                0x02: "▄",  # Half-bottom
+                0x03: "▜",  # Full-bottom right
+                0x04: "▛",  # Full-bottom left
+                0xFF: "█",  # Full
             }
         }
         self._current_char_bank = None
@@ -123,7 +116,7 @@ class Lcd(CursesResource):
 
     @property
     def name(self):
-        return 'LCD'
+        return "LCD"
 
     @command(CMD_CLEAR)
     def _clear(self):
@@ -150,17 +143,21 @@ class Lcd(CursesResource):
     def _set_color(self, red, green, blue):
         color = Color(red, green, blue)
         color_pair = curses.color_pair(color.to_term_color())
-        self._window.bkgd(' ', color_pair)
+        self._window.bkgd(" ", color_pair)
         self._window.noutrefresh()
 
     @command(CMD_CURSOR_POS, 2)
     def _set_cursor_pos(self, x, y):
         if self._width is None or self._height is None:
-            raise ValueError("Width and height must be set before setting cursor pos")
+            raise ValueError(
+                "Width and height must be set before setting cursor pos"
+            )
         better_x = x - 1  # Fuck 1-indexing
         better_y = y - 1  # Once again, fuck 1-indexing
         wrapped_x = better_x % self._width  # Wrap on x
-        wrapped_y = (int(better_x / self._width) + better_y) % self._height  # Wrap on x and y
+        wrapped_y = (
+            int(better_x / self._width) + better_y
+        ) % self._height  # Wrap on x and y
         self._cursor_x = wrapped_x + 1
         self._cursor_y = wrapped_y + 1
 
@@ -212,27 +209,33 @@ class Lcd(CursesResource):
             cmd = data[1]  # Get the command byte
 
             try:
-                num_args, cmd_func = _lcd_commands[cmd]  # Figure out how many args we want
+                num_args, cmd_func = _lcd_commands[
+                    cmd
+                ]  # Figure out how many args we want
             except KeyError:
-                logger.error(f"Unknown command {hex(cmd)} in {format_bytes(data)}")
+                logger.error(
+                    f"Unknown command {hex(cmd)} in {format_bytes(data)}"
+                )
             args = data[2:]
             if len(args) == num_args:
                 cmd_func(self, *args)  # Call the function with the args
             else:
-                logger.error(f"Expected {num_args} args, got {len(args)}: {format_bytes(data)}")
+                logger.error(
+                    f"Expected {num_args} args, got {len(args)}: {format_bytes(data)}"
+                )
         else:
             # Data is just text, write to the screen
-            s = ''.join(decode_byte(b) for b in data)
+            s = "".join(decode_byte(b) for b in data)
             self._write_str(s)
 
 
 class Keepalive(WriteResource):
     @property
     def name(self):
-        return 'Keepalive'
+        return "Keepalive"
 
     def _update(self):
-        self._write(b'\x01')
+        self._write(b"\x01")
 
 
 class SozeDisplay(SozeComponent):
@@ -249,13 +252,17 @@ class SozeDisplay(SozeComponent):
 
     def _init_resources(self, cfg):
         return [
-            Led(**cfg['led']),
-            Lcd(**cfg['lcd']),
-            Keepalive(**cfg['keepalive']),
+            Led(**cfg["led"]),
+            Lcd(**cfg["lcd"]),
+            Keepalive(**cfg["keepalive"]),
         ]
 
     def _get_extra_threads(self, cfg):
-        return [Thread(target=self._update_window, name='Curses-Thread', daemon=True)]
+        return [
+            Thread(
+                target=self._update_window, name="Curses-Thread", daemon=True
+            )
+        ]
 
     def _update_window(self):
         while True:
@@ -268,5 +275,5 @@ def main(stdscr):
     c.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     curses.wrapper(main)

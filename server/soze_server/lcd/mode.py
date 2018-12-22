@@ -8,7 +8,7 @@ class LcdMode(Mode):
     MODES = {}
 
     def get_color(self, settings):
-        return settings.get('lcd.color')
+        return settings.get("lcd.color")
 
     @abc.abstractmethod
     def get_text(self, settings):

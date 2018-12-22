@@ -3,14 +3,13 @@ from soze_core.resource import ReadResource
 
 
 class Keepalive(ReadResource):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._alive = False
 
     @property
     def name(self):
-        return 'Keepalive'
+        return "Keepalive"
 
     @property
     def is_alive(self):

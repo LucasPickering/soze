@@ -5,20 +5,22 @@ from . import helper
 from .mode import LcdMode
 
 
-@register('clock', LcdMode.MODES)
+@register("clock", LcdMode.MODES)
 class ClockMode(LcdMode):
 
-    _LCD_WIDTH = 20  # This won't work for any other size LCD so fuck it just hardcode it
-    _LONG_DAY_FORMAT = '{d:%A}, {d:%B} {d.day}'
-    _SHORT_DAY_FORMAT = '{d:%A}, {d:%b} {d.day}'
-    _SECONDS_FORMAT = ' {d:%S}'
-    _TIME_FORMAT = '{d:%l}:{d:%M}'
+    _LCD_WIDTH = (
+        20
+    )  # This won't work for any other size LCD so fuck it just hardcode it
+    _LONG_DAY_FORMAT = "{d:%A}, {d:%B} {d.day}"
+    _SHORT_DAY_FORMAT = "{d:%A}, {d:%b} {d.day}"
+    _SECONDS_FORMAT = " {d:%S}"
+    _TIME_FORMAT = "{d:%l}:{d:%M}"
 
     def __init__(self):
-        super().__init__('clock')
+        super().__init__("clock")
 
     def get_color(self, settings):
-        return settings.get('lcd.color')
+        return settings.get("lcd.color")
 
     def get_text(self, settings):
         lines = []  # This will we populated as we go along
@@ -37,6 +39,8 @@ class ClockMode(LcdMode):
 
         time_str = ClockMode._TIME_FORMAT.format(d=now)
         time_lines = helper.make_big_text(time_str)  # Rest of the fucking lines
-        lines += [' {}'.format(line) for line in time_lines]  # Pad each line with a space
+        lines += [
+            " {}".format(line) for line in time_lines
+        ]  # Pad each line with a space
 
-        return '\n'.join(lines)
+        return "\n".join(lines)

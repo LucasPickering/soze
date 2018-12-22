@@ -36,7 +36,7 @@ class Setting(metaclass=abc.ABCMeta):
 
 
 class ModeSetting(Setting):
-    def __init__(self, mode_class, default_mode='off'):
+    def __init__(self, mode_class, default_mode="off"):
         self._mode_class = mode_class
         super().__init__(default_mode)
 
@@ -63,7 +63,9 @@ class ColorSetting(Setting):
 
     def _deserialize(self, val):
         if not isinstance(val, Color):
-            val = Color.unpack(val)  # This will raise an error if it isn't unpackable
+            val = Color.unpack(
+                val
+            )  # This will raise an error if it isn't unpackable
         return val
 
 
@@ -128,23 +130,21 @@ class Settings:
                 LED and LCD mode are examples of user settings.
     """
 
-    SETTINGS_FILE = 'settings.p'
+    SETTINGS_FILE = "settings.p"
     DEFAULT_SETTINGS = {
-        'led': {
-            'mode': ModeSetting(LedMode),
-            'static': {
-                'color': ColorSetting(),
-            },
-            'fade': {
-                'colors': ListSetting(ColorSetting()),
-                'saved': DictSetting(ListSetting(ColorSetting())),
-                'fade_time': FloatSetting(5.0, 1.0, 30.0),
+        "led": {
+            "mode": ModeSetting(LedMode),
+            "static": {"color": ColorSetting()},
+            "fade": {
+                "colors": ListSetting(ColorSetting()),
+                "saved": DictSetting(ListSetting(ColorSetting())),
+                "fade_time": FloatSetting(5.0, 1.0, 30.0),
             },
         },
-        'lcd': {
-            'mode': ModeSetting(LcdMode),
-            'color': ColorSetting(),
-            'link_to_led': BoolSetting(),
+        "lcd": {
+            "mode": ModeSetting(LcdMode),
+            "color": ColorSetting(),
+            "link_to_led": BoolSetting(),
         },
     }
 
@@ -162,13 +162,13 @@ class Settings:
         self._save()  # Save in case anything changed
 
     def _get_at_path(self, path):
-        path = path.replace('.', '/')
+        path = path.replace(".", "/")
         d = self._settings
-        name = ''
+        name = ""
 
         # Drill down into the settings
         if path:
-            for key in path.split('/'):  # Split on . or /
+            for key in path.split("/"):  # Split on . or /
                 try:
                     d = d[key]
                 except KeyError:
@@ -214,32 +214,40 @@ class Settings:
                     defaults does not get included at all. This indicates that a setting was
                     renamed or removed.
         """
+
         def update_dict(base, new):
             for k, v in new.items():
                 if k in base:  # Exclude things that only appear in the new dict
                     base_v = base[k]
-                    if type(base_v) == type(v):  # If the type differs, stick with the base value
+                    if type(base_v) == type(
+                        v
+                    ):  # If the type differs, stick with the base value
                         if isinstance(v, dict):  # RECURSION
                             update_dict(base_v, v)
                         else:
                             base[k] = v
+
         try:
-            with open(self._settings_file, 'rb') as f:
+            with open(self._settings_file, "rb") as f:
                 loaded = pickle.load(f)
             update_dict(self._settings, loaded)
             logger.info(f"Loaded settings from '{self._settings_file}'")
         except FileNotFoundError:
             logger.info(f"Created '{self._settings_file}'")
         except Exception as e:
-            logger.warning(f"Failed to load settings from '{self._settings_file}': {e}")
+            logger.warning(
+                f"Failed to load settings from '{self._settings_file}': {e}"
+            )
 
     def _save(self):
         """
         @brief      Saves the current settings to the settings file.
         """
         try:
-            with open(self._settings_file, 'wb') as f:
+            with open(self._settings_file, "wb") as f:
                 pickle.dump(self._settings, f)
             logger.debug(f"Saved settings to '{self._settings_file}'")
         except Exception as e:
-            logger.warning(f"Failed to save settings to '{self._settings_file}': {e}")
+            logger.warning(
+                f"Failed to save settings to '{self._settings_file}': {e}"
+            )

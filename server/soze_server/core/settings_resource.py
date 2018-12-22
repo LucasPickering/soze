@@ -11,7 +11,11 @@ class SettingsResource(WriteResource):
 
     def _update(self):
         # Calculate real values if the keepalive is alive, otherwise use default values
-        values = self._get_values() if self._keepalive.is_alive else self._get_default_values()
+        values = (
+            self._get_values()
+            if self._keepalive.is_alive
+            else self._get_default_values()
+        )
         self._apply_values(*values)
 
     @abc.abstractmethod

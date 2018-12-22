@@ -5,7 +5,7 @@ from soze_server.core.settings_resource import SettingsResource
 class Led(SettingsResource):
     @property
     def name(self):
-        return 'LED'
+        return "LED"
 
     def set_color(self, color):
         self._write(bytes(color))
@@ -20,7 +20,7 @@ class Led(SettingsResource):
         return (BLACK,)
 
     def _get_values(self):
-        return (self._settings.get('led.mode').get_color(self._settings),)
+        return (self._settings.get("led.mode").get_color(self._settings),)
 
     def _apply_values(self, color):
         self.set_color(color)
