@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  server:
+    build:
+      dockerfile: ./server
+      context: .
+    command: sozes
+    volumes:
+      - ./core/:/app/soze/core:rw
+      - ./server/:/app/soze/server:rw
+      - /tmp:/tmp:rw
+    environment:
+      - FLASK_ENV=development
+    ports:
+      - "5000:5000"

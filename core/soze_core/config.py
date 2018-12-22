@@ -19,7 +19,7 @@ def load(cfg_dir, cfg_file, default_cfg):
         pass
 
     # Write back to the file
-    with open(cfg_path, 'w') as f:
+    with open(cfg_path, "w") as f:
         json.dump(cfg, f, indent=4)
 
     logger.info(f"Loaded config: {cfg}")

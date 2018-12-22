@@ -27,15 +27,22 @@ class SozeComponent:
         # Register exit handlers
         def stop_handler(sig, frame):
             self.stop()
+
         signal.signal(signal.SIGINT, stop_handler)
         signal.signal(signal.SIGTERM, stop_handler)
 
     @classmethod
     def from_cmd_args(cls, *args, **kwargs):
         parser = argparse.ArgumentParser()
-        parser.add_argument('working_dir', nargs='?', default='.',
-                            help="Directory to store settings, config, etc.")
-        parser.add_argument('--debug', '-d', action='store_true', help="Enable debug mode")
+        parser.add_argument(
+            "working_dir",
+            nargs="?",
+            default=".",
+            help="Directory to store settings, config, etc.",
+        )
+        parser.add_argument(
+            "--debug", "-d", action="store_true", help="Enable debug mode"
+        )
         cmd_args = parser.parse_args()
 
         return cls(*args, args=cmd_args, **kwargs)

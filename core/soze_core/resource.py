@@ -9,7 +9,7 @@ from . import logger
 
 
 def format_bytes(data):
-    return ' '.join('{:02x}'.format(b) for b in data)
+    return " ".join("{:02x}".format(b) for b in data)
 
 
 class Resource(Thread, metaclass=abc.ABCMeta):
@@ -17,14 +17,19 @@ class Resource(Thread, metaclass=abc.ABCMeta):
     OPEN_RETRY_PAUSE = 3.0
 
     def __init__(self, socket_addr, pause=0.1, **kwargs):
-        super().__init__(name=f'{self.name}-Thread', target=self._loop)
+        super().__init__(name=f"{self.name}-Thread", target=self._loop)
         self._shutdown = Event()
         self._socket_addr = socket_addr
+        # If the address is a string, then assume this is a Unix Domain Socket
+        self._is_uds = isinstance(socket_addr, str)
         self._pause = pause
         self._init_socket()
 
     def _init_socket(self):
-        self._socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        self._socket = socket.socket(
+            socket.AF_UNIX if self._is_uds else socket.AF_INET,
+            socket.SOCK_DGRAM,
+        )
         self._socket.settimeout(1.0)
 
     @property
@@ -46,30 +51,31 @@ class Resource(Thread, metaclass=abc.ABCMeta):
 
     def _init(self):
         """
-        @brief      Runs before the main loop, and before any socket is opened. This should be used
-                    for opening hardware resources.
+        @brief      Runs before the main loop, and before any socket is opened.
+                    This should be used for opening hardware resources.
         """
         pass
 
     def _cleanup(self):
         """
-        @brief      Runs after the socket is shut down and the main loop exits. This should be used
-                    to close hardware resources.
+        @brief      Runs after the socket is shut down and the main loop exits.
+                    This should be used to close hardware resources.
         """
         pass
 
     def _after_open(self):
         """
-        @brief      Runs immediately after the socket is opened. Should be used for initialization
-                    that requires the socket.
+        @brief      Runs immediately after the socket is opened. Should be used
+                    for initialization that requires the socket.
         """
         pass
 
     def _before_close(self):
         """
-        @brief      Runs immediately before the socket closes, but only during a graceful stop. If
-                    the socket is closing because of an error, this will NOT be called. Should be
-                    used for cleanup that requires the socket.
+        @brief      Runs immediately before the socket closes, but only during
+                    a graceful stop. If the socket is closing because of an
+                    error, this will NOT be called. Should be used for cleanup
+                    that requires the socket.
         """
         pass
 
@@ -92,11 +98,16 @@ class Resource(Thread, metaclass=abc.ABCMeta):
                         pass
                     finally:
                         self._close()
-                        self._init_socket()  # Re-create the socket so we can try again
+                        # Re-create the socket so we can try again
+                        self._init_socket()
                 else:
-                    logger.debug(f"Failed to open socket {self._socket_addr}. "
-                                 f"Retrying in {self.OPEN_RETRY_PAUSE} seconds...")
-                    time.sleep(self.OPEN_RETRY_PAUSE)  # Sleep for a bit, then try again
+                    logger.debug(
+                        f"Failed to open socket {self._socket_addr}. "
+                        f"Retrying in {self.OPEN_RETRY_PAUSE} seconds..."
+                    )
+                    time.sleep(
+                        self.OPEN_RETRY_PAUSE
+                    )  # Sleep for a bit, then try again
         except Exception:
             logger.error(traceback.format_exc())
         finally:
@@ -118,15 +129,19 @@ class ReadResource(Resource):
             logger.debug(f"Listening on {self._socket_addr}")
             return True
         except OSError as e:
-            if e.errno == 98:  # Address already in use
-                logger.warning(f"{self._socket_addr} already exists, removing it...")
+            if e.errno == 98:
+                # Address already in use. Only relevant for UDS.
+                logger.warning(
+                    f"{self._socket_addr} already exists, removing it..."
+                )
                 os.unlink(self._socket_addr)  # Remove the file and try again
                 return False
             raise e
 
     def _close(self):
         super()._close()
-        os.unlink(self._socket_addr)
+        if self._is_uds:
+            os.unlink(self._socket_addr)
 
     def _read(self, num_bytes=64):
         try:
@@ -156,6 +171,8 @@ class WriteResource(Resource):
     def _write(self, data):
         num_written = self._socket.send(data)
         if num_written != len(data):
-            logger.error(f"Expected to send {len(data)} bytes ({format_bytes(data)}),"
-                         f" but only sent {num_written} bytes")
+            logger.error(
+                f"Expected to send {len(data)} bytes ({format_bytes(data)}),"
+                f" but only sent {num_written} bytes"
+            )
         return num_written
