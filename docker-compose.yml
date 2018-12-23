@@ -14,3 +14,14 @@ services:
       - FLASK_ENV=development
     ports:
       - "5000:5000"
+
+  webapp:
+    build: ./webapp/
+    command: sh -c "npm i && npm start"
+    volumes:
+      - ./webapp/:/app/soze/webapp:rw
+    environment:
+      - NODE_ENV=development
+      - SOZE_SERVER=http://server:5000/
+    ports:
+      - "3000:3000"
