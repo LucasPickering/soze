@@ -6,6 +6,6 @@ setup(
     url="https://github.com/LucasPickering/soze",
     author="Lucas Pickering",
     packages=find_packages(),
-    install_requires=["flask"],
+    install_requires=["soze_core", "flask"],
     entry_points={"console_scripts": ["sozes = soze_server.core.server:main"]},
 )

@@ -3,8 +3,8 @@ version: "3"
 services:
   server:
     build:
-      dockerfile: ./server
-      context: .
+      dockerfile: ./server/Dockerfile
+      context: . # Install needs access to the core package
     command: sozes
     volumes:
       - ./core/:/app/soze/core:rw
