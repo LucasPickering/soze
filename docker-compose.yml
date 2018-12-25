@@ -1,27 +1,29 @@
 version: "3"
 
 services:
-  server:
-    build:
-      dockerfile: ./server/Dockerfile
-      context: . # Install needs access to the core package
-    command: sozes
+  redis:
+    image: redis:5
+    ports:
+      - "6379:6379"
+
+  api:
+    build: ./api/
+    command: flask run --host=0.0.0.0
     volumes:
-      - ./core/:/app/soze/core:rw
-      - ./server/:/app/soze/server:rw
-      - /tmp:/tmp:rw
+      - ./api:/app/soze/api
     environment:
+      - FLASK_APP=soze_api.api
       - FLASK_ENV=development
+      - REDIS_DB=redis://redis:6379/0
     ports:
       - "5000:5000"
-
-  webapp:
-    build: ./webapp/
-    command: sh -c "npm i && npm start"
-    volumes:
-      - ./webapp/:/app/soze/webapp:rw
-    environment:
-      - NODE_ENV=development
-      - SOZE_SERVER=http://server:5000/
-    ports:
-      - "3000:3000"
+  # webapp:
+  #   build: ./webapp/
+  #   command: sh -c "npm i && npm start"
+  #   volumes:
+  #     - ./webapp/:/app/soze/webapp:rw
+  #   environment:
+  #     - NODE_ENV=development
+  #     - SOZE_API_HOST=http://api:5000/
+  #   ports:
+  #     - "3000"
