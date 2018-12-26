@@ -8,6 +8,11 @@ app = Flask(__name__)
 settings = Settings(os.environ["REDIS_DB"])
 
 
+@app.before_first_request
+def init_settings():
+    settings.init_redis()
+
+
 @app.route("/", defaults={"path": ""}, methods=["GET", "POST"])
 @app.route("/<path:path>", methods=["GET", "POST"])
 def route(path):

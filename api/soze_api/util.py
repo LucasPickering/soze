@@ -1,9 +1,8 @@
 import flatten_dict
-import re
 
 
 def to_colon_path(path):
-    return re.sub(r"[/.]", ":", path)
+    return path.replace("/", ":")
 
 
 def get_at_path(obj, path):

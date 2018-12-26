@@ -28,7 +28,7 @@ class Settings:
             },
         },
         "lcd": {
-            "mode": ModeSetting(["off", "lcd"], "off"),
+            "mode": ModeSetting(["off", "clock"], "off"),
             "color": ColorSetting(),
             "link_to_led": BoolSetting(),
         },
@@ -38,12 +38,11 @@ class Settings:
         # This doesn't actually initialize a connection
         self._redis = redis.from_url(redis_url)
 
-    def init(self):
+    def init_redis(self):
         # Settings could have changed during load, e.g. new settings that
         # weren't in Redis. Save again to get those into Redis.
         logger.info("Initializing Redis data...")
-        initial_data = self.get("")
-        self.set("", initial_data)
+        self.set("", self.get(""))
         logger.info("Redis initialized")
 
     def get(self, path):
@@ -61,8 +60,7 @@ class Settings:
         # Convert each value using its setting. If we don't have a value for a
         # setting, then its default value will be used
         converted = {
-            k: setting.to_redis(k_to_v.get(k, setting.default_value))
-            for k, setting in settings.items()
+            k: setting.from_redis(k_to_v[k]) for k, setting in settings.items()
         }
 
         # Unflatten the list of values into a dict and return it
@@ -81,4 +79,4 @@ class Settings:
         for k, v in coerced.items():
             logger.debug(f"Set {k} to {v}")
 
-        return util.from_redis(coerced)
+        return util.from_redis(coerced, key_prefix)

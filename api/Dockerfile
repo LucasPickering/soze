@@ -4,4 +4,4 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/soze/api
 ADD . .
-RUN pip install -e .
+RUN pip install -r requirements.txt
