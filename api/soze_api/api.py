@@ -5,7 +5,7 @@ from .settings import Settings
 
 
 app = Flask(__name__)
-settings = Settings(os.environ["REDIS_DB"])
+settings = Settings(os.environ["REDIS_HOST"])
 
 
 @app.before_first_request

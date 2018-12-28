@@ -6,6 +6,14 @@ services:
     ports:
       - "6379:6379"
 
+  reducer:
+    build: ./reducer/
+    command: python -m soze_reducer
+    volumes:
+      - ./reducer:/app/soze/reducer
+    environment:
+      - REDIS_HOST=redis://redis:6379/0
+
   api:
     build: ./api/
     command: flask run --host=0.0.0.0
@@ -14,7 +22,7 @@ services:
     environment:
       - FLASK_APP=soze_api.api
       - FLASK_ENV=development
-      - REDIS_DB=redis://redis:6379/0
+      - REDIS_HOST=redis://redis:6379/0
     ports:
       - "5000:5000"
   # webapp:
