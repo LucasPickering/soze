@@ -11,7 +11,7 @@ from .keepalive import Keepalive
 class SozeReducer:
     def __init__(self, redis_url):
         self._redis = redis.from_url(redis_url)
-        self._pubsub = self._redis.pubsub(ignore_subscribe_messages=True)
+        self._pubsub = self._redis.pubsub()
         self._pubsub_thread = None  # Will be populated during run
 
         self._keepalive = Keepalive(

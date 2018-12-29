@@ -6,22 +6,18 @@ from .resource import RedisSubscriber
 
 class Keepalive(RedisSubscriber):
 
-    KEEPALIVE_KEY = "reducer:keepalive"
+    _KEEPALIVE_KEY = "reducer:keepalive"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, sub_channel="r2d:keepalive", **kwargs)
         self._alive = False
-
-    @property
-    def sub_channel(self):
-        return "r2d:keepalive"
 
     @property
     def is_alive(self):
         return self._alive
 
     def _on_pub(self, msg):
-        is_alive = struct.unpack("?", self._redis.get(__class__.KEEPALIVE_KEY))
+        is_alive = struct.unpack("?", self._redis.get(__class__._KEEPALIVE_KEY))
         self._set_alive(is_alive)
 
     def _set_alive(self, alive):
