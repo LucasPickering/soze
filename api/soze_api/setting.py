@@ -59,15 +59,15 @@ class Setting(metaclass=abc.ABCMeta):
         return f"<{str(self)}: default={self.default_value}>"
 
 
-class ModeSetting(Setting):
-    def __init__(self, valid_modes, default_value):
-        self._valid_modes = {mode.lower() for mode in valid_modes}
+class EnumSetting(Setting):
+    def __init__(self, valid_values, default_value):
+        self._valid_values = {val.lower() for val in valid_values}
         super().__init__(str, default_value)
 
     def _validate(self, value):
         super()._validate(value)  # Type-checking validation
-        if value.lower() not in self._valid_modes:
-            raise ValueError(f"Invalid mode: {value}")
+        if value.lower() not in self._valid_values:
+            raise ValueError(f"Invalid value: {value}")
 
     def _convert_from_redis(self, value):
         return value.decode()
@@ -88,22 +88,6 @@ class ColorSetting(Setting):
 
     def _convert_from_redis(self, value):
         return int(value)
-
-
-class BoolSetting(Setting):
-    def __init__(self, default_value=False):
-        super().__init__(bool, default_value)
-
-    def _convert_to_redis(self, value):
-        return str(value)
-
-    def _convert_from_redis(self, value):
-        lower = value.decode().lower()
-        if lower == "true":
-            return True
-        if lower == "false":
-            return False
-        raise ValueError(f"Unknown bool value: {value}")
 
 
 class FloatSetting(Setting):

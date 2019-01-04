@@ -1,30 +1,40 @@
 import os
+import redis
 from flask import Flask, jsonify, redirect, request
 
-from .settings import Settings
+from . import logger
+from .resource import Led, Lcd
 
 
 app = Flask(__name__)
-settings = Settings(os.environ["REDIS_HOST"])
+# This will NOT initiate a connection to Redis yet
+redis_client = redis.from_url(os.environ["REDIS_HOST"])
+resources = {res.name: res for res in [Led(redis_client), Lcd(redis_client)]}
 
 
 @app.before_first_request
 def init_settings():
-    settings.init_redis()
+    # Initialize Redis for each resource. This will insert any missing keys.
+    logger.info("Initializing Redis data...")
+    for resource in resources.values():
+        resource.init_redis()
+    logger.info("Redis initialized")
 
 
-@app.route("/", defaults={"path": ""}, methods=["GET", "POST"])
-@app.route("/<path:path>", methods=["GET", "POST"])
-def route(path):
+# One route handles GET/POST for all resources
+@app.route(f"/<resource_name>", methods=["GET", "POST"])
+def resource_route(resource_name):
     try:
-        if request.method == "GET":
-            data = settings.get(path)
-        elif request.method == "POST":
-            data = settings.set(path, request.get_json())
-    except KeyError as e:
-        return jsonify(detail=f"Invalid setting: {str(e)}"), 404
-    except ValueError as e:
-        return jsonify(detail=str(e)), 400
+        resource = resources[resource_name]
+    except KeyError:
+        return jsonify(detail=f"Unknown resource: {resource_name}"), 404
+    if request.method == "GET":
+        data = resource.get()
+    elif request.method == "POST":
+        try:
+            data = resource.update(request.get_json())
+        except (KeyError, ValueError) as e:
+            return jsonify(detail=str(e)), 400
     return jsonify(data)
 
 
