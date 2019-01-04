@@ -52,7 +52,7 @@ class ReducerResource(RedisSubscriber):
         self._mode = None
         self._settings = None
 
-        self._load_settings()  # Load settings frmo Redis for the first time
+        self._load_settings()  # Load settings from Redis for the first time
 
     @property
     def name(self):

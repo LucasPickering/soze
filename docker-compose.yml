@@ -6,13 +6,13 @@ services:
     ports:
       - "6379:6379"
 
-  # reducer:
-  #   build: ./reducer/
-  #   command: python -m soze_reducer
-  #   volumes:
-  #     - ./reducer:/app/soze/reducer
-  #   environment:
-  #     - REDIS_HOST=redis://redis:6379/0
+  reducer:
+    build: ./reducer/
+    command: python -m soze_reducer
+    volumes:
+      - ./reducer:/app/soze/reducer
+    environment:
+      - REDIS_HOST=redis://redis:6379/0
 
   api:
     build: ./api/

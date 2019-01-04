@@ -1,3 +1,4 @@
+import json
 import time
 
 from soze_reducer.core.color import BLACK
@@ -7,14 +8,18 @@ from .mode import LedMode
 
 @register("fade", LedMode.MODES)
 class FadeMode(LedMode):
+
+    _FADE_COLORS_KEY = "fade:colors"
+    _FADE_TIME_KEY = "fade:fade_time"
+
     def __init__(self):
         super().__init__("fade")
         self._color_index = 0
         self._fade_start_time = 0
 
     def get_color(self, settings):
-        fade_colors = settings.get("led.fade.colors")
-        fade_time = settings.get("led.fade.fade_time")
+        fade_colors = json.loads(settings[__class__._FADE_COLORS_KEY])
+        fade_time = float(settings[__class__._FADE_TIME_KEY])
 
         if len(fade_colors) == 0:
             return BLACK
