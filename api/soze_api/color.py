@@ -1,11 +1,13 @@
 import re
 
+from .error import SozeError
+
 
 def _check(val):
     if not isinstance(val, int):
-        raise TypeError(f"Value must be int, but was {type(val)}")
+        raise SozeError(f"Value must be int, but was {type(val)}")
     if val < 0 or val > 255:
-        raise ValueError(f"Value must be [0, 255], but was {val}")
+        raise SozeError(f"Value must be [0, 255], but was {val}")
     return val
 
 
@@ -38,7 +40,7 @@ class Color:
             if m:
                 # Parse the hex value to an int
                 return cls.from_hexcode(int(m.group(1), 16))
-            raise ValueError(f"Invalid string format for color data: {data!r}")
+            raise SozeError(f"Invalid string format for color data: {data!r}")
         except TypeError:
             pass  # Data isn't a string, fall through to the next case
 
@@ -56,7 +58,7 @@ class Color:
         except (TypeError, ValueError):
             pass  # Not an iterable or wrong length, fall through to the error
 
-        raise ValueError(f"Invalid format for color data: {data!r}")
+        raise SozeError(f"Invalid format for color data: {data!r}")
 
     @property
     def red(self):
@@ -83,7 +85,7 @@ class Color:
         return f"({self.red}, {self.green}, {self.blue})"
 
     def __repr__(self):
-        return f"<Color: {str(self)}>"
+        return f"<Color: {self}>"
 
 
 BLACK = Color(0, 0, 0)

@@ -2,6 +2,7 @@ import abc
 import pickle
 
 from .color import BLACK, Color
+from .error import SozeError
 
 
 class Setting(metaclass=abc.ABCMeta):
@@ -15,7 +16,7 @@ class Setting(metaclass=abc.ABCMeta):
 
     def _validate(self, value):
         if self._type and type(value) != self._type:
-            raise ValueError(
+            raise SozeError(
                 f"Incorrect type for {value}. Expected {self._type}."
             )
 
@@ -58,18 +59,18 @@ class Setting(metaclass=abc.ABCMeta):
         return self.__class__.__name__
 
     def __repr__(self):
-        return f"<{str(self)}: default={self.default_value}>"
+        return f"<{self}: default={self.default_value}>"
 
 
 class EnumSetting(Setting):
     def __init__(self, valid_values, default_value):
         self._valid_values = {val.lower() for val in valid_values}
-        super().__init__(None, default_value)
+        super().__init__(str, default_value)
 
     def _validate(self, value):
         super()._validate(value)  # Type-checking validation
         if value.lower() not in self._valid_values:
-            raise ValueError(f"Invalid value: {value}")
+            raise SozeError(f"Invalid value: {value}")
 
     def _convert_from_redis(self, value):
         return value.decode()
@@ -101,9 +102,9 @@ class FloatSetting(Setting):
         super()._validate(value)  # Type-checking validation
 
         if self._min is not None and value < self._min:
-            raise ValueError(f"Value {value} below minimum of {self._min}")
+            raise SozeError(f"Value {value} below minimum of {self._min}")
         if self._max is not None and value > self._max:
-            raise ValueError(f"Value {value} above maximum of {self._max}")
+            raise SozeError(f"Value {value} above maximum of {self._max}")
 
     def _convert_from_redis(self, value):
         return float(value)

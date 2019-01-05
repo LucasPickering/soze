@@ -1,0 +1,2 @@
+class SozeError(Exception):
+    pass

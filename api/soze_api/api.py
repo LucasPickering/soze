@@ -3,6 +3,7 @@ import redis
 from flask import Flask, jsonify, redirect, request
 
 from . import logger
+from .error import SozeError
 from .resource import Led, Lcd
 
 
@@ -33,7 +34,7 @@ def resource_route(resource_name):
     elif request.method == "POST":
         try:
             data = resource.update(request.get_json())
-        except (KeyError, ValueError) as e:
+        except SozeError as e:
             return jsonify(detail=str(e)), 400
     return jsonify(data)
 

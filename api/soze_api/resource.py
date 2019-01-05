@@ -1,5 +1,6 @@
 import flatten_dict
 
+from .error import SozeError
 from .setting import (
     Setting,
     EnumSetting,
@@ -76,11 +77,14 @@ class Resource:
             if isinstance(settings_obj, Setting):
                 return settings_obj.to_redis(value_obj)
             if not isinstance(value_obj, dict):
-                raise ValueError("Value must be a valid setting or a dict")
+                raise SozeError("Value must be a valid setting or a dict")
             # Recur down to each dict field and convert their values
-            return {
-                k: convert(settings_obj[k], v) for k, v in value_obj.items()
-            }
+            try:
+                return {
+                    k: convert(settings_obj[k], v) for k, v in value_obj.items()
+                }
+            except KeyError as e:
+                raise SozeError(f"Unknown key: {e}")
 
         # Coerce each value to something consumable by Redis.
         # This will also validate each value.

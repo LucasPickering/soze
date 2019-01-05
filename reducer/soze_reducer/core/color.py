@@ -71,7 +71,7 @@ class Color:
         return f"({self.red}, {self.green}, {self.blue})"
 
     def __repr__(self):
-        return f"<Color: {str(self)}>"
+        return f"<Color: {self}>"
 
     def __add__(self, other):
         if not isinstance(other, Color):
