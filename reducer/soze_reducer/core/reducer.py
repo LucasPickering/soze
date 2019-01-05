@@ -1,4 +1,3 @@
-import os
 import redis
 import signal
 
@@ -61,8 +60,3 @@ class SozeReducer:
         self._pubsub_thread.stop()  # This will unsub from all channels
         for res in self._resources:
             res.stop()
-
-
-def main():
-    s = SozeReducer(os.environ["REDIS_HOST"])
-    s.run()

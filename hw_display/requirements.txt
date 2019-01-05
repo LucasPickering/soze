@@ -1,0 +1,3 @@
+pyserial
+redis
+# Adafruit-Motor-HAT-Python must also be installed manually

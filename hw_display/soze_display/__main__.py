@@ -1,9 +1,9 @@
 import argparse
 
-from soze_reducer.core.reducer import SozeReducer
+from soze_display.display import SozeDisplay
 
 
-parser = argparse.ArgumentParser(description="State manager for LED/LCD")
+parser = argparse.ArgumentParser(description="Hardware-based LED/LCD display")
 parser.add_argument(
     "--redis",
     "-r",
@@ -12,4 +12,4 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-SozeReducer(args.redis).run()
+SozeDisplay(args.redis).run()

@@ -8,13 +8,11 @@ services:
 
   reducer:
     build: ./reducer/
-    command: python -m soze_reducer
+    command: python -m soze_reducer -r redis://redis:6379/0
     depends_on:
       - redis
     volumes:
       - ./reducer:/app/soze/reducer
-    environment:
-      - REDIS_HOST=redis://redis:6379/0
 
   api:
     build: ./api/

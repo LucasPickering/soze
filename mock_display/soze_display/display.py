@@ -296,8 +296,8 @@ class Keepalive(Thread):
 
 
 class SozeDisplay:
-    def __init__(self, redis_host):
-        redis_client = redis.from_url(redis_host)
+    def __init__(self, redis_url):
+        redis_client = redis.from_url(redis_url)
         self._pubsub = redis_client.pubsub()
 
         self._should_run = True
@@ -341,18 +341,3 @@ class SozeDisplay:
     def _stop_threads(self):
         self._pubsub_thread.stop()  # Will unsub from all channels
         self._keepalive.stop()
-
-
-def main(stdscr):
-    parser = argparse.ArgumentParser(
-        description="Curses-based LED/LCD mock display"
-    )
-    parser.add_argument(
-        "--redis",
-        "-r",
-        default="redis://localhost:6379",
-        help="URL for the Redis host",
-    )
-    args = parser.parse_args()
-
-    SozeDisplay(args.redis).run()
