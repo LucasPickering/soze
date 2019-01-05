@@ -1,5 +1,7 @@
 import abc
-import json
+import pickle
+
+from .color import BLACK, Color
 
 
 class Setting(metaclass=abc.ABCMeta):
@@ -12,7 +14,7 @@ class Setting(metaclass=abc.ABCMeta):
         return self._default_value
 
     def _validate(self, value):
-        if type(value) != self._type:
+        if self._type and type(value) != self._type:
             raise ValueError(
                 f"Incorrect type for {value}. Expected {self._type}."
             )
@@ -62,7 +64,7 @@ class Setting(metaclass=abc.ABCMeta):
 class EnumSetting(Setting):
     def __init__(self, valid_values, default_value):
         self._valid_values = {val.lower() for val in valid_values}
-        super().__init__(str, default_value)
+        super().__init__(None, default_value)
 
     def _validate(self, value):
         super()._validate(value)  # Type-checking validation
@@ -74,20 +76,14 @@ class EnumSetting(Setting):
 
 
 class ColorSetting(Setting):
+    def __init__(self, default_value=BLACK.to_hexcode()):
+        super().__init__(None, default_value)
 
-    BLACK = 0x000000
-    WHITE = 0xFFFFFF
-
-    def __init__(self, default_value=BLACK):
-        super().__init__(int, default_value)
-
-    def _validate(self, value):
-        super()._validate(value)  # Type-checking validation
-        if value < __class__.BLACK or __class__.WHITE < value:
-            raise ValueError(f"Color out of range: {value}")
+    def _convert_to_redis(self, value):
+        return bytes(Color.unpack(value))
 
     def _convert_from_redis(self, value):
-        return int(value)
+        return Color.from_bytes(value).to_html()
 
 
 class FloatSetting(Setting):
@@ -125,10 +121,12 @@ class ListSetting(Setting):
             self._setting._validate(e)
 
     def _convert_to_redis(self, value):
-        return json.dumps(value)
+        return pickle.dumps([self._setting._convert_to_redis(e) for e in value])
 
     def _convert_from_redis(self, value):
-        return json.loads(value)
+        return [
+            self._setting._convert_from_redis(e) for e in pickle.loads(value)
+        ]
 
 
 class DictSetting(Setting):
@@ -143,7 +141,12 @@ class DictSetting(Setting):
             self._setting._validate(e)
 
     def _convert_to_redis(self, value):
-        return json.dumps(value)
+        return pickle.dumps(
+            {k: self._setting._convert_to_redis(v) for k, v in value.items()}
+        )
 
     def _convert_from_redis(self, value):
-        return json.loads(value)
+        return {
+            k: self._setting._convert_from_redis(v)
+            for k, v in pickle.loads(value).items()
+        }

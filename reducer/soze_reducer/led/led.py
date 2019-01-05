@@ -32,8 +32,7 @@ class Led(ReducerResource):
         return (BLACK,)
 
     def _get_values(self):
-        color_bytes = self._mode.get_color(self._settings)
-        return (Color.from_hexcode(int(color_bytes)),)
+        return (self._mode.get_color(self._settings),)
 
     def _apply_values(self, color):
         self.set_color(color)

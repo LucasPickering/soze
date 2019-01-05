@@ -2,6 +2,8 @@ import unittest
 
 from soze_api import setting
 
+# TODO: Some of these are probably broken now
+
 
 class ModeSettingTestCase(unittest.TestCase):
     def setUp(self):

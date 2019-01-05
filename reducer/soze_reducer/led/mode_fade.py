@@ -1,7 +1,7 @@
-import json
+import pickle
 import time
 
-from soze_reducer.core.color import BLACK
+from soze_reducer.core.color import BLACK, Color
 from soze_reducer.core.mode import register
 from .mode import LedMode
 
@@ -18,8 +18,17 @@ class FadeMode(LedMode):
         self._fade_start_time = 0
 
     def get_color(self, settings):
-        fade_colors = json.loads(settings[__class__._FADE_COLORS_KEY])
-        fade_time = float(settings[__class__._FADE_TIME_KEY])
+        try:
+            fade_colors = [
+                Color.from_bytes(color_bytes)
+                for color_bytes in pickle.loads(
+                    settings[__class__._FADE_COLORS_KEY]
+                )
+            ]
+            fade_time = float(settings[__class__._FADE_TIME_KEY])
+        except KeyError:
+            # One or more key is missing from Redis
+            return BLACK
 
         if len(fade_colors) == 0:
             return BLACK

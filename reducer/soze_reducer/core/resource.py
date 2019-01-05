@@ -10,12 +10,7 @@ class RedisSubscriber(metaclass=abc.ABCMeta):
     def __init__(self, redis_client, pubsub, sub_channel):
         self._redis = redis_client
         self._pubsub = pubsub
-        self._sub_channel = sub_channel
-        self._pubsub.subscribe(**{self._sub_channel: self._on_pub})
-
-    @property
-    def sub_channel(self):
-        return self._sub_channel
+        self._pubsub.subscribe(**{sub_channel: self._on_pub})
 
     @abc.abstractmethod
     def _on_pub(self, msg):
@@ -71,7 +66,6 @@ class ReducerResource(RedisSubscriber):
             self._shutdown.set()
 
     def _on_pub(self, msg):
-        logger.info(f"PUB {self.name}: {msg}")
         self._load_settings()
 
     def _load_settings(self):
@@ -87,10 +81,15 @@ class ReducerResource(RedisSubscriber):
         }
 
         # If the mode changed, re-initialize it
-        new_mode = self._settings[__class__._MODE_KEY].decode()
-        if self._mode is None or new_mode != self._mode.name:
-            # Make a new mode object
-            self._mode = self._mode_class.get_by_name(new_mode)()
+        try:
+            new_mode = self._settings[__class__._MODE_KEY].decode()
+        except KeyError:
+            pass  # No mode key in Redis, do nothing
+        else:
+            # Mode was available in Redis, check if it changed
+            if self._mode is None or new_mode != self._mode.name:
+                # Make a new mode object
+                self._mode = self._mode_class.get_by_name(new_mode)()
 
     def _publish(self, msg=b""):
         self._redis.publish(self._pub_channel, msg)

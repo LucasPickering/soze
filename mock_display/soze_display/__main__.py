@@ -1,3 +1,5 @@
+import curses
+
 from soze_display import display
 
-display.main()
+curses.wrapper(display.main)

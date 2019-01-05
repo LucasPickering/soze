@@ -1,6 +1,3 @@
-import re
-
-
 def _coerce(r, g, b):
     def helper(val):
         return min(max(int(val), 0), 255)
@@ -86,19 +83,6 @@ class Color:
             self.red + other.red,
             self.green + other.green,
             self.blue + other.blue,
-        )
-        return Color(r, g, b)
-
-    def __sub__(self, other):
-        if not isinstance(other, Color):
-            raise TypeError(
-                "unsupported operand type(s) for -:"
-                f" '{type(self)}' and '{type(other)}'"
-            )
-        r, g, b = _coerce(
-            self.red - other.red,
-            self.green - other.green,
-            self.blue - other.blue,
         )
         return Color(r, g, b)
 

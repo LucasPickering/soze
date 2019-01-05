@@ -1,13 +1,6 @@
 from xtermcolor import XTermColorMap
 
 
-def _coerce(r, g, b):
-    def helper(val):
-        return min(max(int(val), 0), 255)
-
-    return (helper(r), helper(g), helper(b))
-
-
 def _check(val):
     if not isinstance(val, int):
         raise TypeError(f"Value must be int, but was {type(val)}")
@@ -46,7 +39,7 @@ class Color:
 
     def to_term_color(self):
         ansi, _ = xterm_color_map.convert(self.to_hexcode())
-        return 196
+        return ansi
 
     def __bytes__(self):
         return bytes([self.red, self.green, self.blue])
