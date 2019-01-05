@@ -22,7 +22,12 @@ class SozeReducer:
                 redis_client=self._redis,
                 pubsub=self._pubsub,
                 keepalive=self._keepalive,
-            )
+            ),
+            Lcd(
+                redis_client=self._redis,
+                pubsub=self._pubsub,
+                keepalive=self._keepalive,
+            ),
         ]
 
         # Register exit handlers

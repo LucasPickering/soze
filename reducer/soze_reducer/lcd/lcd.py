@@ -1,5 +1,6 @@
 import itertools
 
+from soze_reducer import logger
 from soze_reducer.core.color import BLACK
 from soze_reducer.core.resource import ReducerResource
 from .helper import (
@@ -28,33 +29,49 @@ from .helper import (
     CursorMode,
     diff_text,
 )
+from .mode import LcdMode
 
 
 class Lcd(ReducerResource):
-    def __init__(self, width, height, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+    _DEFAULT_WIDTH = 20
+    _DEFAULT_HEIGHT = 4
+    _COMMAND_QUEUE_KEY = "reducer:lcd_commands"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            *args,
+            name="LCD",
+            settings_key_prefix="lcd",
+            sub_channel="a2r:lcd",
+            pub_channel="r2d:lcd",
+            mode_class=LcdMode,
+            **kwargs,
+        )
         # Declare fields
-        self._width, self._height = width, height
+        self._width = __class__._DEFAULT_WIDTH
+        self._height = __class__._DEFAULT_HEIGHT
         self._color = None
+        self._lines = None
+        # Used to queue up bytes and send them to Redis in bulk
+        self._command_queue = None
 
-    @property
-    def name(self):
-        return "LCD"
+    def _after_init(self):
+        # Initiate a transaction. Only one Redis push will occur, at the end.
+        with self:
+            self.set_size(self.width, self.height, True)
+            self.set_color(BLACK)
 
-    def _after_open(self):
-        self.set_size(self._width, self._height, True)
-        self.set_color(BLACK)
+            self.clear()
+            self.set_autoscroll(False)  # Fugg that
+            self.on()
 
-        self.clear()
-        self.set_autoscroll(False)  # Fugg that
-        self.on()
+            # Register custom characters
+            for index, char in CUSTOM_CHARS.items():
+                self.create_char(0, index, char)
+            self.load_char_bank(0)
 
-        # Register custom characters
-        for index, char in CUSTOM_CHARS.items():
-            self.create_char(0, index, char)
-        self.load_char_bank(0)
-
-    def _before_close(self):
+    def _before_stop(self):
         """
         @brief      Turns the LCD off and clears it.
         """
@@ -65,22 +82,23 @@ class Lcd(ReducerResource):
         return (BLACK, "")
 
     def _get_values(self):
-        mode = self._settings.get("lcd.mode")
-        text = mode.get_text(self._settings)
-
-        # Special setting to use LED color
-        if self._settings.get("lcd.link_to_led"):
-            mode = self._settings.get("led.mode")
-        color = mode.get_color(self._settings)
-
-        return (color, text)
+        return (
+            self._mode.get_color(self._settings),
+            self._mode.get_text(self._settings),
+        )
 
     def _apply_values(self, color, text):
-        self.set_text(text)
-        self.set_color(color)
+        # Initiate a transaction. Only one Redis push will occur, at the end.
+        with self:
+            self.set_color(color)
+            self.set_text(text)
 
-    def _write(self, bytes):
-        print(bytes)  # TODO
+    def _queue_bytes(self, *data):
+        # Add the given data to the queue
+        try:
+            self._command_queue += data
+        except TypeError:
+            raise ValueError("No command queue exists")
 
     def _send_command(self, command, *args):
         """
@@ -89,8 +107,8 @@ class Lcd(ReducerResource):
         @param      command  The command to send
         @param      args     The arguments for the command (if any)
         """
-        all_bytes = bytes([SIG_COMMAND, command]) + bytes(args)
-        self._write(all_bytes)
+        all_bytes = bytes([SIG_COMMAND, command] + list(args))
+        self._queue_bytes(all_bytes)
 
     @property
     def width(self):
@@ -130,7 +148,7 @@ class Lcd(ReducerResource):
         @param      width   The width of the LCD (in characters)
         @param      height  The height of the LCD (in characters)
         """
-        if force_update or self._width != width or self._height != height:
+        if force_update or self.width != width or self.height != height:
             self._width, self._height = width, height
             self._send_command(CMD_SIZE, width, height)
             self._lines = [""] * height  # Resize the text buffer
@@ -167,8 +185,11 @@ class Lcd(ReducerResource):
         @param      green  The green value [0, 255]
         @param      blue   The blue value [0, 255]
         """
-        self._color = color
-        self._send_command(CMD_COLOR, color.red, color.green, color.blue)
+        # Make sure the value is actually changing, to prevent unnecessary
+        # writes to Redis
+        if color != self._color:
+            self._color = color
+            self._send_command(CMD_COLOR, color.red, color.green, color.blue)
 
     def set_autoscroll(self, enabled):
         """
@@ -256,18 +277,35 @@ class Lcd(ReducerResource):
             return bytes(ord(c) for c in s)
 
         lines = [
-            line[: self._width] for line in text.splitlines()[: self._height]
+            line[: self.width] for line in text.splitlines()[: self.height]
         ]
         diff = diff_text(self._lines, lines)
 
         # Build a list of bytes we want to write
         to_write = []
         for (x, y), s in diff.items():
-            self.set_cursor_pos(
-                x + 1, y + 1
-            )  # Move to the cursor to the right spot
+            # Move the cursor to the right spot (the LCD coords are 1-based)
+            self.set_cursor_pos(x + 1, y + 1)
             to_write.append(encode_str(s))
 
-        # Write all the new bytes as one long byte string
-        self._write(itertools.chain.from_iterable(to_write))
         self._lines = lines
+        self._queue_bytes(*to_write)  # Add the text to the byte queue
+
+    def __enter__(self):
+        # Initialize a command queue
+        if self._command_queue is not None:
+            raise ValueError("Command queue already exists")
+        self._command_queue = []
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # If we exited cleanly, push the queued bytes to Redis
+        try:
+            if not exc_type:
+                # Squash all the queued bytes into one long bytes object
+                to_push = bytes(
+                    itertools.chain.from_iterable(self._command_queue)
+                )
+                if to_push:
+                    self._redis.rpush(__class__._COMMAND_QUEUE_KEY, to_push)
+        finally:
+            self._command_queue = None

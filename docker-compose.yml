@@ -9,6 +9,8 @@ services:
   reducer:
     build: ./reducer/
     command: python -m soze_reducer
+    depends_on:
+      - redis
     volumes:
       - ./reducer:/app/soze/reducer
     environment:
@@ -17,6 +19,8 @@ services:
   api:
     build: ./api/
     command: flask run --host=0.0.0.0
+    depends_on:
+      - redis
     volumes:
       - ./api:/app/soze/api
     environment:

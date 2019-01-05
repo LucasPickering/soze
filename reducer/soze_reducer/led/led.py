@@ -1,6 +1,6 @@
-from soze_reducer.core.color import Color, BLACK
+from soze_reducer.core.color import BLACK
 from soze_reducer.core.resource import ReducerResource
-from soze_reducer.led.mode import LedMode
+from .mode import LedMode
 
 
 class Led(ReducerResource):
@@ -25,7 +25,7 @@ class Led(ReducerResource):
     def off(self):
         self.set_color(BLACK)
 
-    def _before_close(self):
+    def _before_stop(self):
         self.off()
 
     def _get_default_values(self):

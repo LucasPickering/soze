@@ -106,8 +106,6 @@ CMD_CREATE_CHAR = 0x4E
 CMD_SAVE_CUSTOM_CHAR = 0xC1
 CMD_LOAD_CHAR_BANK = 0xC0
 
-BAUD_RATE = 9600
-
 
 class CursorMode(Enum):
     off = 1
@@ -117,8 +115,8 @@ class CursorMode(Enum):
 
 def make_big_text(text):
     """
-    @brief      Converts the given string into "big text". Big text is text that is three lines
-                high.
+    @brief      Converts the given string into "big text". Big text is is three
+                lines high.
 
     @param      text  The text to make big
 
@@ -131,16 +129,18 @@ def make_big_text(text):
 
 def diff_text(lines1, lines2):
     """
-    @brief      Diffs the given lists of strings, producing a dict of (x,y):str tuples of the text
-                from lines2 where they differed. Adjacent differeing characters are included
-                together in the same string. If one list is longer then the other, the shorter list
-                is padded with empty strings. If one line is longer than its counterpart, the
-                shorter string is padded with spaces. See unit tests for examples.
+    @brief      Diffs the given lists of strings, producing a dict of (x,y):str
+                tuples of the text from lines2 where they differed. Adjacent
+                differing characters are included together in the same string.
+                If one list is longer then the other, the shorter list is padded
+                with empty strings. If one line is longer than its counterpart,
+                the shorter string is padded with spaces. See unit tests for
+                examples.
 
     @param      lines1  The first list of strings
     @param      lines2  The second list of strings (this one takes priority)
 
-    @return     A dict of (x,y):str tuples representing changes from lines1 to lines2
+    @return     A dict of (x,y):str tuples representing the changes
     """
     diff = defaultdict(
         lambda: []

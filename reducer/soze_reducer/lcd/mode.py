@@ -1,14 +1,19 @@
 import abc
 
+from soze_reducer.core.color import BLACK, Color
 from soze_reducer.core.mode import Mode
 
 
 class LcdMode(Mode):
 
     MODES = {}
+    _COLOR_KEY = "color"
 
     def get_color(self, settings):
-        return settings.get("lcd.color")
+        try:
+            return Color.from_bytes(settings[__class__._COLOR_KEY])
+        except KeyError:
+            return BLACK
 
     @abc.abstractmethod
     def get_text(self, settings):

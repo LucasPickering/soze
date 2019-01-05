@@ -64,6 +64,14 @@ class Color:
             mix(self.blue, other.blue),
         )
 
+    def __eq__(self, other):
+        return (
+            isinstance(other, Color)
+            and self.red == other.red
+            and self.green == other.green
+            and self.blue == other.blue
+        )
+
     def __bytes__(self):
         return bytes([self.red, self.green, self.blue])
 

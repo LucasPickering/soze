@@ -18,13 +18,8 @@ class Keepalive(RedisSubscriber):
 
     def _on_pub(self, msg):
         is_alive = struct.unpack("?", self._redis.get(__class__._KEEPALIVE_KEY))
-        self._set_alive(is_alive)
 
-    def _set_alive(self, alive):
         # If the value flipped, log it, then update our state
-        if alive != self._alive:
-            logger.info(f"Keepalive went {'up' if alive else 'down'}")
-        self._alive = alive
-
-    def _before_close(self):
-        self._set_alive(False)
+        if is_alive != self._alive:
+            logger.info(f"Keepalive went {'up' if is_alive else 'down'}")
+        self._alive = is_alive
