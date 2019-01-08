@@ -94,7 +94,11 @@ class Resource(Thread, metaclass=abc.ABCMeta):
                             self._update()
                             time.sleep(self._pause)
                         self._before_close()
-                    except (ConnectionRefusedError, socket.timeout):
+                    except (
+                        ConnectionRefusedError,
+                        ConnectionResetError,
+                        socket.timeout,
+                    ):
                         pass
                     finally:
                         self._close()
