@@ -5,14 +5,14 @@ services:
     image: redis:5
     ports:
       - "6379:6379"
+    volumes:
+      - /data/redis:/data
 
   api:
     build: ./api/
     command: flask run --host=0.0.0.0
     depends_on:
       - redis
-    volumes:
-      - ./api:/app/soze/api
     environment:
       - FLASK_APP=soze_api.api
       - FLASK_ENV=development
@@ -25,15 +25,10 @@ services:
     command: python -m soze_reducer -r redis://redis:6379/0
     depends_on:
       - redis
-    volumes:
-      - ./reducer:/app/soze/reducer
-  # webapp:
-  #   build: ./webapp/
-  #   command: sh -c "npm i && npm start"
-  #   volumes:
-  #     - ./webapp/:/app/soze/webapp:rw
-  #   environment:
-  #     - NODE_ENV=development
-  #     - SOZE_API_HOST=http://api:5000/
-  #   ports:
-  #     - "3000"
+
+  display:
+    build: ./hw_display/
+    command: python -m soze_display -r redis://redis:6379/0
+    depends_on:
+      - redis
+    privileged: true
