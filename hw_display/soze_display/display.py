@@ -1,12 +1,14 @@
 import redis
+import signal
 
+from . import logger
 from .led import Led
 from .lcd import Lcd
 from .keepalive import Keepalive
 
-MOTOR_HAT_ADDR = 0x60
-MOTOR_HAT_PINS = [3, 1, 2]  # RGB
-LCD_SERIAL_PORT = "/dev/ttyAMA0"
+# Potentially could read these from a config file
+LED_CONFIG = {"hat_addr": 0x60, "pins": [3, 1, 2]}  # Pins are RGB
+LCD_CONFIG = {"serial_port": "/dev/ttyAMA0"}
 
 
 class SozeDisplay:
@@ -16,23 +18,40 @@ class SozeDisplay:
 
         self._keepalive = Keepalive(redis_client)
         self._resources = [
-            Led(redis_client, self._pubsub),
-            Lcd(redis_client, self._pubsub),
+            self._keepalive,
+            Led(redis_client=redis_client, pubsub=self._pubsub, **LED_CONFIG),
+            Lcd(redis_client=redis_client, pubsub=self._pubsub, **LCD_CONFIG),
         ]
+        self._threads = [self._keepalive]
 
-    def _init_resources(self, cfg):
-        return [
-            Led(**cfg["led"]),
-            Lcd(**cfg["lcd"]),
-            Keepalive(**cfg["keepalive"]),
-        ]
+        # Register exit handlers
+        def stop_handler(sig, frame):
+            self._stop()
+
+        signal.signal(signal.SIGINT, stop_handler)
+        signal.signal(signal.SIGTERM, stop_handler)
 
     def run(self):
+        logger.info("Starting...")
         for res in self._resources:
             res.init()
         try:
-            pubsub_thread = self._pubsub.run_in_thread()
-            pubsub_thread.join()
+            # Start threads
+            self._keepalive.start()
+            self._pubsub_thread = self._pubsub.run_in_thread()
+            self._wait()
         finally:
+            self._stop()  # Kill all threads
+            # Tear down resources
             for res in self._resources:
                 res.cleanup()
+        logger.info("Stopped")
+
+    def _wait(self):
+        self._pubsub_thread.join()
+        self._keepalive.join()
+
+    def _stop(self):
+        logger.info("Stopping...")
+        self._keepalive.stop()
+        self._pubsub_thread.stop()  # Will unsub from all channels

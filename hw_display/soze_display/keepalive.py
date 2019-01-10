@@ -1,25 +1,50 @@
 import RPi.GPIO as GPIO
 import struct
+import time
+from threading import Event, Thread
 
-from soze_core.resource import WriteResource
+from . import logger
+from .resource import Resource
 
 
-class Keepalive(WriteResource):
-    def __init__(self, pin, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class Keepalive(Resource):
+
+    _KEEPALIVE_KEY = "reducer:keepalive"
+    _KEEPALIVE_CHANNEL = "r2d:keepalive"
+
+    def __init__(self, *args, pin, **kwargs):
+        # Multiple inheritance!
+        super().__init__(self, *args, **kwargs)
         self._pin = pin
+        self._thread = Thread(target=self._run)
+        self._shutdown = Event()
+
+    def _read_val(self):
+        val = GPIO.input(self._pin)
+        return struct.pack("?", val)
 
     @property
-    def name(self):
-        return "Keepalive"
+    def should_run(self):
+        return not self._shutdown.is_set()
 
-    def _init(self):
+    def init(self):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._pin, GPIO.IN)
 
-    def _cleanup(self):
+    def cleanup(self):
         GPIO.cleanup(self._pin)
 
-    def _update(self):
-        val = GPIO.input(self._pin)
-        self._write(struct.pack("?", val))
+    def start(self):
+        self._thread.start()
+
+    def stop(self):
+        self._shutdown.set()
+
+    def _run(self):
+        logger.info("Keepalive started")
+        while self.should_run:
+            # Update
+            self._redis.set(__class__._KEEPALIVE_KEY, self._read_val())
+            self._redis.publish(__class__._KEEPALIVE_CHANNEL, b"")
+            time.sleep(1)
+        logger.info("Keepalive stopped")

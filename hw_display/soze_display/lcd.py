@@ -1,6 +1,6 @@
 import serial
 
-from .resource import Resource
+from .resource import SubscriberResource
 from . import logger
 
 
@@ -8,7 +8,7 @@ def format_bytes(data):
     return " ".join("{:02x}".format(b) for b in data)
 
 
-class Lcd(Resource):
+class Lcd(SubscriberResource):
     def __init__(self, serial_port, *args, **kwargs):
         super().__init__(*args, sub_channel="r2d:lcd", **kwargs)
         # By deferring the port assignment until after construction, we prevent

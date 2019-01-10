@@ -1,11 +1,11 @@
 from Adafruit_MotorHAT import Adafruit_MotorHAT
 
-from soze_core.resource import ReadResource
+from .resource import SubscriberResource
 
 
-class Led(ReadResource):
+class Led(SubscriberResource):
     def __init__(self, hat_addr, pins, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, sub_channel="r2d:lcd", **kwargs)
 
         if len(pins) != 3:
             raise ValueError(f"LED pins must be length 3 (RGB), got {pins}")
@@ -18,13 +18,13 @@ class Led(ReadResource):
     def name(self):
         return "LED"
 
-    def _init(self):
+    def init(self):
         # Initialize the hat and each LED
         self._hat = Adafruit_MotorHAT(addr=self._hat_addr)
         for pin in self._pins:
             self._hat.getMotor(pin).run(Adafruit_MotorHAT.FORWARD)
 
-    def _cleanup(self):
+    def cleanup(self):
         # Stop all PWM
         for pin in self._pins:
             self._hat.getMotor(pin).run(Adafruit_MotorHAT.RELEASE)
