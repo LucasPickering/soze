@@ -13,7 +13,7 @@ class Keepalive(Resource):
     _KEEPALIVE_CHANNEL = "r2d:keepalive"
 
     def __init__(self, *args, pin, **kwargs):
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._pin = pin
         self._thread = Thread(target=self._run)
         self._shutdown = Event()

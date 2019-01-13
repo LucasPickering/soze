@@ -27,6 +27,16 @@ services:
       - redis
     volumes:
       - ./reducer:/app/soze/reducer
+
+  display:
+    build:
+      context: ./hw_display
+      dockerfile: mock.Dockerfile
+    command: python -m soze_display -r redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+      - ./hw_display:/app/soze/display
   # webapp:
   #   build: ./webapp/
   #   command: sh -c "npm i && npm start"

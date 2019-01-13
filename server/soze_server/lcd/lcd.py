@@ -5,7 +5,7 @@ from .helper import *
 
 class Lcd(SettingsResource):
     def __init__(self, width, height, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*wargs, **kwargs)
         # Declare fields
         self._width, self._height = width, height
         self._color = None

@@ -32,8 +32,8 @@ class Led(SubscriberResource):
     def _process_data(self, data):
         if len(data) != 3:
             raise ValueError(f"Input data must be length 3 (RGB), got {data}")
-        # Color values are [0,255]. The HAT also expects values in this range, but because of the
-        # way it is wired, 0 means full on and 255 means full off. We need to invert the color
-        # values to correct for this.
+        # Color values are [0,255]. The HAT also expects values in this range,
+        # but because of the way it is wired, 0 means full on and 255 means
+        # full off. We need to invert the color values to correct for this.
         for pin, val in zip(self._pins, data):
             self._hat.getMotor(pin).setSpeed(255 - val)

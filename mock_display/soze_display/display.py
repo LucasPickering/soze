@@ -1,5 +1,4 @@
 import abc
-import argparse
 import curses
 import itertools
 import logging.config
