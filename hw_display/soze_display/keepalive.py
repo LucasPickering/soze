@@ -13,7 +13,6 @@ class Keepalive(Resource):
     _KEEPALIVE_CHANNEL = "r2d:keepalive"
 
     def __init__(self, *args, pin, **kwargs):
-        # Multiple inheritance!
         super().__init__(self, *args, **kwargs)
         self._pin = pin
         self._thread = Thread(target=self._run)

@@ -7,6 +7,7 @@ from .lcd import Lcd
 from .keepalive import Keepalive
 
 # Potentially could read these from a config file
+KEEPALIVE_CONFIG = {"pin": 4}
 LED_CONFIG = {"hat_addr": 0x60, "pins": [3, 1, 2]}  # Pins are RGB
 LCD_CONFIG = {"serial_port": "/dev/ttyAMA0"}
 
@@ -16,7 +17,7 @@ class SozeDisplay:
         redis_client = redis.from_url(redis_url)
         self._pubsub = redis_client.pubsub()
 
-        self._keepalive = Keepalive(redis_client)
+        self._keepalive = Keepalive(redis_client, **KEEPALIVE_CONFIG)
         self._resources = [
             self._keepalive,
             Led(redis_client=redis_client, pubsub=self._pubsub, **LED_CONFIG),
