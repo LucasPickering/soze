@@ -1,9 +1,0 @@
-[Unit]
-Description=Söze: Case LED/LCD control display
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/sozed /etc/soze
-
-[Install]
-WantedBy=multi-user.target
