@@ -1,6 +1,6 @@
 import argparse
 
-from soze_display.display import SozeDisplay
+from .display import SozeDisplay
 
 
 parser = argparse.ArgumentParser(description="Hardware-based LED/LCD display")

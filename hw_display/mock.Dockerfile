@@ -4,5 +4,5 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app/soze/display
 ADD . .
-RUN pip install redis
-RUN pip install -e mocks/*
+RUN pip install -r core_requirements.txt
+RUN pip install -e mocks/

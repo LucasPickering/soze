@@ -1,5 +1,6 @@
 import redis
 import signal
+import time
 
 from . import logger
 from .led import Led
@@ -24,10 +25,11 @@ class SozeDisplay:
             Lcd(redis_client=redis_client, pubsub=self._pubsub, **LCD_CONFIG),
         ]
         self._threads = [self._keepalive]
+        self._should_run = True
 
         # Register exit handlers
         def stop_handler(sig, frame):
-            self._stop()
+            self._should_run = False
 
         signal.signal(signal.SIGINT, stop_handler)
         signal.signal(signal.SIGTERM, stop_handler)
@@ -40,19 +42,21 @@ class SozeDisplay:
             # Start threads
             self._keepalive.start()
             self._pubsub_thread = self._pubsub.run_in_thread()
-            self._wait()
-        finally:
-            self._stop()  # Kill all threads
-            # Tear down resources
-            for res in self._resources:
-                res.cleanup()
-        logger.info("Stopped")
 
-    def _wait(self):
-        self._pubsub_thread.join()
-        self._keepalive.join()
+            # Thread.join blocks signals so we need this loop
+            while self._should_run:
+                time.sleep(1)
+        finally:
+            self._stop()
+            self._cleanup()
+            logger.info("Stopped")
 
     def _stop(self):
         logger.info("Stopping...")
         self._keepalive.stop()
         self._pubsub_thread.stop()  # Will unsub from all channels
+
+    def _cleanup(self):
+        logger.info("Cleaning up...")
+        for res in self._resources:
+            res.cleanup()

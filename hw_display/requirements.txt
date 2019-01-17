@@ -1,4 +1,0 @@
-pyserial
-redis
-RPi.GPIO
-# Adafruit-Motor-HAT-Python must also be installed manually

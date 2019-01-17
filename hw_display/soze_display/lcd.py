@@ -1,3 +1,4 @@
+import itertools
 import serial
 
 from .resource import SubscriberResource
@@ -9,6 +10,9 @@ def format_bytes(data):
 
 
 class Lcd(SubscriberResource):
+
+    _COMMAND_QUEUE_KEY = "reducer:lcd_commands"
+
     def __init__(self, serial_port, *args, **kwargs):
         super().__init__(*args, sub_channel="r2d:lcd", **kwargs)
         # By deferring the port assignment until after construction, we prevent
@@ -27,8 +31,19 @@ class Lcd(SubscriberResource):
     def cleanup(self):
         self._ser.close()
 
-    def _process_data(self, data):
-        self._ser.flush()  # Make sure the buffer is empty before writing to it
+    def _read_data(self):
+        p = self._redis.pipeline()
+        p.lrange(__class__._COMMAND_QUEUE_KEY, 0, -1)
+        p.delete(__class__._COMMAND_QUEUE_KEY)
+        data, _ = p.execute()
+        # Data is an array of bytes, chain those into one long bytes object
+        return bytes(itertools.chain.from_iterable(data))
+
+    def _on_pub(self, msg):
+        data = self._read_data()
+
+        # Make sure the buffer is empty before writing to it
+        # self._ser.flush()
         num_written = self._ser.write(data)
 
         # Make sure we wrote the expected number of bytes

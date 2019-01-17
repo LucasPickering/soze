@@ -10,5 +10,4 @@ RUN apk add --no-cache \
 
 WORKDIR /app/soze/display
 ADD . .
-RUN pip install -r requirements.txt
-RUN pip install -e Adafruit-Motor-HAT-Python-Library/
+RUN pip install -r core_requirements.txt -r hw_requirements.txt

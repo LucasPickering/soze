@@ -25,4 +25,3 @@ class SubscriberResource(Resource):
     @abc.abstractmethod
     def _on_pub(self, msg):
         pass
-
