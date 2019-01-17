@@ -91,7 +91,7 @@ class ReducerResource(RedisSubscriber):
                 # Make a new mode object
                 self._mode = self._mode_class.get_by_name(new_mode)()
 
-    def _publish(self, msg=b""):
+    def publish(self, msg=b""):
         self._redis.publish(self._pub_channel, msg)
 
     def _update(self):
@@ -103,8 +103,7 @@ class ReducerResource(RedisSubscriber):
             else self._get_default_values()
         )
         # Apply the values. If something was updated, do a publish.
-        if self._apply_values(*values):
-            self._publish()
+        self._apply_values(*values)
 
     def _loop(self):
         try:

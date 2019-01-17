@@ -36,4 +36,4 @@ class Led(ReducerResource):
 
     def _apply_values(self, color):
         self.set_color(color)
-        return True
+        self.publish()

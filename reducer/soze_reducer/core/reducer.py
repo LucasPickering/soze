@@ -1,5 +1,6 @@
 import redis
 import signal
+import time
 
 from soze_reducer import logger
 from soze_reducer.led.led import Led
@@ -28,10 +29,11 @@ class SozeReducer:
                 keepalive=self._keepalive,
             ),
         ]
+        self._should_run = True
 
         # Register exit handlers
         def stop_handler(sig, frame):
-            self._stop()
+            self._should_run = False
 
         signal.signal(signal.SIGINT, stop_handler)
         signal.signal(signal.SIGTERM, stop_handler)
@@ -45,16 +47,13 @@ class SozeReducer:
             for res in self._resources:
                 res.thread.start()
             logger.info("Started threads")
-            self._wait()  # Block on child threads
+
+            # Thread.join blocks signals so we need this loop
+            while self._should_run:
+                time.sleep(1)
         finally:
             # Stop all threads
             self._stop()
-
-    def _wait(self):
-        # Wait for PubSub to die (will be stopped by Ctrl+c)
-        self._pubsub_thread.join()
-        for res in self._resources:
-            res.thread.join()
 
     def _stop(self):
         self._pubsub_thread.stop()  # This will unsub from all channels

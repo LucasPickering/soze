@@ -75,8 +75,9 @@ class Lcd(ReducerResource):
         """
         @brief      Turns the LCD off and clears it.
         """
-        self.off()
-        self.clear()
+        with self:
+            self.off()
+            self.clear()
 
     def _get_default_values(self):
         return (BLACK, "")
@@ -307,5 +308,6 @@ class Lcd(ReducerResource):
                 )
                 if to_push:
                     self._redis.rpush(__class__._COMMAND_QUEUE_KEY, to_push)
+                    self.publish()
         finally:
             self._command_queue = None
