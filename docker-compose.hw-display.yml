@@ -27,13 +27,13 @@ services:
       - redis
     volumes:
       - ./reducer:/app/soze/reducer
-  # webapp:
-  #   build: ./webapp/
-  #   command: sh -c "npm i && npm start"
-  #   volumes:
-  #     - ./webapp/:/app/soze/webapp:rw
-  #   environment:
-  #     - NODE_ENV=development
-  #     - SOZE_API_HOST=http://api:5000/
-  #   ports:
-  #     - "3000"
+
+  display:
+    build:
+      context: ./hw_display
+      dockerfile: mock.Dockerfile
+    command: python -m soze_display -r redis://redis:6379/0
+    depends_on:
+      - redis
+    volumes:
+      - ./hw_display:/app/soze/display
