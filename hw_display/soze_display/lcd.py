@@ -43,7 +43,7 @@ class Lcd(SubscriberResource):
         data = self._read_data()
 
         # Make sure the buffer is empty before writing to it
-        # self._ser.flush()
+        self._ser.flush()
         num_written = self._ser.write(data)
 
         # Make sure we wrote the expected number of bytes

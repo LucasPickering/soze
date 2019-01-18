@@ -1,6 +1,5 @@
 import itertools
 
-from soze_reducer import logger
 from soze_reducer.core.color import BLACK
 from soze_reducer.core.resource import ReducerResource
 from .helper import (
@@ -283,14 +282,14 @@ class Lcd(ReducerResource):
         diff = diff_text(self._lines, lines)
 
         # Build a list of bytes we want to write
-        to_write = []
         for (x, y), s in diff.items():
-            # Move the cursor to the right spot (the LCD coords are 1-based)
+            text_bytes = encode_str(s)
+            # Move the cursor to the right spot (the LCD coords are 1-based),
+            # then add the text at that location
             self.set_cursor_pos(x + 1, y + 1)
-            to_write.append(encode_str(s))
+            self._queue_bytes(text_bytes)
 
         self._lines = lines
-        self._queue_bytes(*to_write)  # Add the text to the byte queue
 
     def __enter__(self):
         # Initialize a command queue

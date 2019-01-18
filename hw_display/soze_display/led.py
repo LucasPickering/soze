@@ -1,6 +1,5 @@
 from Adafruit_MotorHAT import Adafruit_MotorHAT
 
-from mock_core import format_bytes
 from .resource import SubscriberResource
 
 
@@ -39,7 +38,7 @@ class Led(SubscriberResource):
         if len(data) != __class__._COLOR_LENGTH:
             raise ValueError(
                 f"Input data must be {__class__._COLOR_LENGTH} bytes (RGB),"
-                f" got {format_bytes(data)}"
+                f" got {len(data)} bytes"
             )
         return data
 

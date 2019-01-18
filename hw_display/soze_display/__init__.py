@@ -13,7 +13,7 @@ logging.config.dictConfig(
         "handlers": {
             "console": {"class": "logging.StreamHandler", "formatter": "f"}
         },
-        "loggers": {__name__: {"handlers": ["console"], "level": "INFO"}},
+        "loggers": {__name__: {"handlers": ["console"], "level": "DEBUG"}},
     }
 )
 

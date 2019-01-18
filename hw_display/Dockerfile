@@ -9,5 +9,7 @@ RUN apk add --no-cache \
     musl-dev
 
 WORKDIR /app/soze/display
+# This is easier than selectively copying in what we want
 ADD . .
+RUN rm -rf mocks
 RUN pip install -r core_requirements.txt -r hw_requirements.txt

@@ -1,3 +1,3 @@
 pyserial
 RPi.GPIO
-Adafruit-Motor-HAT-Python # Local library
+Adafruit-Motor-HAT-Python-Library/ # Local library
