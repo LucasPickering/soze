@@ -17,7 +17,10 @@ class Keepalive(RedisSubscriber):
         return self._alive
 
     def _on_pub(self, msg):
-        is_alive = struct.unpack("?", self._redis.get(__class__._KEEPALIVE_KEY))
+        # struct.unpack returns a 1-tuple, we want to get the only field
+        is_alive, = struct.unpack(
+            "?", self._redis.get(__class__._KEEPALIVE_KEY)
+        )
 
         # If the value flipped, log it, then update our state
         if is_alive != self._alive:
