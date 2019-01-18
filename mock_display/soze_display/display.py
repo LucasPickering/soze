@@ -5,6 +5,7 @@ import logging.config
 import redis
 import signal
 import time
+import traceback
 from threading import Event, Thread
 
 from .color import BLACK, Color
@@ -137,9 +138,9 @@ class Lcd(Resource):
                 0xFF: "█",  # Full
             }
         }
-        self._current_char_bank = None
+        self._current_char_bank = self._custom_chars[0]
 
-        self._width, self._height = None, None
+        self._width, self._height = 20, 4
         self._cursor_x, self._cursor_y = 0, 0
 
     @command(CMD_CLEAR)
@@ -172,10 +173,6 @@ class Lcd(Resource):
 
     @command(CMD_CURSOR_POS, 2)
     def _set_cursor_pos(self, x, y):
-        if self._width is None or self._height is None:
-            raise ValueError(
-                "Width and height must be set before setting cursor pos"
-            )
         # Adjust down for the LCD backpack's 1-based indexing
         better_x = x - 1
         better_y = y - 1
@@ -256,15 +253,18 @@ class Lcd(Resource):
                 self._write_str(decode_byte(first_byte))
 
     def _on_pub(self, msg):
-        # Get all data elements from the command queue in Redis, then delete
-        # the queue. Doing this in a pipeline makes it atomic/consecutive,
-        # so there can't be any race conditions.
-        p = self._redis.pipeline()
-        p.lrange(__class__._COMMAND_QUEUE_KEY, 0, -1)
-        p.delete(__class__._COMMAND_QUEUE_KEY)
-        data, _ = p.execute()
+        try:
+            # Get all data elements from the command queue in Redis, then delete
+            # the queue. Doing this in a pipeline makes it atomic/consecutive,
+            # so there can't be any race conditions.
+            p = self._redis.pipeline()
+            p.lrange(__class__._COMMAND_QUEUE_KEY, 0, -1)
+            p.delete(__class__._COMMAND_QUEUE_KEY)
+            data, _ = p.execute()
 
-        self._process_data(self, data)
+            self._process_data(data)
+        except Exception:
+            logger.error(traceback.format_exc())
 
 
 class Keepalive(Thread):
@@ -330,6 +330,8 @@ class SozeDisplay:
             while self._should_run:
                 curses.doupdate()
                 time.sleep(0.1)
+        except Exception:
+            logger.error(traceback.format_exc())
         finally:
             self._stop_threads()
 
