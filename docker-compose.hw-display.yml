@@ -12,7 +12,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./api:/app/soze/api
+      - ./api:/app/api
     environment:
       - FLASK_APP=soze_api.api
       - FLASK_ENV=development
@@ -26,7 +26,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./reducer:/app/soze/reducer
+      - ./reducer:/app/reducer
 
   display:
     build:
@@ -36,4 +36,4 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./hw_display:/app/soze/display
+      - ./hw_display:/app/display

@@ -61,7 +61,7 @@ The RPi should have a Docker server running on it. All Docker commands can be ru
 
 ```
 export DOCKER_HOST=<RPi addr/hostname>:2375  # Bash
-$env:DOCKER_HOST = <RPi addr/hostname>:2375  # Powershell
+$env:DOCKER_HOST = '<RPi addr/hostname>:2375'  # Powershell
 ```
 
 Now, all Docker commands run in that shell will point to the RPi.

@@ -17,8 +17,6 @@ services:
       - FLASK_APP=soze_api.api
       - FLASK_ENV=development
       - REDIS_HOST=redis://redis:6379/0
-    ports:
-      - "5000:5000"
 
   reducer:
     build: ./reducer/
@@ -36,3 +34,12 @@ services:
     depends_on:
       - redis
     privileged: true
+
+  webserver:
+    build:
+      context: ./webapp
+      dockerfile: prod.Dockerfile
+    depends_on:
+      - api
+    ports:
+      - "80:80"

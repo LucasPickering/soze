@@ -12,7 +12,7 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./api:/app/soze/api
+      - ./api:/app/api
     environment:
       - FLASK_APP=soze_api.api
       - FLASK_ENV=development
@@ -26,13 +26,13 @@ services:
     depends_on:
       - redis
     volumes:
-      - ./reducer:/app/soze/reducer
+      - ./reducer:/app/reducer
 
   webapp:
     build: ./webapp/
     command: sh -c "npm i && npm start"
     volumes:
-      - ./webapp/:/app/soze/webapp:rw
+      - ./webapp/:/app/webapp:rw
     environment:
       - NODE_ENV=development
       - SOZE_API_HOST=http://api:5000/

@@ -8,7 +8,7 @@ RUN apk add --no-cache \
     linux-headers \
     musl-dev
 
-WORKDIR /app/soze/display
+WORKDIR /app/display
 # This is easier than selectively copying in what we want
 ADD . .
 RUN rm -rf mocks
