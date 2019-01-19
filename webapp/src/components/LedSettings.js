@@ -12,14 +12,8 @@ import Typography from '@material-ui/core/Typography';
 
 import ColorPicker from './ColorPicker';
 import ColorSeries from './ColorSeries';
+import makeSettings from './makeSettings';
 import styles from '../styles';
-
-const moreStyles = theme => ({
-  ...styles(theme),
-  sliderControl: {
-    padding: `${theme.spacing.unit * 2}px 0px`,
-  },
-});
 
 const LedSettings = ({
   classes,
@@ -28,16 +22,14 @@ const LedSettings = ({
     static: { color: staticColor },
     fade: { colors: fadeColors, fade_time: fadeTime },
   },
-  setData,
+  setField,
+  children,
 }) => (
   <Paper className={classes.paper}>
     <Typography variant="h5">LED</Typography>
     <FormGroup>
       <FormControl>
-        <Select
-          value={mode}
-          onChange={e => setData('led.mode', e.target.value)}
-        >
+        <Select value={mode} onChange={e => setField('mode', e.target.value)}>
           <MenuItem value="off">Off</MenuItem>
           <MenuItem value="static">Static</MenuItem>
           <MenuItem value="fade">Fade</MenuItem>
@@ -47,7 +39,7 @@ const LedSettings = ({
         <FormControl>
           <ColorPicker
             color={staticColor}
-            onChange={c => setData('led.static.color', c)}
+            onChange={c => setField('static.color', c)}
           />
         </FormControl>
       )}
@@ -60,7 +52,7 @@ const LedSettings = ({
               max={30}
               step={1}
               value={fadeTime}
-              onChange={(e, value) => setData('led.fade.fade_time', value)}
+              onChange={(e, value) => setField('fade.fade_time', value)}
             />
           </FormControl>
 
@@ -68,17 +60,19 @@ const LedSettings = ({
             <Typography>Color Series</Typography>
             <ColorSeries
               colors={fadeColors}
-              setColors={colors => setData('led.fade.colors', colors)}
+              setColors={colors => setField('fade.colors', colors)}
             />
           </FormControl>
         </>
       )}
+      {children}
     </FormGroup>
   </Paper>
 );
 
 LedSettings.propTypes = {
   classes: PropTypes.shape().isRequired,
+  // Passed from makeSettings
   data: PropTypes.shape({
     mode: PropTypes.string.isRequired,
     static: PropTypes.shape({
@@ -92,7 +86,17 @@ LedSettings.propTypes = {
       fade_time: PropTypes.number.isRequired,
     }).isRequired,
   }).isRequired,
-  setData: PropTypes.func.isRequired,
+  setField: PropTypes.func.isRequired,
+  children: PropTypes.node,
 };
 
-export default withStyles(moreStyles)(LedSettings);
+LedSettings.defaultProps = {
+  children: null,
+};
+
+export default withStyles(theme => ({
+  ...styles(theme),
+  sliderControl: {
+    padding: `${theme.spacing.unit * 2}px 0px`,
+  },
+}))(makeSettings(LedSettings, { endpoint: 'led' }));

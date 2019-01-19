@@ -10,7 +10,7 @@ import ListItem from '@material-ui/core/ListItem';
 
 import ColorPicker from './ColorPicker';
 
-const DEFAULT_COLOR = '0xffffff';
+const DEFAULT_COLOR = '#ffffff';
 
 const styles = theme => ({
   root: {

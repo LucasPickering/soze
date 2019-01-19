@@ -12,7 +12,8 @@ import Typography from '@material-ui/core/Typography';
 import blue from '@material-ui/core/colors/blue';
 import pink from '@material-ui/core/colors/pink';
 
-import Settings from './Settings';
+import LcdSettings from './LcdSettings';
+import LedSettings from './LedSettings';
 import styles from '../styles';
 
 const theme = createMuiTheme({
@@ -52,7 +53,12 @@ const App = ({ classes }) => (
           alignItems="center"
           spacing={theme.spacing.unit}
         >
-          <Settings />
+          <Grid item>
+            <LedSettings />
+          </Grid>
+          <Grid item>
+            <LcdSettings />
+          </Grid>
         </Grid>
       </Grid>
     </div>
