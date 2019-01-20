@@ -64,9 +64,15 @@ export DOCKER_HOST=<RPi addr/hostname>:2375  # Bash
 $env:DOCKER_HOST = '<RPi addr/hostname>:2375'  # Powershell
 ```
 
-Now, all Docker commands run in that shell will point to the RPi.
+Now, all Docker commands run in that shell will point to the RPi. Build the webapp with:
 
-To start the services:
+```
+cd webapp
+npm run build
+cd ..
+```
+
+Then, start the services:
 
 ```
 docker-compose -f docker-compose.pi.yml up -d
