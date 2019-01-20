@@ -1,4 +1,4 @@
-import flatten_dict
+import msgpack
 
 from .error import SozeError
 from .setting import (
@@ -11,65 +11,52 @@ from .setting import (
 )
 
 
-def _key_reducer(k1, k2):
-    if k1:
-        return f"{k1}:{k2}"
-    return k2
-
-
-class Resource:
-    def __init__(self, redis_client, name, settings):
-        self._redis = redis_client
-        self._name = name
+class Settings:
+    def __init__(self, settings):
         self._settings = settings
 
-        # The channel we publish to after changes
-        self._pub_channel = f"a2r:{name}"
-        # Flatten the settings dict so that each one is keyed by its
-        # corresponding Redis key
-        self._flat_settings = self._flatten_for_redis(settings)
-        # Collect a list of all the Redis keys managed by this resource
-        # Making a list is important to keep consistent iteration order
-        self._redis_keys = list(self._flat_settings.keys())
+    def merge(self, *vals):
+        def helper(settings_obj, subvals):
+            if isinstance(settings_obj, Setting):
+                # Get the last subval, because later values take prescedence
+                return subvals[-1]
 
-    @property
-    def name(self):
-        return self._name
+            # Recur down to each dict field and convert their values
+            rv = {}
+            for k, v in settings_obj.items():
+                # Only recur down for values that have this field. If no values
+                # have this field, then don't include it in the output at all
+                next_subvals = [sv[k] for sv in subvals if k in sv]
+                if next_subvals:
+                    rv[k] = helper(v, next_subvals)
+            return rv
 
-    def _flatten_for_redis(self, d):
-        # Flatten the dict so it has no nested children
-        flattened = flatten_dict.flatten(d, reducer=_key_reducer)
-        # Add this resource's name to each key
-        return {_key_reducer(self.name, k): v for k, v in flattened.items()}
+        # It's easier to write logic that prioritizes the first element.
+        # Reverse the input so it it prioritizes the last element from the
+        # caller's perspective.
+        return helper(self._settings, vals)
 
-    def _unflatten_from_redis(self, d):
-        # Remove the key prefix from each group as you unflatten it
-        return flatten_dict.unflatten(
-            d, splitter=lambda key: key.split(":")[1:]
-        )
+    def from_redis(self, val):
+        def helper(settings_obj, value_obj):
+            """
+            Recursively converts each value in the given value dict to something
+            consumable by the user, using the given settings dict.
+            """
+            if isinstance(settings_obj, Setting):
+                return settings_obj.from_redis(value_obj)
+            # settings_obj is a dict. Recur down to each dict field and
+            # convert their values
+            if value_obj is None:
+                value_obj = {}
+            return {
+                k: helper(v, value_obj.get(k)) for k, v in settings_obj.items()
+            }
 
-    def init_redis(self):
-        """
-        Initializes the Redis store for this resource. This will insert any
-        missing keys with their default values.
-        """
-        # Don't return a value from update, to prevent unnecessary Redis reads
-        self.update(self.get(), return_value=False)
+        # Use a recursive helper to convert each nested value
+        return helper(self._settings, val)
 
-    def get(self):
-        # Fetch all of this resource's values from redis and put them in a dict
-        k_to_v = dict(zip(self._redis_keys, self._redis.mget(self._redis_keys)))
-
-        # Convert each value using its setting. If we don't have a value for a
-        # setting, then its default value will be used
-        converted = {
-            k: setting.from_redis(k_to_v[k])
-            for k, setting in self._flat_settings.items()
-        }
-        return self._unflatten_from_redis(converted)
-
-    def update(self, value, return_value=True):
-        def convert(settings_obj, value_obj):
+    def to_redis(self, val):
+        def helper(settings_obj, value_obj):
             """
             Recursively converts each value in the given value dict to something
             consumable by Redis, using the given settings dict.
@@ -77,27 +64,75 @@ class Resource:
             if isinstance(settings_obj, Setting):
                 return settings_obj.to_redis(value_obj)
             if not isinstance(value_obj, dict):
-                raise SozeError("Value must be a valid setting or a dict")
+                raise SozeError(
+                    "Value must be a valid setting or a dict of settings"
+                )
             # Recur down to each dict field and convert their values
+            # This iterates over the value, so fields that are in the settings
+            # but not in the value will be ignored.
             try:
                 return {
-                    k: convert(settings_obj[k], v) for k, v in value_obj.items()
+                    k: helper(settings_obj[k], v) for k, v in value_obj.items()
                 }
             except KeyError as e:
                 raise SozeError(f"Unknown key: {e}")
 
-        # Coerce each value to something consumable by Redis.
-        # This will also validate each value.
-        converted = convert(self._settings, value)
+        # Use a recursive helper to convert each nested value
+        return helper(self._settings, val)
 
-        # Flatten the converted dict and push to Redis
-        flattened = self._flatten_for_redis(converted)
-        self._redis.mset(flattened)
+
+class Resource:
+    def __init__(self, redis_client, name, settings):
+        self._redis = redis_client
+        self._name = name
+        self._settings = Settings(settings)
+
+        # Key that contains this resource's settings
+        # The dict of settings is msgpacked before insertion
+        self._redis_key = f"user:{name}"
+        # The channel we publish to after changes
+        self._pub_channel = f"a2r:{name}"
+
+    @property
+    def name(self):
+        return self._name
+
+    def init_redis(self):
+        """
+        Initializes the Redis store for this resource. This will insert any
+        missing keys with their default values.
+        """
+        # Don't return a value from update, to prevent unnecessary Redis reads
+        self.update(self.get())
+
+    def _redis_get(self):
+        redis_value = self._redis.get(self._redis_key)
+        return (
+            msgpack.loads(redis_value, encoding="utf-8") if redis_value else {}
+        )
+
+    def _redis_set(self, val):
+        # Msgpack the value and push it to Redis
+        self._redis.set(self._redis_key, msgpack.dumps(val))
         self._redis.publish(self._pub_channel, b"")
 
-        # If requested, return the entire resource
-        if return_value:
-            return self.get()
+    def get(self):
+        # Convert the Redis values to user-friendly values using the settings
+        return self._settings.from_redis(self._redis_get())
+
+    def update(self, value):
+        # Coerce the value to something consumable by Redis. This will also
+        # validate each nested value.
+        converted = self._settings.to_redis(value)
+
+        # Pull the current value, merge the converted new value into it,
+        # then push that back to Redis
+        current_value = self._redis_get()
+        new_value = self._settings.merge(current_value, converted)
+        self._redis_set(new_value)
+
+        # Convert the merged value back to something user friendly
+        return self._settings.from_redis(new_value)
 
 
 class Led(Resource):

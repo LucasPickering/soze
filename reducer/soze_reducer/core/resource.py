@@ -1,4 +1,5 @@
 import abc
+import msgpack
 import time
 import traceback
 from threading import Event, Thread
@@ -25,7 +26,7 @@ class ReducerResource(RedisSubscriber):
         self,
         *args,
         name,
-        settings_key_prefix,
+        settings_key,
         pub_channel,
         mode_class,
         pause=0.1,
@@ -35,7 +36,7 @@ class ReducerResource(RedisSubscriber):
         super().__init__(*args, **kwargs)
         # Constants defined by the super class
         self._name = name
-        self._settings_key_prefix = settings_key_prefix
+        self._user_redis_key = f"user:{settings_key}"
         self._pub_channel = pub_channel
         self._mode_class = mode_class
         self._pause = pause
@@ -69,20 +70,15 @@ class ReducerResource(RedisSubscriber):
         self._load_settings()
 
     def _load_settings(self):
-        # Find all keys that match our pattern
-        prefix = f"{self._settings_key_prefix}:"
-        keys = self._redis.keys(f"{prefix}*")
-
-        # Get the values that we care about, and store them in a dict
-        # Each key will be decoded then have its prefix removed
-        self._settings = {
-            k.decode()[len(prefix) :]: v
-            for k, v in zip(keys, self._redis.mget(keys))
-        }
+        # Pull our value from the user state and unpack it
+        redis_value = self._redis.get(self._user_redis_key)
+        self._settings = (
+            msgpack.loads(redis_value, encoding="utf-8") if redis_value else {}
+        )
 
         # If the mode changed, re-initialize it
         try:
-            new_mode = self._settings[__class__._MODE_KEY].decode()
+            new_mode = self._settings[__class__._MODE_KEY]
         except KeyError:
             pass  # No mode key in Redis, do nothing
         else:

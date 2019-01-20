@@ -41,7 +41,7 @@ class Lcd(ReducerResource):
         super().__init__(
             *args,
             name="LCD",
-            settings_key_prefix="lcd",
+            settings_key="lcd",
             sub_channel="a2r:lcd",
             pub_channel="r2d:lcd",
             mode_class=LcdMode,

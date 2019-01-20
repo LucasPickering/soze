@@ -7,11 +7,10 @@ from soze_reducer.core.mode import Mode
 class LcdMode(Mode):
 
     MODES = {}
-    _COLOR_KEY = "color"
 
     def get_color(self, settings):
         try:
-            return Color.from_bytes(settings[__class__._COLOR_KEY])
+            return Color.from_hexcode(settings["color"])
         except KeyError:
             return BLACK
 

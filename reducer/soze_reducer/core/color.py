@@ -25,10 +25,6 @@ class Color:
             (hex_val >> 16) & 0xFF, (hex_val >> 8) & 0xFF, hex_val & 0xFF
         )
 
-    @classmethod
-    def from_bytes(cls, b):
-        return cls(*b[:3])  # Pass the first 3 bytes to the constructor
-
     @property
     def red(self):
         return self._r

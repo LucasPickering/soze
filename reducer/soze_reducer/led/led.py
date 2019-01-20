@@ -11,7 +11,7 @@ class Led(ReducerResource):
         super().__init__(
             *args,
             name="LED",
-            settings_key_prefix="led",
+            settings_key="led",
             sub_channel="a2r:led",
             pub_channel="r2d:led",
             mode_class=LedMode,

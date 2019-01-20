@@ -28,10 +28,6 @@ class Color:
         )
 
     @classmethod
-    def from_bytes(cls, b):
-        return cls(*b[:3])  # Pass the first 3 bytes to the constructor
-
-    @classmethod
     def unpack(cls, data):
         # Try to parse it as a string
         try:
@@ -72,14 +68,11 @@ class Color:
     def blue(self):
         return self._b
 
-    def to_hexcode(self):
-        return (self.red << 16) | (self.green << 8) | self.blue
-
     def to_html(self):
-        return f"#{self.to_hexcode():06x}"
+        return f"#{int(self):06x}"
 
-    def __bytes__(self):
-        return bytes([self.red, self.green, self.blue])
+    def __int__(self):
+        return (self.red << 16) | (self.green << 8) | self.blue
 
     def __str__(self):
         return f"({self.red}, {self.green}, {self.blue})"

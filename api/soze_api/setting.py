@@ -1,5 +1,4 @@
 import abc
-import pickle
 
 from .color import BLACK, Color
 from .error import SozeError
@@ -31,7 +30,7 @@ class Setting(metaclass=abc.ABCMeta):
             value (any): The value for this setting
 
         Returns:
-            string|float|int|bytes: The value for Redis
+            string|float|int: The value for Redis
         """
         self._validate(value)
         return self._convert_to_redis(value)
@@ -72,19 +71,16 @@ class EnumSetting(Setting):
         if value.lower() not in self._valid_values:
             raise SozeError(f"Invalid value: {value}")
 
-    def _convert_from_redis(self, value):
-        return value.decode()
-
 
 class ColorSetting(Setting):
-    def __init__(self, default_value=BLACK.to_hexcode()):
+    def __init__(self, default_value=BLACK.to_html()):
         super().__init__(None, default_value)
 
     def _convert_to_redis(self, value):
-        return bytes(Color.unpack(value))
+        return int(Color.unpack(value))
 
     def _convert_from_redis(self, value):
-        return Color.from_bytes(value).to_html()
+        return Color.from_hexcode(value).to_html()
 
 
 class FloatSetting(Setting):
@@ -122,12 +118,10 @@ class ListSetting(Setting):
             self._setting._validate(e)
 
     def _convert_to_redis(self, value):
-        return pickle.dumps([self._setting._convert_to_redis(e) for e in value])
+        return [self._setting._convert_to_redis(e) for e in value]
 
     def _convert_from_redis(self, value):
-        return [
-            self._setting._convert_from_redis(e) for e in pickle.loads(value)
-        ]
+        return [self._setting._convert_from_redis(e) for e in value]
 
 
 class DictSetting(Setting):
@@ -142,12 +136,9 @@ class DictSetting(Setting):
             self._setting._validate(e)
 
     def _convert_to_redis(self, value):
-        return pickle.dumps(
-            {k: self._setting._convert_to_redis(v) for k, v in value.items()}
-        )
+        return {k: self._setting._convert_to_redis(v) for k, v in value.items()}
 
     def _convert_from_redis(self, value):
         return {
-            k: self._setting._convert_from_redis(v)
-            for k, v in pickle.loads(value).items()
+            k: self._setting._convert_from_redis(v) for k, v in value.items()
         }
