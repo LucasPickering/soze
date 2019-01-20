@@ -23,6 +23,7 @@ services:
     command: python -m soze_reducer -r redis://redis:6379/0
     depends_on:
       - redis
+      - display # Force reducer to stop first
     volumes:
       # Sync the system timezone into the container
       - /etc/timezone:/etc/timezone:ro

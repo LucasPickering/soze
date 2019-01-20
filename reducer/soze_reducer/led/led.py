@@ -21,6 +21,7 @@ class Led(ReducerResource):
     def set_color(self, color):
         # Push the new color to Redis
         self._redis.set(__class__._COLOR_KEY, bytes(color))
+        self.publish()
 
     def off(self):
         self.set_color(BLACK)
@@ -36,4 +37,3 @@ class Led(ReducerResource):
 
     def _apply_values(self, color):
         self.set_color(color)
-        self.publish()
