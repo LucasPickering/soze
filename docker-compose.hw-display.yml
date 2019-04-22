@@ -29,9 +29,7 @@ services:
       - ./reducer:/app/reducer
 
   display:
-    build:
-      context: ./hw_display
-      dockerfile: mock.Dockerfile
+    build: ./hw_display
     command: python -m soze_display -r redis://redis:6379/0
     depends_on:
       - redis

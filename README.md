@@ -57,14 +57,7 @@ Then the log files with the hardware output will all be in `hw_display/`.
 
 ### Production
 
-The RPi should have a Docker server running on it. All Docker commands can be run remotely, as long as the client is properly pointed at the server, like so:
-
-```
-export DOCKER_HOST=<RPi addr/hostname>:2375  # Bash
-$env:DOCKER_HOST = '<RPi addr/hostname>:2375'  # Powershell
-```
-
-Now, all Docker commands run in that shell will point to the RPi. Build the webapp with:
+Set up the RPi as a Docker machine ([see here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7)). Switch to the RPi as your machine. Then, build the webapp with:
 
 ```
 cd webapp
@@ -78,10 +71,11 @@ Then, start the services:
 docker-compose -f docker-compose.pi.yml up -d
 ```
 
-If you change code in a component, you'll have to rebuild its image, because the code is loaded into the image at build time.
+If you change code in a component, you'll have to rebuild its image, because the code is loaded into the image at build time. Then restart the containers.
 
 ```
 docker-compose -f docker-compose.pi.yml build [<component>...]
+docker-compose -f docker-compose.pi.yml up -d
 ```
 
 ## Hardware

@@ -2,15 +2,16 @@ version: "3"
 
 services:
   redis:
-    image: redis:5-alpine
+    image: arm32v6/redis:5-alpine
     ports:
       - "6379:6379"
     volumes:
       - /data/redis:/data
 
   api:
-    build: ./api/
-    command: flask run --host=0.0.0.0
+    build:
+      context: ./api/
+      dockerfile: pi.Dockerfile
     depends_on:
       - redis
     environment:
@@ -19,8 +20,9 @@ services:
       - REDIS_HOST=redis://redis:6379/0
 
   reducer:
-    build: ./reducer/
-    command: python -m soze_reducer -r redis://redis:6379/0
+    build:
+      context: ./reducer/
+      dockerfile: pi.Dockerfile
     depends_on:
       - redis
       - display # Force reducer to stop first
@@ -30,16 +32,17 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   display:
-    build: ./hw_display/
-    command: python -m soze_display -r redis://redis:6379/0
+    build:
+      context: ./hw_display/
+      dockerfile: pi.Dockerfile
     depends_on:
       - redis
     privileged: true
 
   webserver:
     build:
-      context: ./webapp
-      dockerfile: prod.Dockerfile
+      context: ./webapp/
+      dockerfile: pi.Dockerfile
     depends_on:
       - api
     ports:
