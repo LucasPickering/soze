@@ -36,7 +36,7 @@ class ReducerResource(RedisSubscriber):
         super().__init__(*args, **kwargs)
         # Constants defined by the super class
         self._name = name
-        self._user_redis_key = f"user:{settings_key}"
+        self._settings_key = settings_key
         self._pub_channel = pub_channel
         self._mode_class = mode_class
         self._pause = pause
@@ -46,9 +46,14 @@ class ReducerResource(RedisSubscriber):
         self._thread = Thread(name=f"{self.name}-Thread", target=self._loop)
         self._shutdown = Event()
         self._mode = None
+        # Dict representing settings for one resource/status combo
         self._settings = None
 
-        self._load_settings()  # Load settings from Redis for the first time
+        # Register _load_settings to be called after a status change
+        self._keepalive.register_listener(self._load_settings)
+
+        # Load settings from Redis for the first time
+        self._load_settings(self._keepalive.status)
 
     @property
     def name(self):
@@ -66,17 +71,25 @@ class ReducerResource(RedisSubscriber):
         if self.should_run:
             self._shutdown.set()
 
-    def _on_pub(self, msg):
-        self._load_settings()
+    def _get_user_redis_key(self, status):
+        return f"user:{self._settings_key}:{status}"
 
-    def _load_settings(self):
+    def _on_pub(self, msg):
+        self._load_settings(self._keepalive.status)
+
+    def _load_settings(self, status):
+        """
+        Load settings for the current status from Redis. This should be called
+        after any change to the settings for any status of this resource, or
+        after a change to the status.
+        """
+
         # Pull our value from the user state and unpack it
-        redis_value = self._redis.get(self._user_redis_key)
+        redis_value = self._redis.get(self._get_user_redis_key(status))
         self._settings = (
             msgpack.loads(redis_value, encoding="utf-8") if redis_value else {}
         )
 
-        # If the mode changed, re-initialize it
         try:
             new_mode = self._settings[__class__._MODE_KEY]
         except KeyError:
@@ -91,12 +104,10 @@ class ReducerResource(RedisSubscriber):
         self._redis.publish(self._pub_channel, msg)
 
     def _update(self):
-        # Calculate real values if the keepalive is alive,
-        # otherwise use default values
+        # Calculate real values if settings are available,
+        # otherwise use defaults
         values = (
-            self._get_values()
-            if self._settings and self._keepalive.is_alive
-            else self._get_default_values()
+            self._get_values() if self._settings else self._get_default_values()
         )
         # Apply the values. If something was updated, do a publish.
         self._apply_values(*values)
