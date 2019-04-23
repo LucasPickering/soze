@@ -15,7 +15,6 @@ const initialState = {
 };
 
 const reducer = (state, { type, payload }) => {
-  console.log(type, payload);
   switch (type) {
     case 'request':
       return {
@@ -56,7 +55,7 @@ const apiRequest = (endpoint, dispatch, data) => {
   // If data is given, assume it's a POST
   const options = data ? { method: 'POST', data } : { method: 'GET' };
 
-  axios(`/api/${endpoint}`, options)
+  axios(`/api/${endpoint}/normal`, options)
     .then(response => {
       dispatch({ type: 'response', payload: response.data });
     })
