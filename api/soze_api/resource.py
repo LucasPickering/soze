@@ -11,7 +11,15 @@ from .setting import (
 )
 
 
+STATUSES = ("normal", "sleep")
+
+
 class Settings:
+    """
+    Stateless class used to convert value objects to/from Redis representation.
+    This defines the structure of the data for a resource.
+    """
+
     def __init__(self, settings):
         self._settings = settings
 
@@ -87,11 +95,8 @@ class Resource:
         self._name = name
         self._settings = Settings(settings)
 
-        # Key that contains this resource's settings
-        # The dict of settings is msgpacked before insertion
-        self._redis_key = f"user:{name}"
-        # The channel we publish to after changes
-        self._pub_channel = f"a2r:{name}"
+        # The channel we publish to after changing the settings for any status
+        self._pub_channel = f"a2r:{self._name}"
 
     @property
     def name(self):
@@ -99,37 +104,45 @@ class Resource:
 
     def init_redis(self):
         """
-        Initializes the Redis store for this resource. This will insert any
-        missing keys with their default values.
+        Initializes the Redis store for this resource. For each status, this
+        this will insert any missing keys into the blob, with their default
+        values.
         """
-        # Don't return a value from update, to prevent unnecessary Redis reads
-        self.update(self.get())
+        for status in STATUSES:
+            self.update(status, self.get(status))
 
-    def _redis_get(self):
-        redis_value = self._redis.get(self._redis_key)
+    def _get_redis_key(self, status):
+        """
+        Get the key that contains this resource's settings, for the given
+        status. This is a msgpacked dict.
+        """
+        return f"user:{self._name}:{status}"
+
+    def _redis_get(self, status):
+        redis_value = self._redis.get(self._get_redis_key(status))
         return (
             msgpack.loads(redis_value, encoding="utf-8") if redis_value else {}
         )
 
-    def _redis_set(self, val):
+    def _redis_set(self, status, val):
         # Msgpack the value and push it to Redis
-        self._redis.set(self._redis_key, msgpack.dumps(val))
+        self._redis.set(self._get_redis_key(status), msgpack.dumps(val))
         self._redis.publish(self._pub_channel, b"")
 
-    def get(self):
+    def get(self, status):
         # Convert the Redis values to user-friendly values using the settings
-        return self._settings.from_redis(self._redis_get())
+        return self._settings.from_redis(self._redis_get(status))
 
-    def update(self, value):
+    def update(self, status, value):
         # Coerce the value to something consumable by Redis. This will also
         # validate each nested value.
         converted = self._settings.to_redis(value)
 
         # Pull the current value, merge the converted new value into it,
         # then push that back to Redis
-        current_value = self._redis_get()
+        current_value = self._redis_get(status)
         new_value = self._settings.merge(current_value, converted)
-        self._redis_set(new_value)
+        self._redis_set(status, new_value)
 
         # Convert the merged value back to something user friendly
         return self._settings.from_redis(new_value)

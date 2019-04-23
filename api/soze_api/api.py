@@ -4,7 +4,7 @@ from flask import Flask, jsonify, redirect, request
 
 from . import logger
 from .error import SozeError
-from .resource import Led, Lcd
+from .resource import Led, Lcd, STATUSES
 
 
 app = Flask(__name__)
@@ -23,17 +23,23 @@ def init_settings():
 
 
 # One route handles GET/POST for all resources
-@app.route(f"/<resource_name>", methods=["GET", "POST"])
-def resource_route(resource_name):
+@app.route(f"/<resource_name>/<status>", methods=["GET", "POST"])
+def resource_route(resource_name, status):
+    # Check that it's a valid resource
     try:
         resource = resources[resource_name]
     except KeyError:
         return jsonify(detail=f"Unknown resource: {resource_name}"), 404
+
+    # Check that it's a valid status
+    if status not in STATUSES:
+        return jsonify(detail=f"Unknown status: {status}"), 404
+
     if request.method == "GET":
-        data = resource.get()
+        data = resource.get(status)
     elif request.method == "POST":
         try:
-            data = resource.update(request.get_json())
+            data = resource.update(status, request.get_json())
         except SozeError as e:
             return jsonify(detail=str(e)), 400
     return jsonify(data)
