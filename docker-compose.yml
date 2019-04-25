@@ -29,10 +29,10 @@ services:
       - ./reducer:/app/reducer
 
   webapp:
-    build: ./webapp/
+    image: node:10-alpine
     command: sh -c "npm i && npm start"
     volumes:
-      - ./webapp/:/app/webapp:rw
+      - ./soze:/app/webapp:rw
     environment:
       - NODE_ENV=development
       - SOZE_API_HOST=http://api:5000/
