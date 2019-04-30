@@ -1,12 +1,12 @@
-import { createMuiTheme, Theme } from '@material-ui/core';
+import { createMuiTheme, Grid, Theme, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { makeStyles, ThemeProvider } from '@material-ui/styles';
 import React from 'react';
-import './App.css';
+import LcdControls from './LcdControls';
 
 const theme = createMuiTheme({
   palette: {
-    type: 'light',
+    type: 'dark',
   },
   typography: {
     useNextVariants: true,
@@ -23,6 +23,17 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <div className={localClasses.root} />
+      <Grid container direction="column" alignItems="center">
+        <Typography variant="h2">Söze</Typography>
+        <Grid item container direction="column" alignItems="center">
+          {/* <Grid item>
+            <LedSettings />
+          </Grid> */}
+          <Grid item>
+            <LcdControls />
+          </Grid>
+        </Grid>
+      </Grid>
     </ThemeProvider>
   );
 };

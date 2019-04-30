@@ -1,5 +1,10 @@
 version: "3"
 
+# Use these instead of the local directory for building the projects
+# to prevent the containers from fighting with external build tools
+volumes:
+  node_modules:
+
 services:
   redis:
     image: redis:5-alpine
@@ -30,9 +35,11 @@ services:
 
   webapp:
     image: node:10-alpine
+    working_dir: /app/webapp
     command: sh -c "npm i && npm start"
     volumes:
       - ./soze:/app/webapp:rw
+      - node_modules:/app/webapp/node_modules
     environment:
       - NODE_ENV=development
       - SOZE_API_HOST=http://api:5000/
