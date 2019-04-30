@@ -2,7 +2,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Popover from '@material-ui/core/Popover';
 import React, { useState } from 'react';
 import { CompactPicker as Picker } from 'react-color';
-import { Color } from '../types';
+import { Color } from 'util/types';
 
 interface Props {
   className?: string;

@@ -14,7 +14,7 @@ import pink from '@material-ui/core/colors/pink';
 
 import LcdSettings from './LcdSettings';
 import LedSettings from './LedSettings';
-import styles from '../styles';
+import styles from 'util/styles';
 
 const theme = createMuiTheme({
   palette: {

@@ -11,7 +11,7 @@ import Typography from '@material-ui/core/Typography';
 
 import ColorPicker from './ColorPicker';
 import makeSettings from './makeSettings';
-import styles from '../styles';
+import styles from 'util/styles';
 
 const LcdSettings = ({
   classes,
