@@ -1,9 +1,11 @@
 import axios from 'axios';
 import { set } from 'lodash-es';
 import React from 'react';
+import { Status } from './types';
 
 export interface ResourceState<T> {
   loading: boolean;
+  status: Status;
   data?: T;
   modifiedData?: Partial<T>;
   error?: string; // TODO
@@ -11,7 +13,9 @@ export interface ResourceState<T> {
 
 export const defaultResourceState: ResourceState<any> = {
   loading: false,
+  status: Status.Normal,
   data: undefined,
+  modifiedData: undefined,
   error: undefined,
 };
 
@@ -26,7 +30,7 @@ export type ResourceAction<T> =
   | { type: ResourceActionType.Request }
   | { type: ResourceActionType.Success; data: T }
   | { type: ResourceActionType.Error; error: string }
-  | { type: ResourceActionType.Modify; field: string; value: Partial<T> };
+  | { type: ResourceActionType.Modify; value: Partial<T> };
 
 // Makes a reducer for the given data type
 const makeResourceReducer = <T>(): React.Reducer<
@@ -57,9 +61,15 @@ const makeResourceReducer = <T>(): React.Reducer<
     case ResourceActionType.Modify:
       return {
         ...state,
-        // We want an error if this is called while modifiedData is undef
-        modifiedData: set(state.modifiedData!, action.field, action.value),
+        // Overwrite any specified keys
+        modifiedData: {
+          // We want an error if this is called while modifiedData is undef
+          ...state.modifiedData!,
+          ...action.value,
+        },
       };
+    default:
+      return state;
   }
 };
 
@@ -88,16 +98,18 @@ const makeFetcher = <Data>(resource: string) => (
     });
 };
 
+export type StateContext<T> = React.Context<ResourceState<T>>;
+export type DispatchContext<T> = React.Context<
+  React.Dispatch<ResourceAction<T>>
+>;
+
 export interface ResourceKit<T> {
   reducer: React.Reducer<ResourceState<T>, ResourceAction<T>>;
   fetcher: (
     dispatch: React.Dispatch<ResourceAction<T>>,
     status: string
   ) => void;
-  contexts: [
-    React.Context<ResourceState<T>>,
-    React.Context<React.Dispatch<ResourceAction<T>>>
-  ];
+  contexts: [StateContext<T>, DispatchContext<T>];
 }
 
 export const makeResourceKit = <Data>(resource: string): ResourceKit<Data> => ({

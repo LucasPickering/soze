@@ -1,4 +1,10 @@
+// An HTML color code, like #ff0000
 export type Color = string;
+
+export enum Status {
+  Normal = 'normal',
+  Sleep = 'sleep',
+}
 
 export enum LedMode {
   Off = 'off',
