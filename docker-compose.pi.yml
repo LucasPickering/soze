@@ -3,6 +3,7 @@ version: "3"
 services:
   redis:
     image: arm32v6/redis:5-alpine
+    restart: always
     ports:
       - "6379:6379"
     volumes:
@@ -12,6 +13,7 @@ services:
     build:
       context: ./api/
       dockerfile: pi.Dockerfile
+    restart: always
     depends_on:
       - redis
     environment:
@@ -23,6 +25,7 @@ services:
     build:
       context: ./reducer/
       dockerfile: pi.Dockerfile
+    restart: always
     depends_on:
       - redis
       - display # Force reducer to stop first
@@ -35,6 +38,7 @@ services:
     build:
       context: ./hw_display/
       dockerfile: pi.Dockerfile
+    restart: always
     depends_on:
       - redis
     privileged: true
@@ -43,6 +47,7 @@ services:
     build:
       context: ./webapp/
       dockerfile: pi.Dockerfile
+    restart: always
     depends_on:
       - api
     ports:
