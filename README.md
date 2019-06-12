@@ -45,7 +45,7 @@ cd mock_display
 python3 -m soze_display
 ```
 
-Docker Compose will run all the services (webapp, API, reducer, Redis) that you need. The mock display has to be run separately because it controls the entire
+Docker Compose will run all the services (webapp, API, reducer, Redis) that you need. The mock display has to be run separately because it runs a curses output that doesn't play nice with docker compose.
 
 #### Hardware Display w/ Mock Libraries
 
