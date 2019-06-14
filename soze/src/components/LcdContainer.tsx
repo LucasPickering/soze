@@ -1,26 +1,27 @@
-import makeUseResource from 'hooks/makeUseResource';
+import useResource from 'hooks/useResource';
 import { isEmpty } from 'lodash-es';
 import React from 'react';
-import { LcdSettings, Status } from 'state/types';
+import { LcdSettings } from 'state/types';
 import LcdControls from './LcdControls';
 import ResourceControlsContainer from './ResourceControlsContainer';
-
-const useResource = makeUseResource<LcdSettings>('lcd');
 
 interface Props {}
 
 const LcdContainer: React.FC<Props> = () => {
   const {
-    state: { loading, data, modifiedData },
+    state: { status, loading, data, modifiedData },
+    setStatus,
     modifyData,
     saveData,
-  } = useResource(Status.Normal);
+  } = useResource<LcdSettings>('lcd');
 
   return (
     <ResourceControlsContainer
       title="LCD"
+      status={status}
       loading={loading}
       modified={!isEmpty(modifiedData)}
+      setStatus={setStatus}
       saveData={saveData}
     >
       {data ? (

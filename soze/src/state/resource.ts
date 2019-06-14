@@ -1,18 +1,17 @@
-import axios from 'axios';
 import React from 'react';
 import { Status } from './types';
 
 export interface ResourceState<T> {
-  loading: boolean;
   status: Status;
+  loading: boolean;
   data?: T;
   modifiedData?: Partial<T>;
   error?: string; // TODO
 }
 
 export const defaultResourceState: ResourceState<any> = {
-  loading: false,
   status: Status.Normal,
+  loading: false,
   data: undefined,
   modifiedData: undefined,
   error: undefined,
@@ -23,7 +22,8 @@ export enum ResourceActionType {
   Post,
   Success,
   Error,
-  Modify,
+  SetStatus,
+  ModifyData,
 }
 
 export type ResourceAction<T> =
@@ -31,7 +31,8 @@ export type ResourceAction<T> =
   | { type: ResourceActionType.Post }
   | { type: ResourceActionType.Success; data: T }
   | { type: ResourceActionType.Error; error: string }
-  | { type: ResourceActionType.Modify; value: Partial<T> };
+  | { type: ResourceActionType.SetStatus; status: Status }
+  | { type: ResourceActionType.ModifyData; value: Partial<T> };
 
 // Makes a reducer for the given data type
 export const makeResourceReducer = <T>(): React.Reducer<
@@ -64,7 +65,12 @@ export const makeResourceReducer = <T>(): React.Reducer<
         loading: false,
         error: action.error,
       };
-    case ResourceActionType.Modify:
+    case ResourceActionType.SetStatus:
+      return {
+        ...state,
+        status: action.status,
+      };
+    case ResourceActionType.ModifyData:
       return {
         ...state,
         // Overwrite any specified keys
@@ -80,14 +86,3 @@ export const makeResourceReducer = <T>(): React.Reducer<
 };
 
 export type DataModifier<T> = (value: Partial<T>) => void;
-
-export function apiRequest<T>(
-  resource: string,
-  status: Status,
-  data?: Partial<T>
-) {
-  // If data is given, assume it's a POST
-  const options = data ? { method: 'POST', data } : { method: 'GET' };
-
-  return axios.post(`/api/${resource}/${status}`, options);
-}
