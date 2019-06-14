@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { set } from 'lodash-es';
 import React from 'react';
 import { Status } from './types';
 
@@ -47,7 +46,7 @@ export const makeResourceReducer = <T>(): React.Reducer<
         data: undefined,
         error: undefined,
       };
-    case ResourceActionType.Fetch:
+    case ResourceActionType.Post:
       return {
         ...state,
         loading: true,
@@ -80,55 +79,15 @@ export const makeResourceReducer = <T>(): React.Reducer<
   }
 };
 
-// Params => URL
-export type RequestBuilder<Params> = (params: Params) => string;
-
 export type DataModifier<T> = (value: Partial<T>) => void;
 
-export type DataTransformer<InputData, OutputData> = (
-  data: InputData
-) => OutputData;
+export function apiRequest<T>(
+  resource: string,
+  status: Status,
+  data?: Partial<T>
+) {
+  // If data is given, assume it's a POST
+  const options = data ? { method: 'POST', data } : { method: 'GET' };
 
-const makeFetcher = <Data>(resource: string) => (
-  dispatch: React.Dispatch<ResourceAction<Data>>,
-  status: string
-) => {
-  dispatch({ type: ResourceActionType.Fetch });
-  axios
-    .get(`/api/${resource}/${status}`)
-    .then(response => {
-      dispatch({
-        type: ResourceActionType.Success,
-        data: response.data,
-      });
-    })
-    .catch(err => {
-      dispatch({ type: ResourceActionType.Error, error: err });
-    });
-};
-
-export type StateContext<T> = React.Context<ResourceState<T>>;
-export type DispatchContext<T> = React.Context<
-  React.Dispatch<ResourceAction<T>>
->;
-
-export interface ResourceKit<T> {
-  reducer: React.Reducer<ResourceState<T>, ResourceAction<T>>;
-  fetcher: (
-    dispatch: React.Dispatch<ResourceAction<T>>,
-    status: string
-  ) => void;
-  contexts: [StateContext<T>, DispatchContext<T>];
+  return axios.post(`/api/${resource}/${status}`, options);
 }
-
-export const makeResourceKit = <Data>(resource: string): ResourceKit<Data> => ({
-  reducer: makeResourceReducer<Data>(),
-  fetcher: makeFetcher<Data>(resource),
-  contexts: [
-    // This default values should never be used, just there to appease TS
-    React.createContext<ResourceState<Data>>({} as ResourceState<Data>),
-    React.createContext<React.Dispatch<ResourceAction<Data>>>(
-      {} as React.Dispatch<ResourceAction<Data>>
-    ),
-  ],
-});
