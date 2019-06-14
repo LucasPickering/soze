@@ -9,7 +9,10 @@ interface Props {
   modifyData: DataModifier<LcdSettings>;
 }
 
-const Lcd: React.FC<Props> = ({ settings: { mode, color }, modifyData }) => (
+const LcdControls: React.FC<Props> = ({
+  settings: { mode, color },
+  modifyData,
+}) => (
   <>
     <FormControl>
       <Select
@@ -36,4 +39,4 @@ const Lcd: React.FC<Props> = ({ settings: { mode, color }, modifyData }) => (
   </>
 );
 
-export default Lcd;
+export default LcdControls;

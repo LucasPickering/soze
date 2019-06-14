@@ -15,7 +15,7 @@ interface Props {
   saveData: () => void;
 }
 
-const Settings: React.FC<Props> = ({
+const ResourceControlsContainer: React.FC<Props> = ({
   title,
   loading,
   modified,
@@ -39,4 +39,4 @@ const Settings: React.FC<Props> = ({
   </Paper>
 );
 
-export default Settings;
+export default ResourceControlsContainer;
