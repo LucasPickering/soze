@@ -2,7 +2,7 @@ import { createMuiTheme, Grid, Theme, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { makeStyles, ThemeProvider } from '@material-ui/styles';
 import React from 'react';
-import LcdControls from './LcdControls';
+import LcdContainer from './LcdContainer';
 
 const theme = createMuiTheme({
   palette: {
@@ -13,7 +13,7 @@ const theme = createMuiTheme({
   },
 });
 
-const useLocalStyles = makeStyles(({ spacing }: Theme) => ({
+const useLocalStyles = makeStyles(() => ({
   root: {},
 }));
 
@@ -30,7 +30,7 @@ const App: React.FC = () => {
             <LedSettings />
           </Grid> */}
           <Grid item>
-            <LcdControls />
+            <LcdContainer />
           </Grid>
         </Grid>
       </Grid>

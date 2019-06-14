@@ -20,30 +20,37 @@ export const defaultResourceState: ResourceState<any> = {
 };
 
 export enum ResourceActionType {
-  Request,
+  Fetch,
+  Post,
   Success,
   Error,
   Modify,
 }
 
 export type ResourceAction<T> =
-  | { type: ResourceActionType.Request }
+  | { type: ResourceActionType.Fetch }
+  | { type: ResourceActionType.Post }
   | { type: ResourceActionType.Success; data: T }
   | { type: ResourceActionType.Error; error: string }
   | { type: ResourceActionType.Modify; value: Partial<T> };
 
 // Makes a reducer for the given data type
-const makeResourceReducer = <T>(): React.Reducer<
+export const makeResourceReducer = <T>(): React.Reducer<
   ResourceState<T>,
   ResourceAction<T>
 > => (state, action) => {
   switch (action.type) {
-    case ResourceActionType.Request:
+    case ResourceActionType.Fetch:
       return {
         ...state,
         loading: true,
         data: undefined,
         error: undefined,
+      };
+    case ResourceActionType.Fetch:
+      return {
+        ...state,
+        loading: true,
       };
     case ResourceActionType.Success:
       return {
@@ -76,6 +83,8 @@ const makeResourceReducer = <T>(): React.Reducer<
 // Params => URL
 export type RequestBuilder<Params> = (params: Params) => string;
 
+export type DataModifier<T> = (value: Partial<T>) => void;
+
 export type DataTransformer<InputData, OutputData> = (
   data: InputData
 ) => OutputData;
@@ -84,7 +93,7 @@ const makeFetcher = <Data>(resource: string) => (
   dispatch: React.Dispatch<ResourceAction<Data>>,
   status: string
 ) => {
-  dispatch({ type: ResourceActionType.Request });
+  dispatch({ type: ResourceActionType.Fetch });
   axios
     .get(`/api/${resource}/${status}`)
     .then(response => {

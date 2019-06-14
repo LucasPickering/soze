@@ -10,9 +10,9 @@ const {
   contexts: [StateContext, DispatchContext],
 } = lcdResourceKit;
 
-interface Props {}
+interface Props { }
 
-const LcdControls: React.FC<Props> = ({}) => {
+const LcdControls: React.FC<Props> = ({ }) => {
   const { data } = useContext(StateContext);
   const dispatch = useContext(DispatchContext);
   const { mode, color } = data!;

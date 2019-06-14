@@ -48,7 +48,7 @@ const SettingsControls: React.FC<Props> = ({
               color="primary"
               // Disable if loading or no modifications have been made
               disabled={loading || !modified}
-              onClick={() => {}}
+              onClick={() => { }}
             >
               {loading ? <CircularProgress size={21} /> : 'Apply'}
             </Button>
