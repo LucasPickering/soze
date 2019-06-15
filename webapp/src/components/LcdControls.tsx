@@ -1,9 +1,9 @@
-import { FormControl, MenuItem, Select, Typography } from '@material-ui/core';
-import { capitalize } from 'lodash-es';
+import { FormControl, Typography } from '@material-ui/core';
 import React from 'react';
 import { DataModifier } from 'state/resource';
 import { LcdMode, LcdSettings } from 'state/types';
 import ColorPicker from './ColorPicker';
+import ModeSelect from './ModeSelect';
 
 interface Props {
   settings: LcdSettings;
@@ -16,30 +16,27 @@ const LcdControls: React.FC<Props> = ({
 }) => (
   <>
     <FormControl>
-      <Select
-        value={mode}
-        onChange={e => {
+      <ModeSelect
+        modes={Object.values(LcdMode)}
+        selectedMode={mode}
+        onChange={m =>
           modifyData({
-            mode: e.target.value as LcdMode,
-          });
-        }}
-      >
-        {Object.values(LcdMode).map(m => (
-          <MenuItem key={m} value={m}>
-            {capitalize(m)}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-    <FormControl>
-      <Typography>Color</Typography>
-      <ColorPicker
-        color={color}
-        onChange={e => {
-          modifyData({ color: e });
-        }}
+            mode: m as LcdMode,
+          })
+        }
       />
     </FormControl>
+    {mode !== LcdMode.Off && (
+      <FormControl>
+        <Typography>Color</Typography>
+        <ColorPicker
+          color={color}
+          onChange={e => {
+            modifyData({ color: e });
+          }}
+        />
+      </FormControl>
+    )}
   </>
 );
 
