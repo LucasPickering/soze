@@ -8,7 +8,7 @@ import {
   ResourceActionType,
   ResourceState,
 } from 'state/resource';
-import { Status } from 'state/types';
+import { Resource, Status } from 'state/types';
 
 interface ReturnVal<T> {
   state: ResourceState<T>;
@@ -17,7 +17,7 @@ interface ReturnVal<T> {
   saveData: () => void;
 }
 
-function getUrl(resource: string, status?: Status): string {
+function getUrl(resource: Resource, status?: Status): string {
   return status ? `/api/${resource}/${status}` : `/api/${resource}`;
 }
 
@@ -43,7 +43,7 @@ function modifyData<T>(
 
 function saveData<T>(
   dispatch: React.Dispatch<ResourceAction<T>>,
-  resource: string,
+  resource: Resource,
   status: Status,
   data: Partial<T>
 ) {
@@ -64,7 +64,7 @@ function saveData<T>(
 /**
  * Hook to get/post data from/to the server for the given resource/status
  */
-export default function<T>(resource: string): ReturnVal<T> {
+export default function<T>(resource: Resource): ReturnVal<T> {
   // Instantiate the reducer for this type, only on the first call
   const reducer = useMemo(() => makeResourceReducer<T>(), []);
   const [state, dispatch] = useReducer(reducer, defaultResourceState);

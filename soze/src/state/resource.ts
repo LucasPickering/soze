@@ -34,6 +34,8 @@ export type ResourceAction<T> =
   | { type: ResourceActionType.SetStatus; status: Status }
   | { type: ResourceActionType.ModifyData; value: Partial<T> };
 
+export type DataModifier<T> = (value: Partial<T>) => void;
+
 // Makes a reducer for the given data type
 export const makeResourceReducer = <T>(): React.Reducer<
   ResourceState<T>,
@@ -84,5 +86,3 @@ export const makeResourceReducer = <T>(): React.Reducer<
       return state;
   }
 };
-
-export type DataModifier<T> = (value: Partial<T>) => void;

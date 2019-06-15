@@ -1,6 +1,11 @@
 // An HTML color code, like #ff0000
 export type Color = string;
 
+export enum Resource {
+  LED = 'led',
+  LCD = 'lcd',
+}
+
 export enum Status {
   Normal = 'normal',
   Sleep = 'sleep',
