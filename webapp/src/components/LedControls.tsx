@@ -20,6 +20,10 @@ const useLocalStyles = makeStyles(({ spacing }: Theme) => ({
   },
 }));
 
+function formatSeconds(seconds: number): string {
+  return `${seconds}s`;
+}
+
 interface Props {
   settings: LedSettings;
   modifyData: DataModifier<LedSettings>;
@@ -54,6 +58,7 @@ const LedControls: React.FC<Props> = ({
       </FormControl>
       {mode === LedMode.Static && (
         <FormControl>
+          <Typography>Color</Typography>
           <ColorPicker
             color={staticColor}
             onChange={c => {
@@ -69,21 +74,25 @@ const LedControls: React.FC<Props> = ({
       {mode === LedMode.Fade && (
         <>
           <FormControl className={localClasses.sliderControl}>
-            <Typography>Fade Time</Typography>
-            <Slider
-              min={1}
-              max={30}
-              step={1}
-              value={fade.fade_time}
-              onChange={(e, value) => {
-                modifyData({
-                  fade: {
-                    ...fade,
-                    fade_time: value as number,
-                  },
-                });
-              }}
-            />
+            <div>
+              <Typography>Fade Time</Typography>
+              <Slider
+                min={1}
+                max={30}
+                step={1}
+                valueLabelDisplay="auto"
+                valueLabelFormat={formatSeconds}
+                value={fade.fade_time}
+                onChange={(e, value) => {
+                  modifyData({
+                    fade: {
+                      ...fade,
+                      fade_time: value as number,
+                    },
+                  });
+                }}
+              />
+            </div>
           </FormControl>
 
           <FormControl>
