@@ -1,4 +1,5 @@
 import { FormControl, MenuItem, Select, Typography } from '@material-ui/core';
+import { capitalize } from 'lodash-es';
 import React from 'react';
 import { DataModifier } from 'state/resource';
 import { LcdMode, LcdSettings } from 'state/types';
@@ -23,8 +24,11 @@ const LcdControls: React.FC<Props> = ({
           });
         }}
       >
-        <MenuItem value="off">Off</MenuItem>
-        <MenuItem value="clock">Clock</MenuItem>
+        {Object.values(LcdMode).map(m => (
+          <MenuItem key={m} value={m}>
+            {capitalize(m)}
+          </MenuItem>
+        ))}
       </Select>
     </FormControl>
     <FormControl>

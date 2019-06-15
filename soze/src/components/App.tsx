@@ -1,8 +1,9 @@
 import { createMuiTheme, Grid, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import { makeStyles, ThemeProvider } from '@material-ui/styles';
+import { ThemeProvider } from '@material-ui/styles';
 import React from 'react';
 import LcdContainer from './LcdContainer';
+import LedContainer from './LedContainer';
 
 const theme = createMuiTheme({
   palette: {
@@ -13,29 +14,21 @@ const theme = createMuiTheme({
   },
 });
 
-const useLocalStyles = makeStyles(() => ({
-  root: {},
-}));
-
-const App: React.FC = () => {
-  const localClasses = useLocalStyles();
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <div className={localClasses.root} />
-      <Grid container direction="column" alignItems="center">
-        <Typography variant="h2">Söze</Typography>
-        <Grid item container direction="column" alignItems="center">
-          {/* <Grid item>
-            <LedSettings />
-          </Grid> */}
-          <Grid item>
-            <LcdContainer />
-          </Grid>
+const App: React.FC = () => (
+  <ThemeProvider theme={theme}>
+    <CssBaseline />
+    <Grid container direction="column" alignItems="center">
+      <Typography variant="h2">Söze</Typography>
+      <Grid item container direction="column" alignItems="center">
+        <Grid item>
+          <LedContainer />
+        </Grid>
+        <Grid item>
+          <LcdContainer />
         </Grid>
       </Grid>
-    </ThemeProvider>
-  );
-};
+    </Grid>
+  </ThemeProvider>
+);
 
 export default App;
