@@ -18,7 +18,7 @@ const ColorPicker: React.FC<Props> = React.memo(
     );
 
     return (
-      <>
+      <div>
         <IconButton
           className={className}
           disabled={disabled}
@@ -38,7 +38,7 @@ const ColorPicker: React.FC<Props> = React.memo(
         >
           <Picker color={color} onChangeComplete={c => onChange(c.hex)} />
         </Popover>
-      </>
+      </div>
     );
   }
 );

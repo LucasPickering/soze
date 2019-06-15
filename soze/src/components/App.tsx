@@ -1,4 +1,4 @@
-import { createMuiTheme, Grid, Theme, Typography } from '@material-ui/core';
+import { createMuiTheme, Grid, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { makeStyles, ThemeProvider } from '@material-ui/styles';
 import React from 'react';
