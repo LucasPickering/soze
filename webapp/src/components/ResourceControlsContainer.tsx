@@ -26,6 +26,9 @@ const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
       margin: spacing(1),
     },
   },
+  applyButton: {
+    minHeight: 37, // Prevent jitter when loading icon appears
+  },
 }));
 
 interface Props {
@@ -65,13 +68,18 @@ const ResourceControlsContainer: React.FC<Props> = ({
         <FormGroup className={localClasses.form}>
           {children}
           <Button
+            className={localClasses.applyButton}
             variant="contained"
             color="primary"
             // Disable if loading or no modifications have been made
             disabled={loading || !modified}
             onClick={saveData}
           >
-            {loading ? <CircularProgress size={21} /> : 'Apply'}
+            {loading ? (
+              <CircularProgress size={20} color="secondary" />
+            ) : (
+              'Apply'
+            )}
           </Button>
         </FormGroup>
       </Paper>

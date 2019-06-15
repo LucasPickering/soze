@@ -15,13 +15,17 @@ const App: React.FC = () => (
   <ThemeProvider theme={theme}>
     <CssBaseline />
     <Grid container direction="column" alignItems="center">
-      <Typography variant="h2">Söze</Typography>
-      <Grid item container direction="column" alignItems="center">
-        <Grid item>
-          <LedContainer />
-        </Grid>
-        <Grid item>
-          <LcdContainer />
+      <Grid item>
+        <Typography variant="h2">Söze</Typography>
+      </Grid>
+      <Grid item>
+        <Grid container direction="column" alignItems="center" spacing={2}>
+          <Grid item>
+            <LedContainer />
+          </Grid>
+          <Grid item>
+            <LcdContainer />
+          </Grid>
         </Grid>
       </Grid>
     </Grid>
