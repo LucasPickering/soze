@@ -22,19 +22,22 @@ const useLocalStyles = makeStyles(({ spacing }: Theme) => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    overflowX: 'auto',
+    flexWrap: 'wrap',
+    minHeight: 64,
   },
   listItem: {
     display: 'flex',
     flexDirection: 'column',
-    padding: `0px ${spacing(1)}px`,
+    padding: `0px ${spacing(0.5)}px`,
     width: 'auto',
   },
   clearButton: {
     padding: 0,
   },
   addButton: {
-    marginLeft: 'auto', // Move button to the end of the box
+    // Keep at the top-right of the box
+    alignSelf: 'start',
+    marginLeft: 'auto',
   },
 }));
 
