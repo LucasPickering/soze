@@ -16,7 +16,7 @@ import ColorSeries from './ColorSeries';
 
 const useLocalStyles = makeStyles(({ spacing }: Theme) => ({
   sliderControl: {
-    padding: `${spacing.unit * 2}px 0px`,
+    padding: `${spacing(2)}px 0px`,
   },
 }));
 

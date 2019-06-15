@@ -9,9 +9,6 @@ const theme = createMuiTheme({
   palette: {
     type: 'dark',
   },
-  typography: {
-    useNextVariants: true,
-  },
 });
 
 const App: React.FC = () => (

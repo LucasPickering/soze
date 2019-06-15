@@ -27,7 +27,7 @@ const useLocalStyles = makeStyles(({ spacing }: Theme) => ({
   listItem: {
     display: 'flex',
     flexDirection: 'column',
-    padding: `0px ${spacing.unit}px`,
+    padding: `0px ${spacing(1)}px`,
     width: 'auto',
   },
   clearButton: {

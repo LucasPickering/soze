@@ -15,7 +15,7 @@ import { Status } from 'state/types';
 
 const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
   outerContainer: {
-    padding: spacing.unit,
+    padding: spacing(1),
     backgroundColor: palette.background.default,
     width: 360,
   },
@@ -23,7 +23,7 @@ const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
   form: {
     // Spacing between all immediate children
     '& > *': {
-      margin: spacing.unit,
+      margin: spacing(1),
     },
   },
 }));
@@ -50,7 +50,7 @@ const ResourceControlsContainer: React.FC<Props> = ({
   return (
     <Paper className={localClasses.outerContainer} elevation={2}>
       <Typography variant="h5">{title}</Typography>
-      <Paper className={localClasses.innerContainer} elevation={0}>
+      <Paper className={localClasses.innerContainer}>
         <AppBar position="static">
           <Tabs
             value={status}
