@@ -38,7 +38,7 @@ services:
     working_dir: /app/webapp
     command: sh -c "npm i && npm start"
     volumes:
-      - ./soze:/app/webapp:rw
+      - ./webapp:/app/webapp:rw
       - node_modules:/app/webapp/node_modules
     environment:
       - NODE_ENV=development

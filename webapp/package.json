@@ -1,33 +1,32 @@
 {
-  "name": "webapp",
+  "name": "soze",
   "version": "0.1.0",
-  "private": false,
+  "private": true,
   "dependencies": {
-    "@material-ui/core": "^3.9.3",
-    "@material-ui/icons": "^3.0.2",
-    "@material-ui/lab": "^3.0.0-alpha.30",
-    "axios": "^0.18.0",
-    "classnames": "^2.2.6",
-    "http-proxy-middleware": "^0.19.1",
-    "lodash.isempty": "^4.4.0",
-    "lodash.merge": "^4.6.1",
-    "lodash.set": "^4.3.2",
-    "node-sass": "^4.11.0",
-    "prop-types": "^15.7.2",
+    "@material-ui/core": "^4.1.1",
+    "@material-ui/icons": "^4.2.0",
+    "@material-ui/lab": "^4.0.0-alpha.16",
+    "@material-ui/styles": "^4.1.1",
+    "axios": "^0.19.0",
+    "lodash-es": "^4.17.11",
     "react": "^16.8.6",
-    "react-color": "^2.17.1",
+    "react-color": "^2.17.3",
     "react-dom": "^16.8.6",
-    "react-scripts": "^2.1.8"
+    "react-scripts": "3.0.1",
+    "typescript": "3.5.2"
   },
   "devDependencies": {
-    "eslint-config-airbnb": "^17.1.0",
-    "eslint-config-prettier": "^3.6.0",
-    "eslint-plugin-css-modules": "^2.11.0",
-    "eslint-plugin-jsx-a11y": "^6.2.1",
-    "eslint-plugin-prettier": "^3.0.1",
-    "eslint-plugin-react": "^7.12.4",
-    "eslint-plugin-sort-imports-es6-autofix": "^0.3.0",
-    "prettier-eslint-cli": "^4.7.1"
+    "@types/axios": "^0.14.0",
+    "@types/jest": "24.0.14",
+    "@types/lodash-es": "^4.17.3",
+    "@types/node": "12.0.8",
+    "@types/react": "16.8.20",
+    "@types/react-color": "^3.0.1",
+    "@types/react-dom": "16.8.4",
+    "prettier": "^1.18.2",
+    "tslint": "^5.17.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-eslint-rules": "^5.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -38,10 +37,16 @@
   "eslintConfig": {
     "extends": "react-app"
   },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }
