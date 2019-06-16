@@ -8,19 +8,15 @@ import ResourceControlsContainer from './ResourceControlsContainer';
 interface Props {}
 
 const LedContainer: React.FC<Props> = () => {
-  const {
-    state: { status, loading, data, modifiedData },
-    setStatus,
-    modifyData,
-    saveData,
-  } = useResource<LedSettings>(Resource.LED);
+  const { state, setStatus, modifyData, saveData } = useResource<LedSettings>(
+    Resource.LED
+  );
+  const { status, data, modifiedData } = state;
 
   return (
     <ResourceControlsContainer
       title="LED"
-      status={status}
-      loading={loading}
-      modified={!isEmpty(modifiedData)}
+      state={state}
       setStatus={setStatus}
       saveData={saveData}
     >

@@ -8,19 +8,16 @@ import ResourceControlsContainer from './ResourceControlsContainer';
 interface Props {}
 
 const LcdContainer: React.FC<Props> = () => {
-  const {
-    state: { status, loading, data, modifiedData },
-    setStatus,
-    modifyData,
-    saveData,
-  } = useResource<LcdSettings>(Resource.LCD);
+  const { state, setStatus, modifyData, saveData } = useResource<LcdSettings>(
+    Resource.LCD
+  );
+
+  const { status, data, modifiedData } = state;
 
   return (
     <ResourceControlsContainer
       title="LCD"
-      status={status}
-      loading={loading}
-      modified={!isEmpty(modifiedData)}
+      state={state}
       setStatus={setStatus}
       saveData={saveData}
     >

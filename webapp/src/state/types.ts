@@ -1,6 +1,8 @@
 // An HTML color code, like #ff0000
 export type Color = string;
 
+export type Error = string; // TODO
+
 export enum Resource {
   LED = 'led',
   LCD = 'lcd',
@@ -48,26 +50,39 @@ export interface Statuses<T> {
 
 export interface ResourceState<T> {
   status: Status;
-  loading: boolean;
   data?: Statuses<T>;
   modifiedData?: Partial<T>;
-  error?: string; // TODO
+  fetch: {
+    loading: boolean;
+    error?: Error;
+  };
+  save: {
+    loading: boolean;
+    error?: Error;
+  };
 }
 
 export const defaultResourceState: ResourceState<any> = {
   status: Status.Normal,
-  loading: false,
   data: undefined,
   modifiedData: undefined,
-  error: undefined,
+  fetch: {
+    loading: false,
+    error: undefined,
+  },
+  save: {
+    loading: false,
+    error: undefined,
+  },
 };
 
 export enum ResourceActionType {
   Fetch,
   FetchSuccess,
-  Post,
-  PostSuccess,
-  Error,
+  FetchError,
+  Save,
+  SaveSuccess,
+  SaveError,
   SetStatus,
   ModifyData,
 }
@@ -75,9 +90,11 @@ export enum ResourceActionType {
 export type ResourceAction<T> =
   | { type: ResourceActionType.Fetch }
   | { type: ResourceActionType.FetchSuccess; data: Statuses<T> }
-  | { type: ResourceActionType.Post }
-  | { type: ResourceActionType.PostSuccess; data: T }
-  | { type: ResourceActionType.Error; error: string }
+  | { type: ResourceActionType.FetchError; error: Error }
+  | { type: ResourceActionType.SaveError; error: Error }
+  | { type: ResourceActionType.Save }
+  | { type: ResourceActionType.SaveSuccess; data: T }
+  | { type: ResourceActionType.SaveError; error: Error }
   | { type: ResourceActionType.SetStatus; status: Status }
   | { type: ResourceActionType.ModifyData; value: Partial<T> };
 

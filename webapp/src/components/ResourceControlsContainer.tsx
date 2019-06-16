@@ -1,5 +1,6 @@
 import {
   AppBar,
+  Box,
   Button,
   CircularProgress,
   FormGroup,
@@ -11,7 +12,8 @@ import {
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import React from 'react';
-import { Status } from 'state/types';
+import { ResourceState, Status } from 'state/types';
+import { isEmpty } from 'lodash-es';
 
 const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
   outerContainer: {
@@ -20,6 +22,9 @@ const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
     width: 360,
   },
   innerContainer: {},
+  loading: {
+    padding: spacing(2),
+  },
   form: {
     // Spacing between all immediate children
     '& > *': {
@@ -33,18 +38,19 @@ const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
 
 interface Props {
   title: string;
-  status: Status;
-  loading: boolean;
-  modified: boolean;
+  state: ResourceState<any>;
   setStatus: (status: Status) => void;
   saveData: () => void;
 }
 
 const ResourceControlsContainer: React.FC<Props> = ({
   title,
-  status,
-  loading,
-  modified,
+  state: {
+    status,
+    fetch: { loading: fetchLoading },
+    save: { loading: saveLoading },
+    modifiedData,
+  },
   setStatus,
   saveData,
   children,
@@ -65,23 +71,33 @@ const ResourceControlsContainer: React.FC<Props> = ({
             ))}
           </Tabs>
         </AppBar>
-        <FormGroup className={localClasses.form}>
-          {children}
-          <Button
-            className={localClasses.applyButton}
-            variant="contained"
-            color="primary"
-            // Disable if loading or no modifications have been made
-            disabled={loading || !modified}
-            onClick={saveData}
+        {fetchLoading ? (
+          <Box
+            className={localClasses.loading}
+            display="flex"
+            justifyContent="center"
           >
-            {loading ? (
-              <CircularProgress size={20} color="secondary" />
-            ) : (
-              'Apply'
-            )}
-          </Button>
-        </FormGroup>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <FormGroup className={localClasses.form}>
+            {children}
+            <Button
+              className={localClasses.applyButton}
+              variant="contained"
+              color="primary"
+              // Disable if loading or no modifications have been made
+              disabled={saveLoading || isEmpty(modifiedData)}
+              onClick={saveData}
+            >
+              {saveLoading ? (
+                <CircularProgress size={20} color="secondary" />
+              ) : (
+                'Apply'
+              )}
+            </Button>
+          </FormGroup>
+        )}
       </Paper>
     </Paper>
   );

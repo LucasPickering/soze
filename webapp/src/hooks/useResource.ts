@@ -25,38 +25,58 @@ const makeResourceReducer = <T>(): React.Reducer<
     case ResourceActionType.Fetch:
       return {
         ...state,
-        loading: true,
         data: undefined,
-        error: undefined,
+        fetch: {
+          loading: true,
+          error: undefined,
+        },
       };
     case ResourceActionType.FetchSuccess:
       return {
         ...state,
-        loading: false,
         data: action.data,
         modifiedData: {},
+        fetch: {
+          loading: false,
+          error: undefined,
+        },
       };
-    case ResourceActionType.Post:
+    case ResourceActionType.FetchError:
       return {
         ...state,
-        loading: true,
+        fetch: {
+          loading: false,
+          error: action.error,
+        },
       };
-    case ResourceActionType.PostSuccess:
+    case ResourceActionType.Save:
       return {
         ...state,
-        loading: false,
-
+        save: {
+          loading: true,
+          error: undefined,
+        },
+      };
+    case ResourceActionType.SaveSuccess:
+      return {
+        ...state,
         data: {
           ...state.data,
           [state.status]: action.data,
         },
         modifiedData: {},
+        save: {
+          loading: false,
+          error: undefined,
+        },
       };
-    case ResourceActionType.Error:
+    case ResourceActionType.SaveError:
       return {
         ...state,
-        loading: false,
-        error: action.error,
+        save: {
+          loading: false,
+          error: action.error,
+        },
       };
     case ResourceActionType.SetStatus:
       return {
@@ -88,17 +108,17 @@ function saveData<T>(
   status: Status,
   data: Partial<T>
 ) {
-  dispatch({ type: ResourceActionType.Post });
+  dispatch({ type: ResourceActionType.Save });
   axios
     .post(getUrl(resource, status), data)
     .then(response => {
       dispatch({
-        type: ResourceActionType.PostSuccess,
+        type: ResourceActionType.SaveSuccess,
         data: response.data,
       });
     })
     .catch(err => {
-      dispatch({ type: ResourceActionType.Error, error: err });
+      dispatch({ type: ResourceActionType.SaveError, error: err });
     });
 }
 
@@ -121,7 +141,7 @@ export default function<T>(resource: Resource): ReturnVal<T> {
         });
       })
       .catch(err => {
-        dispatch({ type: ResourceActionType.Error, error: err });
+        dispatch({ type: ResourceActionType.SaveError, error: err });
       });
     dispatch({ type: ResourceActionType.Fetch });
   }, [resource]);
