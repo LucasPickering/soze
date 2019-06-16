@@ -3,11 +3,10 @@ import { useEffect, useMemo, useReducer } from 'react';
 import {
   DataModifier,
   defaultResourceState,
-  makeResourceReducer,
   ResourceAction,
   ResourceActionType,
   ResourceState,
-} from 'state/resource';
+} from 'state/types';
 import { Resource, Status } from 'state/types';
 
 interface ReturnVal<T> {
@@ -17,28 +16,70 @@ interface ReturnVal<T> {
   saveData: () => void;
 }
 
+// Makes a reducer for the given data type
+const makeResourceReducer = <T>(): React.Reducer<
+  ResourceState<T>,
+  ResourceAction<T>
+> => (state, action) => {
+  switch (action.type) {
+    case ResourceActionType.Fetch:
+      return {
+        ...state,
+        loading: true,
+        data: undefined,
+        error: undefined,
+      };
+    case ResourceActionType.FetchSuccess:
+      return {
+        ...state,
+        loading: false,
+        data: action.data,
+        modifiedData: {},
+      };
+    case ResourceActionType.Post:
+      return {
+        ...state,
+        loading: true,
+      };
+    case ResourceActionType.PostSuccess:
+      return {
+        ...state,
+        loading: false,
+
+        data: {
+          ...state.data,
+          [state.status]: action.data,
+        },
+        modifiedData: {},
+      };
+    case ResourceActionType.Error:
+      return {
+        ...state,
+        loading: false,
+        error: action.error,
+      };
+    case ResourceActionType.SetStatus:
+      return {
+        ...state,
+        status: action.status,
+      };
+    case ResourceActionType.ModifyData:
+      return {
+        ...state,
+        // Overwrite any specified keys
+        modifiedData: {
+          // We want an error if this is called while modifiedData is undef
+          ...state.modifiedData!,
+          ...action.value,
+        },
+      };
+    default:
+      return state;
+  }
+};
+
 function getUrl(resource: Resource, status?: Status): string {
   return status ? `/api/${resource}/${status}` : `/api/${resource}`;
-}
-
-function setStatus<T>(
-  dispatch: React.Dispatch<ResourceAction<T>>,
-  status: Status
-) {
-  dispatch({
-    type: ResourceActionType.SetStatus,
-    status,
-  });
-}
-
-function modifyData<T>(
-  dispatch: React.Dispatch<ResourceAction<T>>,
-  modifiedData: Partial<T>
-) {
-  dispatch({
-    type: ResourceActionType.ModifyData,
-    value: modifiedData,
-  });
 }
 
 function saveData<T>(
@@ -52,7 +93,7 @@ function saveData<T>(
     .post(getUrl(resource, status), data)
     .then(response => {
       dispatch({
-        type: ResourceActionType.Success,
+        type: ResourceActionType.PostSuccess,
         data: response.data,
       });
     })
@@ -69,13 +110,13 @@ export default function<T>(resource: Resource): ReturnVal<T> {
   const reducer = useMemo(() => makeResourceReducer<T>(), []);
   const [state, dispatch] = useReducer(reducer, defaultResourceState);
 
+  // Fetch data across all statuses for this resource
   useEffect(() => {
-    // Fetch from the API
     axios
-      .get(getUrl(resource, state.status))
+      .get(`/api/${resource}`)
       .then(response => {
         dispatch({
-          type: ResourceActionType.Success,
+          type: ResourceActionType.FetchSuccess,
           data: response.data,
         });
       })
@@ -83,12 +124,20 @@ export default function<T>(resource: Resource): ReturnVal<T> {
         dispatch({ type: ResourceActionType.Error, error: err });
       });
     dispatch({ type: ResourceActionType.Fetch });
-  }, [resource, state.status]);
+  }, [resource]);
 
   return {
     state,
-    setStatus: s => setStatus(dispatch, s),
-    modifyData: v => modifyData(dispatch, v),
+    setStatus: status =>
+      dispatch({
+        type: ResourceActionType.SetStatus,
+        status,
+      }),
+    modifyData: value =>
+      dispatch({
+        type: ResourceActionType.ModifyData,
+        value,
+      }),
     saveData: () =>
       saveData(dispatch, resource, state.status, state.modifiedData!),
   };

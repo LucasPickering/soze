@@ -41,3 +41,44 @@ export interface LcdSettings {
   mode: LcdMode;
   color: Color;
 }
+
+export interface Statuses<T> {
+  [status: string]: T;
+}
+
+export interface ResourceState<T> {
+  status: Status;
+  loading: boolean;
+  data?: Statuses<T>;
+  modifiedData?: Partial<T>;
+  error?: string; // TODO
+}
+
+export const defaultResourceState: ResourceState<any> = {
+  status: Status.Normal,
+  loading: false,
+  data: undefined,
+  modifiedData: undefined,
+  error: undefined,
+};
+
+export enum ResourceActionType {
+  Fetch,
+  FetchSuccess,
+  Post,
+  PostSuccess,
+  Error,
+  SetStatus,
+  ModifyData,
+}
+
+export type ResourceAction<T> =
+  | { type: ResourceActionType.Fetch }
+  | { type: ResourceActionType.FetchSuccess; data: Statuses<T> }
+  | { type: ResourceActionType.Post }
+  | { type: ResourceActionType.PostSuccess; data: T }
+  | { type: ResourceActionType.Error; error: string }
+  | { type: ResourceActionType.SetStatus; status: Status }
+  | { type: ResourceActionType.ModifyData; value: Partial<T> };
+
+export type DataModifier<T> = (value: Partial<T>) => void;

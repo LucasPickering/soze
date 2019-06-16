@@ -27,7 +27,7 @@ const LcdContainer: React.FC<Props> = () => {
       {data && (
         <LcdControls
           settings={{
-            ...data,
+            ...data[status],
             ...modifiedData,
           }}
           modifyData={modifyData}

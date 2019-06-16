@@ -1,8 +1,7 @@
-import { FormControl, Theme, Typography } from '@material-ui/core';
+import { FormControl, Typography } from '@material-ui/core';
 import Slider from '@material-ui/lab/Slider';
 import React from 'react';
-import { DataModifier } from 'state/resource';
-import { LedMode, LedSettings } from 'state/types';
+import { DataModifier, LedMode, LedSettings } from 'state/types';
 import ColorPicker from './ColorPicker';
 import ColorSeries from './ColorSeries';
 import ModeSelect from './ModeSelect';

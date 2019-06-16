@@ -27,7 +27,7 @@ const LedContainer: React.FC<Props> = () => {
       {data && (
         <LedControls
           settings={{
-            ...data,
+            ...data[status],
             ...modifiedData,
           }}
           modifyData={modifyData}
