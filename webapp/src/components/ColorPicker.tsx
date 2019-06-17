@@ -5,8 +5,8 @@ import { CompactPicker as Picker } from 'react-color';
 import { Color } from 'state/types';
 
 const COLORS: Color[] = [
-  '#4D4D4D',
-  '#999999',
+  '#333333',
+  '#808080',
   '#FFFFFF',
   '#FF0000',
   '#F44E3B',
@@ -18,9 +18,9 @@ const COLORS: Color[] = [
   '#AEA1FF',
   '#FDA1FF',
 
-  '#333333',
-  '#808080',
-  '#CCCCCC',
+  '#101010',
+  '#666666',
+  '#B3B3B3',
   '#00FF00',
   '#D33115',
   '#E27300',
@@ -32,8 +32,8 @@ const COLORS: Color[] = [
   '#FA28FF',
 
   '#000000',
-  '#666666',
-  '#B3B3B3',
+  '#4D4D4D',
+  '#999999',
   '#0000FF',
   '#9F0500',
   '#C45100',
