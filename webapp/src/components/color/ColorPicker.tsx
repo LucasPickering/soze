@@ -1,5 +1,9 @@
+import { Theme, Typography } from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import Popover from '@material-ui/core/Popover';
+import Slider from '@material-ui/lab/Slider';
+import { makeStyles } from '@material-ui/styles';
+import convert from 'color-convert';
 import React, { useState } from 'react';
 import { CompactPicker as Picker } from 'react-color';
 import { Color } from 'state/types';
@@ -45,6 +49,13 @@ const COLORS: Color[] = [
   '#AB149E',
 ];
 
+const useLocalStyles = makeStyles(({ spacing }: Theme) => ({
+  sliderContainer: {
+    width: 300,
+    padding: spacing(2),
+  },
+}));
+
 interface Props {
   className?: string;
   color: Color;
@@ -54,9 +65,12 @@ interface Props {
 
 const ColorPicker: React.FC<Props> = React.memo(
   ({ className, color, disabled = false, onChange }: Props) => {
+    const localClasses = useLocalStyles();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | undefined>(
       undefined
     );
+    const [currentColor, setCurrentColor] = useState<Color>(color);
+    const [hue, saturation, brightness] = convert.hex.hsv(currentColor);
 
     return (
       <div>
@@ -69,7 +83,10 @@ const ColorPicker: React.FC<Props> = React.memo(
         />
         <Popover
           open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(undefined)}
+          onClose={() => {
+            onChange(currentColor);
+            setAnchorEl(undefined);
+          }}
           anchorEl={anchorEl}
           anchorOrigin={{
             vertical: 'bottom',
@@ -77,11 +94,26 @@ const ColorPicker: React.FC<Props> = React.memo(
           }}
           transitionDuration={100}
         >
-          <Picker
-            color={color}
-            colors={COLORS}
-            onChangeComplete={c => onChange(c.hex)}
-          />
+          <div className={localClasses.sliderContainer}>
+            <Picker
+              color={currentColor}
+              colors={COLORS}
+              onChangeComplete={c => setCurrentColor(c.hex)}
+            />
+            <Typography variant="subtitle2">Brightness</Typography>
+            <Slider
+              min={0}
+              max={100}
+              step={1}
+              valueLabelDisplay="auto"
+              value={brightness}
+              onChange={(e, b) =>
+                setCurrentColor(
+                  `#${convert.hsv.hex([hue, saturation, b as number])}`
+                )
+              }
+            />
+          </div>
         </Popover>
       </div>
     );

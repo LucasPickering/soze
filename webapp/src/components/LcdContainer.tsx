@@ -1,5 +1,4 @@
 import useResource from 'hooks/useResource';
-import { isEmpty } from 'lodash-es';
 import React from 'react';
 import { LcdSettings, Resource } from 'state/types';
 import LcdControls from './LcdControls';
@@ -11,7 +10,6 @@ const LcdContainer: React.FC<Props> = () => {
   const { state, setStatus, modifyData, saveData } = useResource<LcdSettings>(
     Resource.LCD
   );
-
   const { status, data, modifiedData } = state;
 
   return (

@@ -1,5 +1,4 @@
 import useResource from 'hooks/useResource';
-import { isEmpty } from 'lodash-es';
 import React from 'react';
 import { LedSettings, Resource } from 'state/types';
 import LedControls from './LedControls';
