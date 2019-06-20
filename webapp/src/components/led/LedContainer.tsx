@@ -1,26 +1,26 @@
 import useResource from 'hooks/useResource';
 import React from 'react';
-import { LcdSettings, Resource } from 'state/types';
-import LcdControls from './LcdControls';
-import ResourceControlsContainer from './ResourceControlsContainer';
+import { LedSettings, Resource } from 'state/types';
+import ResourceControlsContainer from '../ResourceControlsContainer';
+import LedControls from './LedControls';
 
 interface Props {}
 
-const LcdContainer: React.FC<Props> = () => {
-  const { state, setStatus, modifyData, saveData } = useResource<LcdSettings>(
-    Resource.LCD
+const LedContainer: React.FC<Props> = () => {
+  const { state, setStatus, modifyData, saveData } = useResource<LedSettings>(
+    Resource.LED
   );
   const { status, data, modifiedData } = state;
 
   return (
     <ResourceControlsContainer
-      title="LCD"
+      title="LED"
       state={state}
       setStatus={setStatus}
       saveData={saveData}
     >
       {data && (
-        <LcdControls
+        <LedControls
           settings={{
             ...data[status],
             ...modifiedData,
@@ -32,4 +32,4 @@ const LcdContainer: React.FC<Props> = () => {
   );
 };
 
-export default LcdContainer;
+export default LedContainer;

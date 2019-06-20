@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from 'axios'; // tslint:disable-line:match-default-export-name
 import { useEffect, useMemo, useReducer } from 'react';
 import {
   DataModifier,
@@ -146,19 +146,27 @@ export default function<T>(resource: Resource): ReturnVal<T> {
     dispatch({ type: ResourceActionType.Fetch });
   }, [resource]);
 
-  return {
-    state,
-    setStatus: status =>
-      dispatch({
-        type: ResourceActionType.SetStatus,
-        status,
-      }),
-    modifyData: value =>
+  const modifyData = useMemo(
+    () => (value: Partial<T>) =>
       dispatch({
         type: ResourceActionType.ModifyData,
         value,
       }),
-    saveData: () =>
-      saveData(dispatch, resource, state.status, state.modifiedData!),
-  };
+    [dispatch]
+  );
+
+  return useMemo(
+    () => ({
+      state,
+      setStatus: status =>
+        dispatch({
+          type: ResourceActionType.SetStatus,
+          status,
+        }),
+      modifyData,
+      saveData: () =>
+        saveData(dispatch, resource, state.status, state.modifiedData!),
+    }),
+    [resource, state, dispatch, modifyData]
+  );
 }

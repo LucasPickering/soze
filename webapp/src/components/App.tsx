@@ -2,8 +2,8 @@ import { createMuiTheme, Grid, Typography } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/styles';
 import React from 'react';
-import LcdContainer from './LcdContainer';
-import LedContainer from './LedContainer';
+import LcdContainer from './lcd/LcdContainer';
+import LedContainer from './led/LedContainer';
 
 const theme = createMuiTheme({
   palette: {

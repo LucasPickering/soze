@@ -2,7 +2,9 @@ import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import { Theme } from '@material-ui/core/styles';
+// tslint:disable-next-line:match-default-export-name
 import AddIcon from '@material-ui/icons/Add';
+// tslint:disable-next-line:match-default-export-name
 import ClearIcon from '@material-ui/icons/Clear';
 import { makeStyles } from '@material-ui/styles';
 import React from 'react';
@@ -90,4 +92,4 @@ const ColorSeries: React.FC<Props> = ({ colors, setColors }) => {
   );
 };
 
-export default ColorSeries;
+export default React.memo(ColorSeries);

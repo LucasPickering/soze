@@ -63,61 +63,62 @@ interface Props {
   onChange: (color: Color) => void;
 }
 
-const ColorPicker: React.FC<Props> = React.memo(
-  ({ className, color, disabled = false, onChange }: Props) => {
-    const localClasses = useLocalStyles();
-    const [anchorEl, setAnchorEl] = useState<HTMLElement | undefined>(
-      undefined
-    );
-    const [currentColor, setCurrentColor] = useState<Color>(color);
-    const [hue, saturation, brightness] = convert.hex.hsv(currentColor);
+const ColorPicker: React.FC<Props> = ({
+  className,
+  color,
+  disabled = false,
+  onChange,
+}: Props) => {
+  const localClasses = useLocalStyles();
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | undefined>(undefined);
+  const [currentColor, setCurrentColor] = useState<Color>(color);
+  const [hue, saturation, brightness] = convert.hex.hsv(currentColor);
 
-    return (
-      <div>
-        <IconButton
-          className={className}
-          disabled={disabled}
-          aria-haspopup="true"
-          onClick={e => setAnchorEl(e.currentTarget)}
-          style={disabled ? undefined : { backgroundColor: color }}
-        />
-        <Popover
-          open={Boolean(anchorEl)}
-          onClose={() => {
-            onChange(currentColor);
-            setAnchorEl(undefined);
-          }}
-          anchorEl={anchorEl}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          transitionDuration={100}
-        >
-          <div className={localClasses.sliderContainer}>
-            <Picker
-              color={currentColor}
-              colors={COLORS}
-              onChangeComplete={c => setCurrentColor(c.hex)}
-            />
-            <Typography variant="subtitle2">Brightness</Typography>
-            <Slider
-              min={0}
-              max={100}
-              step={1}
-              valueLabelDisplay="auto"
-              value={brightness}
-              onChange={(e, b) =>
-                setCurrentColor(
-                  `#${convert.hsv.hex([hue, saturation, b as number])}`
-                )
-              }
-            />
-          </div>
-        </Popover>
-      </div>
-    );
-  }
-);
+  return (
+    <div>
+      <IconButton
+        className={className}
+        disabled={disabled}
+        aria-haspopup="true"
+        onClick={e => setAnchorEl(e.currentTarget)}
+        style={disabled ? undefined : { backgroundColor: color }}
+      />
+      <Popover
+        open={Boolean(anchorEl)}
+        onClose={() => {
+          onChange(currentColor);
+          setAnchorEl(undefined);
+        }}
+        anchorEl={anchorEl}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transitionDuration={100}
+      >
+        <div className={localClasses.sliderContainer}>
+          <Picker
+            color={currentColor}
+            colors={COLORS}
+            onChangeComplete={c => setCurrentColor(c.hex)}
+          />
+          <Typography variant="subtitle2">Brightness</Typography>
+          <Slider
+            min={0}
+            max={100}
+            step={1}
+            valueLabelDisplay="auto"
+            value={brightness}
+            onChange={(e, b) =>
+              setCurrentColor(
+                `#${convert.hsv.hex([hue, saturation, b as number])}`
+              )
+            }
+          />
+        </div>
+      </Popover>
+    </div>
+  );
+};
 
-export default ColorPicker;
+export default React.memo(ColorPicker);
