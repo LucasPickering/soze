@@ -59,16 +59,11 @@ const useLocalStyles = makeStyles(({ spacing }: Theme) => ({
 interface Props {
   className?: string;
   color: Color;
-  disabled?: boolean;
+  disabled: boolean;
   onChange: (color: Color) => void;
 }
 
-const ColorPicker: React.FC<Props> = ({
-  className,
-  color,
-  disabled = false,
-  onChange,
-}: Props) => {
+const ColorPicker = ({ className, color, disabled, onChange }: Props) => {
   const localClasses = useLocalStyles();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | undefined>(undefined);
   const [currentColor, setCurrentColor] = useState<Color>(color);
@@ -119,6 +114,10 @@ const ColorPicker: React.FC<Props> = ({
       </Popover>
     </div>
   );
+};
+
+ColorPicker.defaultProps = {
+  disabled: false,
 };
 
 export default React.memo(ColorPicker);
