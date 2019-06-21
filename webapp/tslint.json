@@ -6,9 +6,10 @@
     "interface-name": false,
     "match-default-export-name": true,
     "max-classes-per-file": false,
-    "no-empty-interface": false,
     "no-constant-condition": true,
-    "object-literal-sort-keys": false
+    "no-empty-interface": false,
+    "object-literal-sort-keys": false,
+    "react-hooks/exhaustive-deps": true
   },
   "rulesDirectory": ["node_modules/tslint-eslint-rules/dist/rules"]
 }

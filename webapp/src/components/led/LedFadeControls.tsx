@@ -1,8 +1,9 @@
 import { FormControl, Typography } from '@material-ui/core';
 import Slider from '@material-ui/lab/Slider';
 import ColorSeries from 'components/color/ColorSeries';
-import React, { useMemo } from 'react';
-import { Color, DataModifier, LedSettings } from 'state/types';
+import React from 'react';
+import { LedSettings } from 'state/types';
+import { DataModifier } from 'state/resource';
 
 function formatSeconds(seconds: number): string {
   return `${seconds}s`;

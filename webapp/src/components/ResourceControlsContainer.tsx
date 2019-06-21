@@ -13,7 +13,7 @@ import {
 import { makeStyles } from '@material-ui/styles';
 import { isEmpty } from 'lodash-es';
 import React from 'react';
-import { ResourceState, Status } from 'state/types';
+import { ResourceState, Status } from 'state/resource';
 
 const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
   outerContainer: {
@@ -38,6 +38,8 @@ const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
 
 interface Props {
   title: string;
+  fetchLoading: boolean;
+  saveLoading: boolean;
   state: ResourceState<any>;
   setStatus: (status: Status) => void;
   saveData: () => void;
@@ -45,12 +47,9 @@ interface Props {
 
 const ResourceControlsContainer: React.FC<Props> = ({
   title,
-  state: {
-    status,
-    fetch: { loading: fetchLoading },
-    save: { loading: saveLoading },
-    modifiedData,
-  },
+  fetchLoading,
+  saveLoading,
+  state: { status, modifiedData },
   setStatus,
   saveData,
   children,

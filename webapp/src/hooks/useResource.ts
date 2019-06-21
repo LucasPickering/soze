@@ -1,20 +1,15 @@
-import axios from 'axios'; // tslint:disable-line:match-default-export-name
 import { useEffect, useMemo, useReducer } from 'react';
 import {
   DataModifier,
   defaultResourceState,
+  Resource,
   ResourceAction,
   ResourceActionType,
   ResourceState,
-} from 'state/types';
-import { Resource, Status } from 'state/types';
-
-interface ReturnVal<T> {
-  state: ResourceState<T>;
-  setStatus: (status: Status) => void;
-  modifyData: DataModifier<T>;
-  saveData: () => void;
-}
+  Status,
+  Statuses,
+} from 'state/resource';
+import useApi from './useApi';
 
 // Makes a reducer for the given data type
 const makeResourceReducer = <T>(): React.Reducer<
@@ -22,66 +17,17 @@ const makeResourceReducer = <T>(): React.Reducer<
   ResourceAction<T>
 > => (state, action) => {
   switch (action.type) {
-    case ResourceActionType.Fetch:
-      return {
-        ...state,
-        data: undefined,
-        fetch: {
-          loading: true,
-          error: undefined,
-        },
-      };
-    case ResourceActionType.FetchSuccess:
-      return {
-        ...state,
-        data: action.data,
-        modifiedData: {},
-        fetch: {
-          loading: false,
-          error: undefined,
-        },
-      };
-    case ResourceActionType.FetchError:
-      return {
-        ...state,
-        fetch: {
-          loading: false,
-          error: action.error,
-        },
-      };
-    case ResourceActionType.Save:
-      return {
-        ...state,
-        save: {
-          loading: true,
-          error: undefined,
-        },
-      };
-    case ResourceActionType.SaveSuccess:
-      return {
-        ...state,
-        data: {
-          ...state.data,
-          [state.status]: action.data,
-        },
-        modifiedData: {},
-        save: {
-          loading: false,
-          error: undefined,
-        },
-      };
-    case ResourceActionType.SaveError:
-      return {
-        ...state,
-        save: {
-          loading: false,
-          error: action.error,
-        },
-      };
     case ResourceActionType.SetStatus:
       return {
         ...state,
         status: action.status,
+      };
+    case ResourceActionType.SetData:
+      return {
+        ...state,
+        data: action.value,
+        // Whenever we set all data, we should wipe out any modifications
+        modifiedData: {},
       };
     case ResourceActionType.ModifyData:
       return {
@@ -93,33 +39,19 @@ const makeResourceReducer = <T>(): React.Reducer<
           ...action.value,
         },
       };
-    default:
-      return state;
   }
 };
 
-function getUrl(resource: Resource, status?: Status): string {
-  return status ? `/api/${resource}/${status}` : `/api/${resource}`;
-}
+type FetchApiType<T> = Statuses<T>;
+type SaveApiType<T> = Partial<T>;
 
-function saveData<T>(
-  dispatch: React.Dispatch<ResourceAction<T>>,
-  resource: Resource,
-  status: Status,
-  data: Partial<T>
-) {
-  dispatch({ type: ResourceActionType.Save });
-  axios
-    .post(getUrl(resource, status), data)
-    .then(response => {
-      dispatch({
-        type: ResourceActionType.SaveSuccess,
-        data: response.data,
-      });
-    })
-    .catch(err => {
-      dispatch({ type: ResourceActionType.SaveError, error: err });
-    });
+interface ReturnVal<T> {
+  state: ResourceState<T>;
+  fetchLoading: boolean;
+  saveLoading: boolean;
+  setStatus: (status: Status) => void;
+  modifyData: DataModifier<T>;
+  saveData: () => void;
 }
 
 /**
@@ -130,22 +62,58 @@ export default function<T>(resource: Resource): ReturnVal<T> {
   const reducer = useMemo(() => makeResourceReducer<T>(), []);
   const [state, dispatch] = useReducer(reducer, defaultResourceState);
 
-  // Fetch data across all statuses for this resource
-  useEffect(() => {
-    axios
-      .get(`/api/${resource}`)
-      .then(response => {
-        dispatch({
-          type: ResourceActionType.FetchSuccess,
-          data: response.data,
-        });
-      })
-      .catch(err => {
-        dispatch({ type: ResourceActionType.SaveError, error: err });
-      });
-    dispatch({ type: ResourceActionType.Fetch });
-  }, [resource]);
+  // Create two API endpoint handlers: One for fetching, one for saving
+  const { state: fetchState, request: fetchRequest } = useApi<FetchApiType<T>>(
+    `/api/${resource}`
+  );
+  const { state: saveState, request: saveRequest } = useApi<SaveApiType<T>>(
+    `/api/${resource}/${state.status}`
+  );
 
+  // Fetch data across all statuses for this resource
+  useEffect(() => fetchRequest({ method: 'GET' }), [fetchRequest]);
+
+  // When new fetch or save data is loaded, update our copy of the data
+  // If there is no data, don't overwrite existing data
+  useEffect(() => {
+    if (fetchState.data) {
+      dispatch({
+        type: ResourceActionType.SetData,
+        value: fetchState.data,
+      });
+    }
+  }, [fetchState.data]);
+  useEffect(() => {
+    const { status, data } = state;
+    if (saveState.data) {
+      // We shouldn't ever be getting a POST response if we haven't loaded any
+      // data yet
+      const currentValueForStatus = data![status];
+      dispatch({
+        type: ResourceActionType.SetData,
+        value: {
+          // Keep all inactive statuses
+          ...data!,
+          // The new saveState data will be a Partial<T>, so override any new
+          // fields we have and keep everything else
+          [status]: {
+            ...currentValueForStatus,
+            ...saveState.data,
+          },
+        },
+      });
+    }
+  }, [saveState.data]);
+
+  // Memoize these to prevent unnecessary re-renders
+  const setStatus = useMemo(
+    () => (status: Status) =>
+      dispatch({
+        type: ResourceActionType.SetStatus,
+        status,
+      }),
+    [dispatch]
+  );
   const modifyData = useMemo(
     () => (value: Partial<T>) =>
       dispatch({
@@ -154,19 +122,27 @@ export default function<T>(resource: Resource): ReturnVal<T> {
       }),
     [dispatch]
   );
+  const saveData = useMemo(
+    () => () => saveRequest({ method: 'POST', data: state.modifiedData }),
+    [saveRequest, state.modifiedData]
+  );
 
   return useMemo(
     () => ({
       state,
-      setStatus: status =>
-        dispatch({
-          type: ResourceActionType.SetStatus,
-          status,
-        }),
+      fetchLoading: fetchState.loading,
+      saveLoading: saveState.loading,
+      setStatus,
       modifyData,
-      saveData: () =>
-        saveData(dispatch, resource, state.status, state.modifiedData!),
+      saveData,
     }),
-    [resource, state, dispatch, modifyData]
+    [
+      state,
+      fetchState.loading,
+      saveState.loading,
+      setStatus,
+      modifyData,
+      saveData,
+    ]
   );
 }

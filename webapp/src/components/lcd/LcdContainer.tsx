@@ -1,24 +1,21 @@
 import ResourceControlsContainer from 'components/ResourceControlsContainer';
 import useResource from 'hooks/useResource';
 import React from 'react';
-import { LcdSettings, Resource } from 'state/types';
+import { Resource } from 'state/resource';
+import { LcdSettings } from 'state/types';
 import LcdControls from './LcdControls';
 
 interface Props {}
 
 const LcdContainer: React.FC<Props> = () => {
-  const { state, setStatus, modifyData, saveData } = useResource<LcdSettings>(
-    Resource.LCD
-  );
-  const { status, data, modifiedData } = state;
+  const resource = useResource<LcdSettings>(Resource.LCD);
+  const {
+    state: { status, data, modifiedData },
+    modifyData,
+  } = resource;
 
   return (
-    <ResourceControlsContainer
-      title="LCD"
-      state={state}
-      setStatus={setStatus}
-      saveData={saveData}
-    >
+    <ResourceControlsContainer title="LCD" {...resource}>
       {data && (
         <LcdControls
           settings={{

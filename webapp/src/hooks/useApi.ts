@@ -1,4 +1,4 @@
-import axios from 'axios'; // tslint:disable-line:match-default-export-name
+import axios, { AxiosRequestConfig } from 'axios'; // tslint:disable-line:match-default-export-name
 import { useMemo, useReducer } from 'react';
 import { ApiAction, ApiActionType, ApiState, defaultApiState } from 'state/api';
 
@@ -34,7 +34,7 @@ const makeApiReducer = <T>(): React.Reducer<ApiState<T>, ApiAction<T>> => (
 
 interface ReturnVal<T> {
   state: ApiState<T>;
-  request: () => void;
+  request: (config: AxiosRequestConfig) => void;
 }
 
 /**
@@ -45,27 +45,35 @@ export default function<T>(url: string): ReturnVal<T> {
   const reducer = useMemo(() => makeApiReducer<T>(), []);
   const [state, dispatch] = useReducer(reducer, defaultApiState);
 
+  // Everything here is memoized to prevent unnecessary re-renders and
+  // effect triggers
+
+  const request = useMemo(
+    () => (config: AxiosRequestConfig) => {
+      dispatch({ type: ApiActionType.Request });
+      axios
+        .request({ url, ...config })
+        .then(response => {
+          dispatch({
+            type: ApiActionType.Success,
+            data: response.data,
+          });
+        })
+        .catch(error => {
+          dispatch({
+            type: ApiActionType.Error,
+            error,
+          });
+        });
+    },
+    [url, dispatch]
+  );
+
   return useMemo(
     () => ({
       state,
-      request: () => {
-        dispatch({ type: ApiActionType.Request });
-        axios
-          .get(url)
-          .then(response => {
-            dispatch({
-              type: ApiActionType.Success,
-              data: response.data,
-            });
-          })
-          .catch(error => {
-            dispatch({
-              type: ApiActionType.Error,
-              error,
-            });
-          });
-      },
+      request,
     }),
-    [state, dispatch]
+    [state, request]
   );
 }
