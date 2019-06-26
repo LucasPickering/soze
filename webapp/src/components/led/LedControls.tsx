@@ -1,5 +1,5 @@
 import ModeSelect from 'components/ModeSelect';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { LedMode, LedSettings } from 'types/led';
 import { DataModifier } from 'types/resource';
 import LedFadeControls from './LedFadeControls';
@@ -10,16 +10,18 @@ interface Props {
   modifyData: DataModifier<LedSettings>;
 }
 
-const LedControls: React.FC<Props> = ({ settings, modifyData }) => (
+const LedControls: React.FC<Props> = React.memo(({ settings, modifyData }) => (
   <>
     <ModeSelect
-      modes={Object.values(LedMode)}
+      modes={LedMode}
       selectedMode={settings.mode}
-      onChange={m =>
-        modifyData({
-          mode: m as LedMode,
-        })
-      }
+      onChange={useMemo(
+        () => m =>
+          modifyData({
+            mode: m as LedMode,
+          }),
+        [modifyData]
+      )}
     />
     {settings.mode === LedMode.Static && (
       <LedStaticControls static={settings.static} modifyData={modifyData} />
@@ -28,6 +30,6 @@ const LedControls: React.FC<Props> = ({ settings, modifyData }) => (
       <LedFadeControls fade={settings.fade} modifyData={modifyData} />
     )}
   </>
-);
+));
 
 export default LedControls;

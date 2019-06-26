@@ -8,22 +8,14 @@ import LedControls from './LedControls';
 interface Props {}
 
 const LedContainer: React.FC<Props> = () => {
-  const resource = useResource<LedSettings>(Resource.LED);
-  const {
-    state: { status, data, modifiedData },
-    modifyData,
-  } = resource;
+  const { currentData, modifyData, ...rest } = useResource<LedSettings>(
+    Resource.LED
+  );
 
   return (
-    <ResourceControlsContainer title="LED" {...resource}>
-      {data && (
-        <LedControls
-          settings={{
-            ...data[status],
-            ...modifiedData,
-          }}
-          modifyData={modifyData}
-        />
+    <ResourceControlsContainer title="LED" {...rest}>
+      {currentData && (
+        <LedControls settings={currentData} modifyData={modifyData} />
       )}
     </ResourceControlsContainer>
   );

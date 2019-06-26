@@ -11,9 +11,8 @@ import {
   Typography,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { isEmpty } from 'lodash-es';
 import React from 'react';
-import { ResourceState, Status } from 'types/resource';
+import { Status } from 'types/resource';
 
 const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
   outerContainer: {
@@ -38,18 +37,20 @@ const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
 
 interface Props {
   title: string;
+  status: Status;
+  isModified: boolean;
   fetchLoading: boolean;
   saveLoading: boolean;
-  state: ResourceState<any>;
   setStatus: (status: Status) => void;
   saveData: () => void;
 }
 
 const ResourceControlsContainer: React.FC<Props> = ({
   title,
+  status,
+  isModified,
   fetchLoading,
   saveLoading,
-  state: { status, modifiedData },
   setStatus,
   saveData,
   children,
@@ -86,7 +87,7 @@ const ResourceControlsContainer: React.FC<Props> = ({
               variant="contained"
               color="primary"
               // Disable if loading or no modifications have been made
-              disabled={saveLoading || isEmpty(modifiedData)}
+              disabled={saveLoading || !isModified}
               onClick={saveData}
             >
               {saveLoading ? (

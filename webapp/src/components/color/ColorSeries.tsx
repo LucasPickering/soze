@@ -48,7 +48,7 @@ interface Props {
   setColors: (colors: Color[]) => void;
 }
 
-const ColorSeries: React.FC<Props> = ({ colors, setColors }) => {
+const ColorSeries: React.FC<Props> = React.memo(({ colors, setColors }) => {
   const localClasses = useLocalStyles();
   return (
     <div className={localClasses.root}>
@@ -90,6 +90,6 @@ const ColorSeries: React.FC<Props> = ({ colors, setColors }) => {
       </IconButton>
     </div>
   );
-};
+});
 
 export default React.memo(ColorSeries);

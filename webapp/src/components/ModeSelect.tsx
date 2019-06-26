@@ -9,30 +9,32 @@ const useLocalStyles = makeStyles(() => ({
 }));
 
 interface Props {
-  modes: string[];
+  modes: { [_: number]: string }; // Matches an enum
   selectedMode: string;
   onChange: (mode: string) => void;
 }
 
-const ModeSelect: React.FC<Props> = ({ modes, selectedMode, onChange }) => {
-  const localClasses = useLocalStyles();
-  return (
-    <FormControl>
-      <Select
-        className={localClasses.root}
-        value={selectedMode}
-        onChange={e => {
-          onChange(e.target.value as string);
-        }}
-      >
-        {modes.map(mode => (
-          <MenuItem key={mode} value={mode}>
-            {capitalize(mode)}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
-};
+const ModeSelect: React.FC<Props> = React.memo(
+  ({ modes, selectedMode, onChange }) => {
+    const localClasses = useLocalStyles();
+    return (
+      <FormControl>
+        <Select
+          className={localClasses.root}
+          value={selectedMode}
+          onChange={e => {
+            onChange(e.target.value as string);
+          }}
+        >
+          {Object.values(modes).map(mode => (
+            <MenuItem key={mode} value={mode}>
+              {capitalize(mode)}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    );
+  }
+);
 
 export default ModeSelect;

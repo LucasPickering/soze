@@ -1,3 +1,4 @@
+import { isEmpty } from 'lodash-es';
 import { useEffect, useMemo, useReducer } from 'react';
 import {
   DataModifier,
@@ -46,7 +47,9 @@ type FetchApiType<T> = Statuses<T>;
 type SaveApiType<T> = Partial<T>;
 
 interface ReturnVal<T> {
-  state: ResourceState<T>;
+  status: Status;
+  currentData?: T;
+  isModified: boolean;
   fetchLoading: boolean;
   saveLoading: boolean;
   setStatus: (status: Status) => void;
@@ -103,9 +106,24 @@ export default function<T>(resource: Resource): ReturnVal<T> {
         },
       });
     }
+    // This is intentionally missing state as a dependency, we only want to run
+    // it when a save response comes in
   }, [saveState.data]);
 
   // Memoize these to prevent unnecessary re-renders
+  const isModified = useMemo(() => !isEmpty(state.modifiedData), [
+    state.modifiedData,
+  ]);
+  const currentData = useMemo(
+    // The current version of the data to show the user, including
+    // unsaved modifications
+    () =>
+      state.data && {
+        ...state.data[state.status],
+        ...state.modifiedData,
+      },
+    [state.data, state.status, state.modifiedData]
+  );
   const setStatus = useMemo(
     () => (status: Status) =>
       dispatch({
@@ -129,7 +147,9 @@ export default function<T>(resource: Resource): ReturnVal<T> {
 
   return useMemo(
     () => ({
-      state,
+      status: state.status,
+      isModified,
+      currentData,
       fetchLoading: fetchState.loading,
       saveLoading: saveState.loading,
       setStatus,
@@ -137,7 +157,9 @@ export default function<T>(resource: Resource): ReturnVal<T> {
       saveData,
     }),
     [
-      state,
+      state.status,
+      isModified,
+      currentData,
       fetchState.loading,
       saveState.loading,
       setStatus,
