@@ -1,3 +1,5 @@
+import { RecursivePartial } from './core';
+
 export enum Resource {
   LED = 'led',
   LCD = 'lcd',
@@ -15,7 +17,7 @@ export interface Statuses<T> {
 export interface ResourceState<T> {
   status: Status;
   data?: Statuses<T>;
-  modifiedData?: Partial<T>;
+  modifiedData?: T;
 }
 
 export const defaultResourceState: ResourceState<any> = {
@@ -32,6 +34,6 @@ export enum ResourceActionType {
 export type ResourceAction<T> =
   | { type: ResourceActionType.SetStatus; status: Status }
   | { type: ResourceActionType.SetData; value: Statuses<T> }
-  | { type: ResourceActionType.ModifyData; value: Partial<T> };
+  | { type: ResourceActionType.ModifyData; value: RecursivePartial<T> };
 
-export type DataModifier<T> = (value: Partial<T>) => void;
+export type DataModifier<T> = (value: RecursivePartial<T>) => void;

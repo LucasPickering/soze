@@ -1,58 +1,19 @@
-import { FormControl, Typography } from '@material-ui/core';
-import Slider from '@material-ui/lab/Slider';
-import ColorSeries from 'components/color/ColorSeries';
 import React from 'react';
 import { LedSettings } from 'types/led';
 import { DataModifier } from 'types/resource';
-
-function formatSeconds(seconds: number): string {
-  return `${seconds}s`;
-}
+import FadeColorSeries from './FadeColorSeries';
+import FadeTimeSlider from './FadeTimeSlider';
 
 interface Props {
   fade: LedSettings['fade'];
   modifyData: DataModifier<LedSettings>;
 }
 
-const LedFadeControls: React.FC<Props> = ({ fade, modifyData }) => (
+const LedFadeControls: React.FC<Props> = React.memo(({ fade, modifyData }) => (
   <>
-    <FormControl>
-      <div>
-        <Typography>Fade Time</Typography>
-        <Slider
-          min={1}
-          max={30}
-          step={1}
-          valueLabelDisplay="auto"
-          valueLabelFormat={formatSeconds}
-          value={fade.fade_time}
-          onChange={(e, value) => {
-            modifyData({
-              fade: {
-                ...fade,
-                fade_time: value as number,
-              },
-            });
-          }}
-        />
-      </div>
-    </FormControl>
-
-    <FormControl>
-      <Typography>Color Series</Typography>
-      <ColorSeries
-        colors={fade.colors}
-        setColors={colors => {
-          modifyData({
-            fade: {
-              ...fade,
-              colors,
-            },
-          });
-        }}
-      />
-    </FormControl>
+    <FadeTimeSlider fadeTime={fade.fade_time} modifyData={modifyData} />
+    <FadeColorSeries colors={fade.colors} modifyData={modifyData} />
   </>
-);
+));
 
 export default LedFadeControls;

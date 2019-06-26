@@ -8,9 +8,9 @@ import LedControls from './LedControls';
 interface Props {}
 
 const LedContainer: React.FC<Props> = () => {
-  const { currentData, modifyData, ...rest } = useResource<LedSettings>(
-    Resource.LED
-  );
+  const { modifiedData: currentData, modifyData, ...rest } = useResource<
+    LedSettings
+  >(Resource.LED);
 
   return (
     <ResourceControlsContainer title="LED" {...rest}>

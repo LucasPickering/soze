@@ -8,9 +8,9 @@ import LcdControls from './LcdControls';
 interface Props {}
 
 const LcdContainer: React.FC<Props> = () => {
-  const { currentData, modifyData, ...rest } = useResource<LcdSettings>(
-    Resource.LCD
-  );
+  const { modifiedData: currentData, modifyData, ...rest } = useResource<
+    LcdSettings
+  >(Resource.LCD);
 
   return (
     <ResourceControlsContainer title="LCD" {...rest}>

@@ -1,5 +1,6 @@
-import { isEmpty } from 'lodash-es';
+import { clone, isArray, isEqual, mergeWith } from 'lodash-es';
 import { useEffect, useMemo, useReducer } from 'react';
+import { RecursivePartial } from 'types/core';
 import {
   DataModifier,
   defaultResourceState,
@@ -12,43 +13,49 @@ import {
 } from 'types/resource';
 import useApi from './useApi';
 
+const objectOnlyMerger = (val: any) => {
+  // Don't merge arrays together, just overwrite
+  if (isArray(val)) {
+    return val;
+  }
+  return undefined; // Use default behavior
+};
+
 // Makes a reducer for the given data type
 const makeResourceReducer = <T>(): React.Reducer<
   ResourceState<T>,
   ResourceAction<T>
-> => (state, action) => {
+> => (state: ResourceState<T>, action: ResourceAction<T>) => {
   switch (action.type) {
     case ResourceActionType.SetStatus:
       return {
         ...state,
         status: action.status,
+        modifiedData: state.data && state.data[action.status],
       };
     case ResourceActionType.SetData:
       return {
         ...state,
         data: action.value,
         // Whenever we set all data, we should wipe out any modifications
-        modifiedData: {},
+        modifiedData: action.value[state.status],
       };
     case ResourceActionType.ModifyData:
       return {
         ...state,
-        // Overwrite any specified keys
-        modifiedData: {
-          // We want an error if this is called while modifiedData is undef
-          ...state.modifiedData!,
-          ...action.value,
-        },
+        // Recursively merge into the existing data
+        modifiedData: mergeWith(
+          clone(state.modifiedData),
+          action.value,
+          objectOnlyMerger
+        ),
       };
   }
 };
 
-type FetchApiType<T> = Statuses<T>;
-type SaveApiType<T> = Partial<T>;
-
 interface ReturnVal<T> {
   status: Status;
-  currentData?: T;
+  modifiedData?: T;
   isModified: boolean;
   fetchLoading: boolean;
   saveLoading: boolean;
@@ -66,10 +73,10 @@ export default function<T>(resource: Resource): ReturnVal<T> {
   const [state, dispatch] = useReducer(reducer, defaultResourceState);
 
   // Create two API endpoint handlers: One for fetching, one for saving
-  const { state: fetchState, request: fetchRequest } = useApi<FetchApiType<T>>(
+  const { state: fetchState, request: fetchRequest } = useApi<Statuses<T>>(
     `/api/${resource}`
   );
-  const { state: saveState, request: saveRequest } = useApi<SaveApiType<T>>(
+  const { state: saveState, request: saveRequest } = useApi<T>(
     `/api/${resource}/${state.status}`
   );
 
@@ -89,20 +96,13 @@ export default function<T>(resource: Resource): ReturnVal<T> {
   useEffect(() => {
     const { status, data } = state;
     if (saveState.data) {
-      // We shouldn't ever be getting a POST response if we haven't loaded any
-      // data yet
-      const currentValueForStatus = data![status];
       dispatch({
         type: ResourceActionType.SetData,
         value: {
-          // Keep all inactive statuses
+          // Keep all inactive statuses. We shouldn't ever be getting a POST
+          // response if we haven't loaded any data yet, so this is safe.
           ...data!,
-          // The new saveState data will be a Partial<T>, so override any new
-          // fields we have and keep everything else
-          [status]: {
-            ...currentValueForStatus,
-            ...saveState.data,
-          },
+          [status]: saveState.data,
         },
       });
     }
@@ -111,18 +111,10 @@ export default function<T>(resource: Resource): ReturnVal<T> {
   }, [saveState.data]);
 
   // Memoize these to prevent unnecessary re-renders
-  const isModified = useMemo(() => !isEmpty(state.modifiedData), [
-    state.modifiedData,
-  ]);
-  const currentData = useMemo(
-    // The current version of the data to show the user, including
-    // unsaved modifications
-    () =>
-      state.data && {
-        ...state.data[state.status],
-        ...state.modifiedData,
-      },
-    [state.data, state.status, state.modifiedData]
+  const originalDataForStatus = state.data && state.data[state.status];
+  const isModified = useMemo(
+    () => !isEqual(originalDataForStatus, state.modifiedData),
+    [originalDataForStatus, state.modifiedData]
   );
   const setStatus = useMemo(
     () => (status: Status) =>
@@ -133,7 +125,7 @@ export default function<T>(resource: Resource): ReturnVal<T> {
     [dispatch]
   );
   const modifyData = useMemo(
-    () => (value: Partial<T>) =>
+    () => (value: RecursivePartial<T>) =>
       dispatch({
         type: ResourceActionType.ModifyData,
         value,
@@ -149,7 +141,7 @@ export default function<T>(resource: Resource): ReturnVal<T> {
     () => ({
       status: state.status,
       isModified,
-      currentData,
+      modifiedData: state.modifiedData,
       fetchLoading: fetchState.loading,
       saveLoading: saveState.loading,
       setStatus,
@@ -159,7 +151,7 @@ export default function<T>(resource: Resource): ReturnVal<T> {
     [
       state.status,
       isModified,
-      currentData,
+      state.modifiedData,
       fetchState.loading,
       saveState.loading,
       setStatus,
