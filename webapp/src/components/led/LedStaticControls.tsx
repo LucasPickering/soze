@@ -1,8 +1,8 @@
 import { FormControl, Typography } from '@material-ui/core';
 import ColorPicker from 'components/color/ColorPicker';
 import React from 'react';
-import { LedSettings } from 'state/types';
-import { DataModifier } from 'state/resource';
+import { LedSettings } from 'types/led';
+import { DataModifier } from 'types/resource';
 
 interface Props {
   static: LedSettings['static'];

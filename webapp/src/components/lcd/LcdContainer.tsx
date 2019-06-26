@@ -1,8 +1,8 @@
 import ResourceControlsContainer from 'components/ResourceControlsContainer';
 import useResource from 'hooks/useResource';
 import React from 'react';
-import { Resource } from 'state/resource';
-import { LcdSettings } from 'state/types';
+import { LcdSettings } from 'types/lcd';
+import { Resource } from 'types/resource';
 import LcdControls from './LcdControls';
 
 interface Props {}

@@ -1,7 +1,7 @@
 import useResource from 'hooks/useResource';
 import React from 'react';
-import { Resource } from 'state/resource';
-import { LedSettings } from 'state/types';
+import { LedSettings } from 'types/led';
+import { Resource } from 'types/resource';
 import ResourceControlsContainer from '../ResourceControlsContainer';
 import LedControls from './LedControls';
 

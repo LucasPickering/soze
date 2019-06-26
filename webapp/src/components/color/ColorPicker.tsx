@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/styles';
 import convert from 'color-convert';
 import React, { useState } from 'react';
 import { CompactPicker as Picker } from 'react-color';
-import { Color } from 'state/types';
+import { Color } from 'types/core';
 
 const COLORS: Color[] = [
   '#333333',

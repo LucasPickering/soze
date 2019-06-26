@@ -8,7 +8,7 @@ import {
   ResourceState,
   Status,
   Statuses,
-} from 'state/resource';
+} from 'types/resource';
 import useApi from './useApi';
 
 // Makes a reducer for the given data type

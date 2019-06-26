@@ -1,8 +1,9 @@
 import { FormControl, Typography } from '@material-ui/core';
 import ColorPicker from 'components/color/ColorPicker';
 import React from 'react';
-import { DataModifier } from 'state/resource';
-import { Color, LcdSettings } from 'state/types';
+import { Color } from 'types/core';
+import { LcdSettings } from 'types/lcd';
+import { DataModifier } from 'types/resource';
 
 interface Props {
   color: Color;

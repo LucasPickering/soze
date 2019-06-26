@@ -1,9 +1,9 @@
 import ModeSelect from 'components/ModeSelect';
 import React from 'react';
-import { LedMode, LedSettings } from 'state/types';
+import { LedMode, LedSettings } from 'types/led';
+import { DataModifier } from 'types/resource';
 import LedFadeControls from './LedFadeControls';
 import LedStaticControls from './LedStaticControls';
-import { DataModifier } from 'state/resource';
 
 interface Props {
   settings: LedSettings;

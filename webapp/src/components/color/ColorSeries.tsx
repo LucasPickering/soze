@@ -8,7 +8,7 @@ import AddIcon from '@material-ui/icons/Add';
 import ClearIcon from '@material-ui/icons/Clear';
 import { makeStyles } from '@material-ui/styles';
 import React from 'react';
-import { Color } from 'state/types';
+import { Color } from 'types/core';
 import ColorPicker from './ColorPicker';
 
 const DEFAULT_COLOR = '#ffffff';

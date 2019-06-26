@@ -1,8 +1,8 @@
 import ModeSelect from 'components/ModeSelect';
 import React from 'react';
-import { LcdMode, LcdSettings } from 'state/types';
+import { LcdMode, LcdSettings } from 'types/lcd';
+import { DataModifier } from 'types/resource';
 import LcdClockControls from './LcdClockControls';
-import { DataModifier } from 'state/resource';
 
 interface Props {
   settings: LcdSettings;

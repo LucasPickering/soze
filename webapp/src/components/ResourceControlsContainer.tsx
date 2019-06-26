@@ -13,7 +13,7 @@ import {
 import { makeStyles } from '@material-ui/styles';
 import { isEmpty } from 'lodash-es';
 import React from 'react';
-import { ResourceState, Status } from 'state/resource';
+import { ResourceState, Status } from 'types/resource';
 
 const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
   outerContainer: {

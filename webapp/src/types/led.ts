@@ -1,7 +1,4 @@
-// An HTML color code, like #ff0000
-export type Color = string;
-
-export type Error = string; // TODO
+import { Color } from 'types/core';
 
 export enum LedMode {
   Off = 'off',
@@ -22,14 +19,4 @@ export interface LedSettings {
     };
     fade_time: number;
   };
-}
-
-export enum LcdMode {
-  Off = 'off',
-  Clock = 'clock',
-}
-
-export interface LcdSettings {
-  mode: LcdMode;
-  color: Color;
 }

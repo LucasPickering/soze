@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios'; // tslint:disable-line:match-default-export-name
 import { useMemo, useReducer } from 'react';
-import { ApiAction, ApiActionType, ApiState, defaultApiState } from 'state/api';
+import { ApiAction, ApiActionType, ApiState, defaultApiState } from 'types/api';
 
 // Makes a reducer for the given data type
 const makeApiReducer = <T>(): React.Reducer<ApiState<T>, ApiAction<T>> => (
