@@ -20,7 +20,7 @@ Handles interaction with the hardware. Communicates with the reducer via Redis. 
 
 There is also a mock display which, instead of communicating with hardware, displays the LED colors and LCD in the console via a curses UI. This is useful for working on other components without having the hardware available for testing.
 
-### Webapp (JavaScript)
+### Webapp (TypeScript)
 
 A React-based webpage that exposes configuration. This is just a few pretty controls that visualize the user state. Generates HTTP requests to get and update user state. Runs from a webserver (Nginx) on the RPi, but this could run on any machine with network access to the RPi.
 
