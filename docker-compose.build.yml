@@ -1,0 +1,10 @@
+version: "3"
+
+# Used to build production-ready images for each service
+# Right now this only does the static assets, because everything else requires
+# cross-build funkiness
+
+services:
+  webserver:
+    build: ./webapp/
+    image: lucaspickering/soze-webserver

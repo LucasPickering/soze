@@ -41,12 +41,10 @@ services:
     restart: always
     depends_on:
       - redis
-    privileged: true
+    privileged: true # Needed for hardware interaction
 
   webserver:
-    build:
-      context: ./webapp/
-      dockerfile: pi.Dockerfile
+    image: lucaspickering/soze-webserver
     restart: always
     depends_on:
       - api
