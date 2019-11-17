@@ -66,7 +66,7 @@ Set up the RPi as a Docker machine ([see here](https://gist.github.com/calebbrew
 If you change code in a component, you'll have to rebuild its image, because the code is loaded into the image at build time. Again, use the build script:
 
 ```
-/build_and_deploy.sh webserver display
+./build_and_deploy.sh webserver display
 ```
 
 ## Hardware

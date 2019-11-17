@@ -34,7 +34,7 @@ services:
       - ./reducer:/app/reducer
 
   webapp:
-    image: node:10-alpine
+    image: node:lts-alpine
     working_dir: /app/webapp
     command: sh -c "npm i && npm start"
     volumes:

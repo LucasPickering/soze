@@ -18,7 +18,6 @@ const useLocalStyles = makeStyles(({ spacing, palette }: Theme) => ({
   outerContainer: {
     padding: spacing(1),
     backgroundColor: palette.background.default,
-    width: 360,
   },
   innerContainer: {},
   loading: {
@@ -40,7 +39,7 @@ interface Props {
   status: Status;
   isModified: boolean;
   fetchLoading: boolean;
-  saveLoading: boolean;
+  postLoading: boolean;
   setStatus: (status: Status) => void;
   saveData: () => void;
 }
@@ -50,7 +49,7 @@ const ResourceControlsContainer: React.FC<Props> = ({
   status,
   isModified,
   fetchLoading,
-  saveLoading,
+  postLoading,
   setStatus,
   saveData,
   children,
@@ -87,10 +86,10 @@ const ResourceControlsContainer: React.FC<Props> = ({
               variant="contained"
               color="primary"
               // Disable if loading or no modifications have been made
-              disabled={saveLoading || !isModified}
+              disabled={postLoading || !isModified}
               onClick={saveData}
             >
-              {saveLoading ? (
+              {postLoading ? (
                 <CircularProgress size={20} color="secondary" />
               ) : (
                 'Apply'
