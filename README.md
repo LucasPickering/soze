@@ -57,7 +57,13 @@ Then the log files with the hardware output will all be in `hw_display/`.
 
 ### Production
 
-Set up the RPi as a Docker machine ([see here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7)). Switch to the RPi as your machine. Then, run the build script with build the webapp with:
+Webapp is built locally, the rest of the images are built on the Pi. So first:
+
+```
+./build_webapp.sh
+```
+
+Then set up the RPi as a Docker machine ([see here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7)). Switch to the RPi as your machine. Then, run the build script with build the webapp with:
 
 ```
 ./build_and_deploy.sh
@@ -66,7 +72,7 @@ Set up the RPi as a Docker machine ([see here](https://gist.github.com/calebbrew
 If you change code in a component, you'll have to rebuild its image, because the code is loaded into the image at build time. Again, use the build script:
 
 ```
-./build_and_deploy.sh webserver display
+./build_and_deploy.sh api display
 ```
 
 ## Hardware
