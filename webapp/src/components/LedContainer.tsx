@@ -1,5 +1,5 @@
 import { FormControl, Typography } from '@material-ui/core';
-import { Slider } from '@material-ui/lab';
+import Slider from '@material-ui/core/Slider';
 import useResource from 'hooks/useResource';
 import React from 'react';
 import { LedMode, LedSettings } from 'types/led';

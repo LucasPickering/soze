@@ -1,7 +1,7 @@
 import { Theme, Typography } from '@material-ui/core';
 import IconButton from '@material-ui/core/IconButton';
 import Popover from '@material-ui/core/Popover';
-import Slider from '@material-ui/lab/Slider';
+import Slider from '@material-ui/core/Slider';
 import { makeStyles } from '@material-ui/styles';
 import convert from 'color-convert';
 import React, { useState } from 'react';

@@ -69,7 +69,7 @@ interface ReturnVal<T> {
 /**
  * Hook to get/post data from/to the server for the given resource/status
  */
-export default function<T>(resource: Resource): ReturnVal<T> {
+function useResource<T>(resource: Resource): ReturnVal<T> {
   const [state, dispatch] = useReducer<
     React.Reducer<ResourceState<T>, ResourceAction<T>>
   >(reducer, defaultResourceState);
@@ -135,3 +135,5 @@ export default function<T>(resource: Resource): ReturnVal<T> {
         .catch(noop),
   };
 }
+
+export default useResource;

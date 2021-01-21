@@ -40,7 +40,7 @@ interface ReturnVal<T> {
 /**
  * Hook to get/post data from/to the server for the given resource/status
  */
-export default function<T>(): ReturnVal<T> {
+ function useApi<T>(): ReturnVal<T> {
   // Instantiate the reducer for this type, only on the first call
   const reducer = useMemo(() => makeApiReducer<T>(), []);
   const [state, dispatch] = useReducer(reducer, defaultApiState);
@@ -80,3 +80,5 @@ export default function<T>(): ReturnVal<T> {
     [state, request]
   );
 }
+
+export default useApi;
