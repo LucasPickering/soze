@@ -1,2 +1,2 @@
-msgpack==0.6.1
-redis==3.2.1
+msgpack==1.0.2
+redis==3.5.3

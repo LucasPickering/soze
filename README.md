@@ -63,7 +63,7 @@ If you need to test code from `hw_display/`, there are mocks for the hardware li
 docker-compose -f docker-compose.hw-display.yml up
 ```
 
-Then the log files with the hardware output will all be in `hw_display/`.
+Then the log files with the hardware output will all be in `hw_display/mock_logs/`.
 
 ### Production
 

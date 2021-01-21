@@ -12,7 +12,7 @@ f = logging.Formatter(
 
 
 def make_logger(name):
-    fh = logging.FileHandler(f"{name}.log", mode="w")
+    fh = logging.FileHandler(f"mock_logs/{name}.log", mode="w")
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(f)
 

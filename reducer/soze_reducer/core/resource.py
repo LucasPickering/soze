@@ -86,9 +86,7 @@ class ReducerResource(RedisSubscriber):
 
         # Pull our value from the user state and unpack it
         redis_value = self._redis.get(self._get_user_redis_key(status))
-        self._settings = (
-            msgpack.loads(redis_value, encoding="utf-8") if redis_value else {}
-        )
+        self._settings = msgpack.loads(redis_value) if redis_value else {}
 
         try:
             new_mode = self._settings[__class__._MODE_KEY]

@@ -1,3 +1,4 @@
-pyserial
-RPi.GPIO
+# This are mocked in development but needed on the Pi
+pyserial==3.5
+RPi.GPIO==0.7.0
 Adafruit-Motor-HAT-Python-Library/ # Local library

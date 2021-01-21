@@ -33,7 +33,7 @@ services:
 
   display:
     build: ./hw_display
-    command: python -m soze_display -r redis://redis:6379/0
+    command: sh -c "mkdir -p mock_logs && python -m soze_display -r redis://redis:6379/0"
     depends_on:
       - redis
     volumes:

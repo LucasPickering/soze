@@ -120,9 +120,7 @@ class Resource:
 
     def _redis_get(self, status):
         redis_value = self._redis.get(self._get_redis_key(status))
-        return (
-            msgpack.loads(redis_value, encoding="utf-8") if redis_value else {}
-        )
+        return msgpack.loads(redis_value) if redis_value else {}
 
     def _redis_set(self, status, val):
         # Msgpack the value and push it to Redis
