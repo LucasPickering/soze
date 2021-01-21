@@ -1,5 +1,8 @@
 version: "3"
 
+# This file is for local development with mocked hardware libraries. This is
+# used for local development on hw_display/ code (See README)
+
 services:
   redis:
     image: redis:5-alpine

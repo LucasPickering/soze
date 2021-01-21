@@ -28,17 +28,25 @@ A React-based webpage that exposes configuration. This is just a few pretty cont
 
 ### Development
 
-There are two ways of running this in development. The typical way involves the terminal-based mock display. You can also run it with the hardware display and mock the hardware libraries. This allows you to test the code in `hw_display/`, but the hardware output is just logged to files instead of being visual. This is good for testing `hw_display/` code, but not if you're working on any other components.
+There are two ways of running this in development (off of the Pi):
 
-#### Terminal Mock Display
+#### Termainl Mock Display
 
-In one terminal window:
+This is the typical way to run during development. This mocks the entire display with a terminal program that renders LED and LCD data live. This is useful for UI/api/reducer development because it's easy and visual, but it **completely bypasses the code in `hw_display/`.**
+
+If this is your first time running it, you'll need to install some Python dependencies. Feel free to use your preferred virtualenv solution, and run:
+
+```
+pip install -r mock_display/requirements.txt
+```
+
+Then to fire it up, run this in one terminal window:
 
 ```
 docker-compose up
 ```
 
-and in another:
+and run this in another:
 
 ```
 cd mock_display
@@ -48,6 +56,8 @@ python3 -m soze_display
 Docker Compose will run all the services (webapp, API, reducer, Redis) that you need. The mock display has to be run separately because it runs a curses output that doesn't play nice with docker compose.
 
 #### Hardware Display w/ Mock Libraries
+
+If you need to test code from `hw_display/`, there are mocks for the hardware libraries that you can use. The hardware output is just logged to files instead of being visual.
 
 ```
 docker-compose -f docker-compose.hw-display.yml up

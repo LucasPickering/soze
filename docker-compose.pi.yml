@@ -1,5 +1,10 @@
 version: "3"
 
+# This defines the stack that runs on the Pi. Right now this includes build
+# steps for every container except the webapp, because those have to be built
+# on the ARM system. At some point I will try to get cross building working,
+# at which point this file won't have any build info.
+
 services:
   redis:
     image: arm32v6/redis:5-alpine

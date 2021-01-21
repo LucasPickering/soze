@@ -1,2 +1,2 @@
-redis
-xtermcolor
+redis==3.2.1
+xtermcolor==1.3

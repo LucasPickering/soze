@@ -1,5 +1,8 @@
 version: "3"
 
+# This file defines the stack for most development. This should be used with
+# the mock_display/ script (See README)
+
 # Use these instead of the local directory for building the projects
 # to prevent the containers from fighting with external build tools
 volumes:
