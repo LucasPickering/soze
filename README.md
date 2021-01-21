@@ -28,9 +28,9 @@ A React-based webpage that exposes configuration. This is just a few pretty cont
 
 ### Development
 
-There are two ways of running this in development (off of the Pi):
+There are two ways of running this in development:
 
-#### Termainl Mock Display
+#### Terminal Mock Display
 
 This is the typical way to run during development. This mocks the entire display with a terminal program that renders LED and LCD data live. This is useful for UI/api/reducer development because it's easy and visual, but it **completely bypasses the code in `hw_display/`.**
 
@@ -67,22 +67,36 @@ Then the log files with the hardware output will all be in `hw_display/mock_logs
 
 ### Production
 
-Webapp is built locally, the rest of the images are built on the Pi. So first:
+All Docker images are built locally, using `docker buildx` for cross-building and `docker buildx bake` to replace `docker-compose build`. [See here](https://www.docker.com/blog/multi-platform-docker-builds/) for info on cross builds. After being built, images are pushed to GitHub's container registry.
 
-```
-./build_webapp.sh
+#### Build
+
+First, you'll need to log in to `ghcr.io` to push images. [See here](https://docs.github.com/en/packages/guides/configuring-docker-for-use-with-github-packages#authenticating-to-github-packages).
+
+Then, run this **on your dev machine** (it may take a long time):
+
+```sh
+./scripts/build_and_push.sh
 ```
 
-Then set up the RPi as a Docker machine ([see here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7)). Switch to the RPi as your machine. Then, run the build script with build the webapp with:
+If you change just a single component and want to avoid rebuilding all of them, you can pass individual targets, like so:
 
-```
-./build_and_deploy.sh
+```sh
+./scripts/build_and_push.sh api display
 ```
 
-If you change code in a component, you'll have to rebuild its image, because the code is loaded into the image at build time. Again, use the build script:
+#### Deploy
 
-```
-./build_and_deploy.sh api display
+##### First Time Setup
+
+Set up the RPi as a Docker machine host, so you can run Docker commands on it remotely. [See here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7).)
+
+##### Deploy Time
+
+**Switch to the RPi as your machine**. Then, deploy with:
+
+```sh
+./scripts/deploy.sh
 ```
 
 ## Hardware

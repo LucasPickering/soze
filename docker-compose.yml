@@ -16,7 +16,6 @@ services:
 
   api:
     build: ./api/
-    command: flask run --host=0.0.0.0
     depends_on:
       - redis
     volumes:

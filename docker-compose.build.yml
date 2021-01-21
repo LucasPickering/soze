@@ -1,10 +1,24 @@
 version: "3"
 
-# Used to build production-ready images for each service
-# Right now this only does the static assets, because everything else requires
-# cross-build funkiness
+# Used to build production-ready images for each service. This is built with
+# `docker buildx bake` instead of `docker-compose build`, because we need
+# cross-building functionality from buildx.
 
 services:
+  api:
+    build: ./api/
+    image: ghcr.io/lucaspickering/soze-api
+
+  reducer:
+    build: ./reducer/
+    image: ghcr.io/lucaspickering/soze-reducer
+
+  display:
+    build:
+      context: ./hw_display/
+      dockerfile: pi.Dockerfile
+    image: ghcr.io/lucaspickering/soze-display
+
   webserver:
     build: ./webapp/
-    image: lucaspickering/soze-webserver
+    image: ghcr.io/lucaspickering/soze-webserver

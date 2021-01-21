@@ -1,24 +1,22 @@
 version: "3"
 
-# This defines the stack that runs on the Pi. Right now this includes build
-# steps for every container except the webapp, because those have to be built
-# on the ARM system. At some point I will try to get cross building working,
-# at which point this file won't have any build info.
+# This defines the stack that runs on the Pi. All images used here have to be
+# pre-built, and are pulled from the cloud.
 
 services:
   redis:
+    # For some reason redis:5-alpine doesn't work (segfaults) even though it
+    # has an arm32v6 version in its manifest ¯\_(ツ)_/¯
     image: arm32v6/redis:5-alpine
-    restart: always
+    restart: on-failure
     ports:
       - "6379:6379"
     volumes:
       - /data/redis:/data
 
   api:
-    build:
-      context: ./api/
-      dockerfile: pi.Dockerfile
-    restart: always
+    image: ghcr.io/lucaspickering/soze-api
+    restart: on-failure
     depends_on:
       - redis
     environment:
@@ -27,10 +25,8 @@ services:
       - REDIS_HOST=redis://redis:6379/0
 
   reducer:
-    build:
-      context: ./reducer/
-      dockerfile: pi.Dockerfile
-    restart: always
+    image: ghcr.io/lucaspickering/soze-reducer
+    restart: on-failure
     depends_on:
       - redis
       - display # Force reducer to stop first
@@ -40,17 +36,15 @@ services:
       - /etc/localtime:/etc/localtime:ro
 
   display:
-    build:
-      context: ./hw_display/
-      dockerfile: pi.Dockerfile
-    restart: always
+    image: ghcr.io/lucaspickering/soze-display
+    restart: on-failure
     depends_on:
       - redis
     privileged: true # Needed for hardware interaction
 
   webserver:
-    image: lucaspickering/soze-webserver
-    restart: always
+    image: ghcr.io/lucaspickering/soze-webserver
+    restart: on-failure
     depends_on:
       - api
     ports:

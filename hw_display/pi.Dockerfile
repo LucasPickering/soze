@@ -1,4 +1,6 @@
-FROM arm32v6/python:3-alpine
+# For production builds only
+
+FROM python:3-alpine
 
 ENV PYTHONUNBUFFERED=1
 
@@ -16,4 +18,4 @@ ADD Adafruit-Motor-HAT-Python-Library Adafruit-Motor-HAT-Python-Library
 RUN pip install -r core_requirements.txt -r hw_requirements.txt
 ADD soze_display soze_display
 
-ENTRYPOINT [ "python", "-m", "soze_display", "-r", "redis://redis:6379/0" ]
+CMD [ "python", "-m", "soze_display", "-r", "redis://redis:6379/0" ]

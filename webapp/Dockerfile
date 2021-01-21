@@ -1,11 +1,17 @@
 # Used for production build only
 
-FROM node:10-alpine as js-builder
+FROM node:lts-alpine as js-builder
 WORKDIR /app/webapp
+
+# Copy just dependency files first, to leverage layer caching
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy everything else and build
 COPY . .
-RUN npm install && npm run build && rm build/static/js/*.map
+RUN npm run build
 
 # Copy in config and build files
-FROM arm32v6/nginx:alpine
+FROM nginx:alpine
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=js-builder /app/webapp/build/ /app/webapp/
