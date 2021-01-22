@@ -89,7 +89,7 @@ If you change just a single component and want to avoid rebuilding all of them, 
 
 ##### First Time Setup
 
-Set up the RPi as a Docker machine host, so you can run Docker commands on it remotely. [See here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7).)
+Set up the RPi as a Docker machine host, so you can run Docker commands on it remotely. [See here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7).
 
 ##### Deploy Time
 
