@@ -6,7 +6,7 @@ Software suite to control the LEDs and LCD in my computer case. The controller i
 
 ## Software
 
-### API (Python)
+### API (Rust)
 
 HTTP API to expose configuration to the user. GETs and POSTs allow the user to fetch and update state. The user state is stored exclusively in Redis, so every HTTP request will create at least one Redis request.
 

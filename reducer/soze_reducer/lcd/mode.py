@@ -10,7 +10,7 @@ class LcdMode(Mode):
 
     def get_color(self, settings):
         try:
-            return Color.from_hexcode(settings["color"])
+            return Color.from_html(settings["color"])
         except KeyError:
             return BLACK
 

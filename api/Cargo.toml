@@ -1,0 +1,21 @@
+[package]
+authors = ["Lucas Pickering <lucas@lucaspickering.me>"]
+edition = "2018"
+name = "soze-api"
+version = "0.1.0"
+
+[dependencies]
+env_logger = "0.8"
+futures = "0.3"
+lazy_static = "1.4"
+log = "0.4"
+redis = {version = "0.19", default-features = false, features = ["aio", "tokio-comp"]}
+regex = "1.4"
+rocket = {git = "https://github.com/SergioBenitez/Rocket.git", branch = "master"}
+rocket_contrib = {git = "https://github.com/SergioBenitez/Rocket.git", branch = "master", features = ["json"]}
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
+strum = {version = "0.20", features = ["derive"]}
+thiserror = "1.0"
+tokio = "1.0"
+validator = {version = "0.12", features = ["derive"]}

@@ -11,16 +11,21 @@ services:
 
   api:
     build: ./api/
+    command: cargo watch -x run
+    init: true # Fixes slow shutdown
+    tty: true # Colorize output
     depends_on:
       - redis
     volumes:
-      - ./api:/app/api
+      - ./api/:/app/api
+      - api_build:/app/api/target
     environment:
-      - FLASK_APP=soze_api.api
-      - FLASK_ENV=development
-      - REDIS_HOST=redis://redis:6379/0
+      - RUST_BACKTRACE=1
+      - RUST_LOG=debug
+      - ROCKET_REDIS_URL=redis://redis:6379/0
+      - ROCKET_ADDRESS=0.0.0.0
     ports:
-      - "5000:5000"
+      - "8000:8000"
 
   reducer:
     build: ./reducer/

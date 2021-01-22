@@ -1,4 +1,4 @@
-import { get, isArray, isEmpty, mergeWith, noop } from 'lodash-es';
+import { cloneDeep, get, isArray, isEqual, mergeWith, noop } from 'lodash-es';
 import { useEffect, useReducer } from 'react';
 import { RecursivePartial } from 'types/core';
 import {
@@ -35,14 +35,12 @@ const reducer = <T>(
         ...state,
         data: action.data,
         // Whenever we set all data, we should wipe out any modifications
-        modifiedData: {},
+        modifiedData: cloneDeep(action.data),
       };
     case ResourceActionType.PostLoad:
       return {
         ...state,
         data: { ...state.data, [action.status]: action.data },
-        // Whenever we set all data, we should wipe out any modifications
-        modifiedData: {},
       };
     case ResourceActionType.ModifyData:
       return {
@@ -80,8 +78,8 @@ function useResource<T>(resource: Resource): ReturnVal<T> {
     request: fetchRequest,
   } = useApi<Statuses<T>>();
   const {
-    state: { loading: postLoading },
-    request: postRequest,
+    state: { loading: putLoading },
+    request: putRequest,
   } = useApi<T>();
 
   // Fetch data across all statuses for this resource
@@ -96,16 +94,15 @@ function useResource<T>(resource: Resource): ReturnVal<T> {
       .catch(noop);
   }, [fetchRequest, resource]);
 
-  // Memoize these to prevent unnecessary re-renders
   const { status, data, modifiedData } = state;
   const modifiedForStatus = modifiedData && modifiedData[status];
 
   return {
     status,
-    isModified: !isEmpty(modifiedData),
+    isModified: !isEqual(data, modifiedData),
     localData: get(mergeObjects(data, modifiedData), status),
     fetchLoading,
-    postLoading,
+    postLoading: putLoading,
     setStatus: (s: Status) => {
       dispatch({
         type: ResourceActionType.SetStatus,
@@ -120,9 +117,9 @@ function useResource<T>(resource: Resource): ReturnVal<T> {
       });
     },
     saveData: () =>
-      postRequest({
+      putRequest({
         url: `/api/${resource}/${status}`,
-        method: 'POST',
+        method: 'PUT',
         data: modifiedForStatus,
       })
         .then(postData => {

@@ -1,3 +1,6 @@
+import re
+
+
 def _coerce(r, g, b):
     def helper(val):
         return min(max(int(val), 0), 255)
@@ -24,6 +27,13 @@ class Color:
         return cls(
             (hex_val >> 16) & 0xFF, (hex_val >> 8) & 0xFF, hex_val & 0xFF
         )
+
+    @classmethod
+    def from_html(cls, html_str):
+        rgx = re.compile(r"^#([0-9a-fA-F]{6})$")
+        m = rgx.match(html_str)
+        hexcode = int(m.group(1), base=16)
+        return cls.from_hexcode(hexcode)
 
     @property
     def red(self):

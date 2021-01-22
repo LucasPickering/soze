@@ -10,6 +10,6 @@ class StaticMode(LedMode):
 
     def get_color(self, settings):
         try:
-            return Color.from_hexcode(settings["static"]["color"])
+            return Color.from_html(settings["static"]["color"])
         except KeyError:
             return BLACK

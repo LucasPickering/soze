@@ -1,12 +1,7 @@
-# For both dev and production
-
-FROM python:3-alpine
-
-ENV PYTHONUNBUFFERED=1
+# Version doesn't matter here since we use a nightly from rust-toolchain
+FROM rust:slim
 
 WORKDIR /app/api
-ADD requirements.txt .
-RUN pip install -r requirements.txt
-ADD . .
-
-CMD ["flask", "run", "--host=0.0.0.0"]
+COPY rust-toolchain .
+# This cmd will also install whatever toolchain we need
+RUN cargo install cargo-watch

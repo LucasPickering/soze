@@ -20,7 +20,7 @@ class FadeMode(LedMode):
         try:
             fade_settings = settings["fade"]
             fade_colors = [
-                Color.from_hexcode(color_bytes)
+                Color.from_html(color_bytes)
                 for color_bytes in fade_settings["colors"]
             ]
             fade_time = float(fade_settings["fade_time"])

@@ -1,2 +1,0 @@
-class SozeError(Exception):
-    pass

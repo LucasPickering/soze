@@ -1,5 +1,5 @@
 import abc
-import msgpack
+import json
 import time
 import traceback
 from threading import Event, Thread
@@ -86,7 +86,7 @@ class ReducerResource(RedisSubscriber):
 
         # Pull our value from the user state and unpack it
         redis_value = self._redis.get(self._get_user_redis_key(status))
-        self._settings = msgpack.loads(redis_value) if redis_value else {}
+        self._settings = json.loads(redis_value) if redis_value else {}
 
         try:
             new_mode = self._settings[__class__._MODE_KEY]
@@ -139,8 +139,7 @@ class ReducerResource(RedisSubscriber):
 
     @abc.abstractmethod
     def _get_values(self):
-        """Get the current values to be applied.
-        """
+        """Get the current values to be applied."""
 
         pass
 

@@ -1,0 +1,4 @@
+max_width = 80
+# These two settings are nightly only
+merge_imports = true
+wrap_comments = true
