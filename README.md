@@ -85,6 +85,30 @@ If you change just a single component and want to avoid rebuilding all of them, 
 ./scripts/build_and_push.sh api display
 ```
 
+#### Troubleshooting
+
+##### Unknown Target \*
+
+```
+unknown target *
+```
+
+Your Docker buildx version is probably out of date. Run:
+
+```sh
+docker buildx version
+```
+
+Make sure it is at least `v0.4.2`. If not, download and install the newest version from [here](https://github.com/docker/buildx/#installing).
+
+##### dpkg Path Errors
+
+```
+Error while loading /usr/sbin/dpkg-split: No such file or directory
+```
+
+[Follow the solution here](https://github.com/docker/buildx/issues/495#issuecomment-778896842)
+
 #### Deploy
 
 ##### First Time Setup
