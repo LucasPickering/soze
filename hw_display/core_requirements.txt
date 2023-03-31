@@ -1,2 +1,2 @@
 # These are needed in both dev and prd
-redis==3.5.3
+redis==4.4.4
