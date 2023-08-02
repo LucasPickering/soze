@@ -2,7 +2,7 @@
 //! different structs so that each resource task can access them independently
 //! without lock contention.
 
-use crate::{api::state::Status, color::RgbColor};
+use crate::state::common::{RgbColor, Status};
 
 /// Keepalive flag, which monitors when the parent PC is on. This will control
 /// the current [Status](crate::api::state::Status) of the reducer.
@@ -23,7 +23,7 @@ impl KeepaliveState {
 
 /// State of LED hardware
 #[derive(Debug, Default)]
-pub struct LedHardwareState {
+pub struct LedState {
     color: RgbColor,
 }
 
@@ -31,6 +31,6 @@ pub struct LedHardwareState {
 /// This frontloads logic into the reducer, and makes it easier to do
 /// event-based logic like "turn off the LCD on shutdown".
 #[derive(Debug, Default)]
-pub struct LcdHardwareState {
+pub struct LcdState {
     command_queue: Vec<u8>,
 }

@@ -1,12 +1,13 @@
 mod api;
-mod color;
-mod reducer;
+mod resource;
+mod state;
 
 use crate::{
-    api::{routes::get_router, state::UserState},
-    reducer::{
-        resource::{LcdResource, LedResource, Resource},
-        state::{KeepaliveState, LcdHardwareState, LedHardwareState},
+    api::routes::get_router,
+    resource::{LcdResource, LedResource, Resource},
+    state::{
+        hardware::{self, KeepaliveState},
+        user::AllResourceState,
     },
 };
 use std::sync::Arc;
@@ -14,11 +15,13 @@ use tokio::sync::RwLock;
 
 #[tokio::main]
 async fn main() {
-    // Initialize state
-    let user_state = arc_lock(UserState::load().await.unwrap());
+    // Initialize API state
+    let user_state = arc_lock(AllResourceState::load().await.unwrap());
+
+    // Initialize hardware state
     let keepalive_state = arc_lock(KeepaliveState::default());
-    let led_hardware_state = arc_lock(LedHardwareState::default());
-    let lcd_hardware_state = arc_lock(LcdHardwareState::default());
+    let led_hardware_state = arc_lock(hardware::LedState::default());
+    let lcd_hardware_state = arc_lock(hardware::LcdState::default());
 
     // Start the reducer
     LedResource::spawn(&user_state, &keepalive_state, &led_hardware_state);

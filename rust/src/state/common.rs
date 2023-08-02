@@ -2,6 +2,14 @@ use crate::api::error::ApiError;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
+/// System status, i.e. what state is the parent PC in?
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Status {
+    Normal,
+    Sleep,
+}
+
 /// 32-bit Red-Green-Blue color
 #[derive(
     Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize,
