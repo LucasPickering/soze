@@ -29,3 +29,6 @@ build/
 
 npm-debug.log*
 .vscode/
+
+target/
+soze_state.json

@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "soze"
+version = "0.1.0"
+
+[dependencies]
+axum = "0.6.19"
+log = "0.4.19"
+serde = {version = "1.0.180", default-features = false, features = ["derive"]}
+serde_json = "1.0.104"
+thiserror = "1.0.44"
+tokio = {version = "1.29.1", default-features = false, features = ["full"]}
