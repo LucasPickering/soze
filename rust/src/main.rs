@@ -4,7 +4,7 @@ mod state;
 
 use crate::{
     api::routes::get_router,
-    resource::{LcdResource, LedResource, Resource},
+    resource::{lcd::LcdResource, led::LedResource, Resource},
     state::{
         hardware::{self, KeepaliveState},
         user::AllResourceState,

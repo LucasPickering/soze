@@ -1,3 +1,6 @@
+pub mod lcd;
+pub mod led;
+
 use crate::state::{hardware, user};
 use serde::{Deserialize, Serialize};
 use std::{ops::DerefMut, sync::Arc, time::Duration};
@@ -8,7 +11,7 @@ use tokio::{sync::RwLock, time};
 ///
 /// Each resource will have a separate async task spawned, which will run on a
 /// fixed interval.
-pub trait Resource {
+pub trait Resource: Default + Send {
     const INTERVAL: Duration = Duration::from_millis(100);
 
     /// Type of state managed by the user/API
@@ -33,13 +36,14 @@ pub trait Resource {
         let hardware_state = Arc::clone(hardware_state);
         tokio::spawn(async move {
             let mut interval = time::interval(Self::INTERVAL);
+            let mut resource = Self::default();
             loop {
                 let status = keepalive.read().await.to_status();
                 let all_resource_state = all_resource_state.read().await;
                 // Select current user state based on this resource+status
                 let user_state =
                     Self::get_user_state(&all_resource_state).get(status);
-                Self::update(
+                resource.update(
                     user_state,
                     hardware_state.write().await.deref_mut(),
                 );
@@ -67,59 +71,8 @@ pub trait Resource {
     /// period is longer than it needs to be, but we're running every 100ms so
     /// it's fine.
     fn update(
+        &mut self,
         user_state: &Self::UserState,
         hardware_state: &mut Self::HardwareState,
     );
-}
-
-pub struct LedResource;
-
-impl Resource for LedResource {
-    type UserState = user::LedState;
-    type HardwareState = hardware::LedState;
-
-    fn get_user_state(
-        global_state: &user::AllResourceState,
-    ) -> &user::ResourceState<Self::UserState> {
-        &global_state.led
-    }
-
-    fn get_user_state_mut(
-        global_state: &mut user::AllResourceState,
-    ) -> &mut user::ResourceState<Self::UserState> {
-        &mut global_state.led
-    }
-
-    fn update(
-        user_state: &Self::UserState,
-        hardware_state: &mut Self::HardwareState,
-    ) {
-        todo!()
-    }
-}
-
-pub struct LcdResource;
-
-impl Resource for LcdResource {
-    type UserState = user::LcdState;
-    type HardwareState = hardware::LcdState;
-
-    fn get_user_state(
-        global_state: &user::AllResourceState,
-    ) -> &user::ResourceState<Self::UserState> {
-        &global_state.lcd
-    }
-
-    fn get_user_state_mut(
-        global_state: &mut user::AllResourceState,
-    ) -> &mut user::ResourceState<Self::UserState> {
-        &mut global_state.lcd
-    }
-
-    fn update(
-        user_state: &Self::UserState,
-        hardware_state: &mut Self::HardwareState,
-    ) {
-        todo!()
-    }
 }

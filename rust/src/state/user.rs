@@ -1,7 +1,10 @@
-use crate::state::common::{HtmlColor, Status};
-use log::info;
+//! User state, which is modified in the API and accessed read-only in the
+//! reducer.
+
+use crate::state::common::{Color, Status};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, io, path::PathBuf};
+use std::{collections::HashMap, io, path::PathBuf, time::Duration};
 use tokio::fs;
 
 const STATE_FILE: &str = "./soze_state.json";
@@ -22,7 +25,13 @@ impl AllResourceState {
         let path = PathBuf::from(STATE_FILE);
         let user_state = if path.exists() {
             let content = fs::read(STATE_FILE).await?;
-            serde_json::from_slice(&content)?
+            serde_json::from_slice(&content).unwrap_or_else(|err| {
+                error!(
+                    "Error deserializing saved user state, using default: \
+                    {err}"
+                );
+                AllResourceState::default()
+            })
         } else {
             info!("{STATE_FILE} missing, using default state");
             // Write default state to disk so we have it for next time
@@ -80,15 +89,27 @@ pub struct LedState {
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct LedStaticState {
-    pub color: HtmlColor,
+    pub color: Color,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LedFadeState {
-    pub colors: Vec<HtmlColor>,
-    pub saved: HashMap<String, Vec<HtmlColor>>,
-    // TODO validate this field
-    pub fade_time: f32,
+    pub colors: Vec<Color>,
+    pub saved: HashMap<String, Vec<Color>>,
+    /// (De)serializes as a float of seconds. Deserialization includes bounding
+    /// validation.
+    #[serde(with = "serde_fade_time")]
+    pub fade_time: Duration,
+}
+
+impl Default for LedFadeState {
+    fn default() -> Self {
+        Self {
+            colors: Vec::new(),
+            saved: HashMap::new(),
+            fade_time: Duration::from_secs(5),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
@@ -103,7 +124,7 @@ pub enum LedMode {
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct LcdState {
     pub mode: LcdMode,
-    pub color: HtmlColor,
+    pub color: Color,
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
@@ -112,4 +133,68 @@ pub enum LcdMode {
     #[default]
     Off,
     Clock,
+}
+
+/// Serialization/deserialization for fade_time field. Convert duration to a
+/// float of seconds. Includes range-based validation.
+mod serde_fade_time {
+    use super::*;
+    use serde::{
+        de::{self, Unexpected, Visitor},
+        Deserializer, Serializer,
+    };
+
+    pub fn serialize<S>(
+        value: &Duration,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_f32(value.as_secs_f32())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Duration, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        const MIN: Duration = Duration::from_secs(1);
+        const MAX: Duration = Duration::from_secs(30);
+        struct FadeTimeVisitor;
+
+        impl<'de> Visitor<'de> for FadeTimeVisitor {
+            type Value = Duration;
+
+            fn expecting(
+                &self,
+                f: &mut std::fmt::Formatter,
+            ) -> std::fmt::Result {
+                write!(
+                    f,
+                    "float between {} and {} seconds",
+                    MIN.as_secs(),
+                    MAX.as_secs()
+                )
+            }
+
+            fn visit_f64<E: de::Error>(self, v: f64) -> Result<Duration, E> {
+                let duration = Duration::from_secs_f64(v);
+                if MIN <= duration && duration <= MAX {
+                    Ok(duration)
+                } else {
+                    Err(E::invalid_value(
+                        Unexpected::Float(v),
+                        &format!(
+                            "value between {} and {}",
+                            MIN.as_secs(),
+                            MAX.as_secs()
+                        )
+                        .as_str(),
+                    ))
+                }
+            }
+        }
+
+        deserializer.deserialize_f64(FadeTimeVisitor)
+    }
 }
