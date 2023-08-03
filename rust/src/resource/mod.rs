@@ -37,13 +37,14 @@ pub trait Resource: Default + Send {
         tokio::spawn(async move {
             let mut interval = time::interval(Self::INTERVAL);
             let mut resource = Self::default();
+            resource.on_start(hardware_state.write().await.deref_mut());
             loop {
                 let status = keepalive.read().await.to_status();
                 let all_resource_state = all_resource_state.read().await;
                 // Select current user state based on this resource+status
                 let user_state =
                     Self::get_user_state(&all_resource_state).get(status);
-                resource.update(
+                resource.on_tick(
                     user_state,
                     hardware_state.write().await.deref_mut(),
                 );
@@ -65,12 +66,15 @@ pub trait Resource: Default + Send {
         global_state: &mut user::AllResourceState,
     ) -> &mut user::ResourceState<Self::UserState>;
 
+    /// Update hardware state, once on startup
+    fn on_start(&mut self, _: &mut Self::HardwareState) {}
+
     /// Update hardware state based on the current user state. We're being lazy
     /// here and grabbing the locks before calling, because it avoids this
     /// neeing to be async, which would pull in async_trait. This means our lock
     /// period is longer than it needs to be, but we're running every 100ms so
     /// it's fine.
-    fn update(
+    fn on_tick(
         &mut self,
         user_state: &Self::UserState,
         hardware_state: &mut Self::HardwareState,

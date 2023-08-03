@@ -1,6 +1,6 @@
 use crate::{
     api::error::ApiResult,
-    resource::{LcdResource, LedResource, Resource},
+    resource::{lcd::LcdResource, led::LedResource, Resource},
     state::{
         common::Status,
         user::{AllResourceState, ResourceState},

@@ -40,7 +40,7 @@ impl Resource for LedResource {
         &mut global_state.led
     }
 
-    fn update(
+    fn on_tick(
         &mut self,
         user_state: &Self::UserState,
         hardware_state: &mut Self::HardwareState,

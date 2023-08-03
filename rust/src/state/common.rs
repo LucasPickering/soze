@@ -47,6 +47,10 @@ impl Color {
     pub fn blue(self) -> u8 {
         self.blue
     }
+
+    pub fn to_bytes(self) -> [u8; 3] {
+        [self.red, self.green, self.blue]
+    }
 }
 
 // This is lossy, since we throw away the first 8 bytes. Hope it wasn't RGBA!
