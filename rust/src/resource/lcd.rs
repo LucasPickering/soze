@@ -2,12 +2,14 @@ use crate::{
     resource::Resource,
     state::{common::Color, hardware, user},
 };
+use chrono::Local;
+use log::error;
 use std::{collections::VecDeque, io::Write};
 
 /// Width of the LCD, in characters
-pub const LCD_WIDTH: u8 = 20;
+const LCD_WIDTH: u8 = 20;
 /// Height of the LCD in lines
-pub const LCD_HEIGHT: u8 = 4;
+const LCD_HEIGHT: u8 = 4;
 
 #[derive(Default)]
 pub struct LcdResource {
@@ -33,10 +35,18 @@ impl Resource for LcdResource {
 
     fn on_start(&mut self, hardware_state: &mut Self::HardwareState) {
         let mut lcd: Lcd = hardware_state.into();
-        lcd.on();
-        lcd.set_size(LCD_WIDTH, LCD_HEIGHT);
-        lcd.set_contrast(255);
-        lcd.set_brightness(255);
+        lcd.send(Message::BacklightOn);
+        // Generally this init only needs to be done once ever, but it's safer
+        // to do it on every startup
+        lcd.send(Message::SetSize {
+            width: LCD_WIDTH,
+            height: LCD_HEIGHT,
+        });
+        lcd.send(Message::SetContrast { contrast: 255 });
+        lcd.send(Message::SetBrightness { brightness: 255 });
+        for &character in CustomCharacter::ALL {
+            lcd.send(Message::SaveCustomCharacter { bank: 0, character });
+        }
     }
 
     fn on_tick(
@@ -47,12 +57,12 @@ impl Resource for LcdResource {
         let mut lcd: Lcd = hardware_state.into();
         match user_state.mode {
             user::LcdMode::Off => {
-                lcd.off();
-                lcd.clear();
+                lcd.send(Message::BacklightOff);
+                lcd.send(Message::Clear);
             }
             user::LcdMode::Clock => {
                 self.set_color(&mut lcd, user_state.color);
-                self.set_text(&mut lcd, vec!["TODO".to_owned()]);
+                self.set_text(&mut lcd, get_clock_text());
             }
         }
     }
@@ -63,7 +73,7 @@ impl LcdResource {
     fn set_color(&mut self, lcd: &mut Lcd, color: Color) {
         if self.color != color {
             self.color = color;
-            lcd.set_color(color);
+            lcd.send(Message::SetColor { color });
         }
     }
 
@@ -71,16 +81,13 @@ impl LcdResource {
     /// changed. The LCD is slow to update, so without diffing it will never
     /// settle. Input text is assumed to be ASCII, and have exactly [LCD_HEIGHT]
     /// lines.
-    fn set_text(&mut self, lcd: &mut Lcd, text: Vec<String>) {
+    ///
+    /// We accept an array of strings here, instead of fixed-length char
+    /// buffers, to make it a bit more ergonomic to build up text content.
+    fn set_text(&mut self, lcd: &mut Lcd, text: [String; LCD_HEIGHT as usize]) {
         fn pos(x: u8, y: u8) -> usize {
             (y * LCD_WIDTH + x) as usize
         }
-
-        assert_eq!(
-            text.len(),
-            LCD_HEIGHT as usize,
-            "text should have exactly {LCD_HEIGHT} lines"
-        );
 
         // A list of groups that need their text updated as (x, y, length)
         let mut diff_groups: Vec<(u8, u8, usize)> = Vec::new();
@@ -92,8 +99,10 @@ impl LcdResource {
         for y in 0..LCD_HEIGHT {
             let line = text[y as usize].as_bytes();
             for x in 0..LCD_WIDTH {
+                // Old text is fixed size so this index is safe
                 let old_byte = self.text.bytes[pos(x, y)];
-                let new_byte = line[x as usize];
+                // Line is variable size. Default to blank
+                let new_byte = line.get(x as usize).copied().unwrap_or(b' ');
                 match (current_diff_group, old_byte == new_byte) {
                     // Differing part has ended
                     (Some(diff_group), true) => {
@@ -114,9 +123,8 @@ impl LcdResource {
 
         // Update the diffed sections
         for (x, y, length) in diff_groups {
-            lcd.set_cursor_pos(x, y);
             let start = pos(x, y);
-            lcd.write_text(&self.text.bytes[start..start + length])
+            lcd.write_at(x, y, &self.text.bytes[start..start + length])
         }
     }
 }
@@ -129,52 +137,15 @@ struct Lcd<'a> {
 
 impl<'a> Lcd<'a> {
     /// Convert a message to bytes and put it on the queue
-    fn send(&mut self, message: LcdMessage) {
+    fn send(&mut self, message: Message) {
         self.message_queue.extend(message.into_bytes())
     }
 
-    /// Clear all text
-    fn clear(&mut self) {
-        self.send(LcdMessage::Clear)
-    }
-
-    /// Turn the backlight on
-    fn on(&mut self) {
-        self.send(LcdMessage::BacklightOn { minutes: 0 })
-    }
-
-    /// Turn the backlight off
-    fn off(&mut self) {
-        self.send(LcdMessage::BacklightOff)
-    }
-
-    /// Set LCD dimensions
-    fn set_size(&mut self, width: u8, height: u8) {
-        self.send(LcdMessage::SetSize { width, height })
-    }
-
-    /// Set backlight brighness
-    fn set_brightness(&mut self, brightness: u8) {
-        self.send(LcdMessage::SetBrightness { brightness })
-    }
-    /// Set backlight contrast
-    fn set_contrast(&mut self, contrast: u8) {
-        self.send(LcdMessage::SetContrast { contrast })
-    }
-
-    /// Set background color
-    fn set_color(&mut self, color: Color) {
-        self.send(LcdMessage::SetColor { color })
-    }
-
-    /// Set cursor to the (x,y) position
-    fn set_cursor_pos(&mut self, x: u8, y: u8) {
-        self.send(LcdMessage::CursorPos { x, y })
-    }
-
-    fn write_text(&mut self, bytes: &[u8]) {
-        self.send(LcdMessage::Text {
-            bytes: bytes.to_owned(),
+    /// Move the cursor to the given position, then write some text
+    fn write_at(&mut self, x: u8, y: u8, text: &[u8]) {
+        self.send(Message::CursorPos { x, y });
+        self.send(Message::Text {
+            bytes: text.to_owned(),
         })
     }
 }
@@ -208,17 +179,14 @@ impl Default for LcdText {
 /// Serial message for the LCD controller
 /// https://learn.adafruit.com/usb-plus-serial-backpack/command-reference
 #[derive(Clone, Debug)]
-enum LcdMessage {
+enum Message {
     /// Write an arbitrary number of bytes at the current position
     /// https://learn.adafruit.com/usb-plus-serial-backpack/sending-text
     Text {
         bytes: Vec<u8>,
     },
     Clear,
-    BacklightOn {
-        /// This value doesn't actually get used
-        minutes: u8,
-    },
+    BacklightOn,
     BacklightOff,
     SetSize {
         width: u8,
@@ -261,7 +229,7 @@ enum LcdMessage {
     },
 }
 
-impl LcdMessage {
+impl Message {
     const COMMAND_BYTE: u8 = 0xFE;
 
     pub fn into_bytes(self) -> Vec<u8> {
@@ -272,7 +240,9 @@ impl LcdMessage {
             // command byte from above
             Self::Text { bytes } => return bytes,
             Self::Clear => buffer.write_all(&[0x58]),
-            Self::BacklightOn { minutes } => buffer.write_all(&[0x42, minutes]),
+            // Second param is the number of minutes to stay on, but it doesn't
+            // actually get used, so we don't parameterize it
+            Self::BacklightOn => buffer.write_all(&[0x42, 0]),
             Self::BacklightOff => buffer.write_all(&[0x46]),
             Self::SetSize { width, height } => {
                 buffer.write_all(&[0xD1, width, height])
@@ -313,7 +283,7 @@ impl LcdMessage {
     }
 }
 
-/// Custom characters that are used to create big (multi-line) characters.
+/// Custom characters that are used to create jumbo (multi-line) characters.
 /// Each of these is defined as a 5x8 grid of pixels.
 #[derive(Copy, Clone, Debug)]
 enum CustomCharacter {
@@ -322,28 +292,32 @@ enum CustomCharacter {
     Bottom,
     FullBottomRight,
     FullBottomLeft,
-    // TODO do these belong here?
-    Full,
-    Empty,
 }
 
 impl CustomCharacter {
+    const ALL: &'static [Self] = &[
+        Self::HalfBottomRight,
+        Self::HalfBottomLeft,
+        Self::Bottom,
+        Self::FullBottomLeft,
+        Self::FullBottomRight,
+    ];
+
     /// The byte representing this character when writing text. Also, the index
     /// of the character in the character bank
-    fn tag(self) -> u8 {
+    const fn tag(self) -> u8 {
         match self {
             Self::HalfBottomRight => 0x00,
             Self::HalfBottomLeft => 0x01,
             Self::Bottom => 0x02,
             Self::FullBottomRight => 0x03,
             Self::FullBottomLeft => 0x04,
-            Self::Full => 0xff,
-            Self::Empty => b' ',
         }
     }
 
     /// Get the pixel grid that defines this character. Each character is 8
-    /// lines of 5 pixels each, where each pixel can be on or off.
+    /// lines of 5 pixels each, where each pixel can be on or off. These need
+    /// to be loaded into the LCD at boot.
     fn pixels(self) -> [u8; 8] {
         match self {
             Self::HalfBottomRight => [
@@ -366,8 +340,79 @@ impl CustomCharacter {
                 0b11111, 0b11111, 0b11111, 0b11111, 0b11111, 0b11110, 0b11110,
                 0b11000,
             ],
-            Self::Full => todo!(),
-            Self::Empty => todo!(),
         }
+    }
+}
+
+/// Format the current date+time as LCD text
+fn get_clock_text() -> [String; LCD_HEIGHT as usize] {
+    let now = Local::now();
+
+    // First line is date and seconds. Month is abbreviated to prevent overflow
+    let date = now.format("%A, %b %-d");
+    let seconds = now.format("%S");
+    let mut lines = [
+        format!("{date:<18}{seconds}"),
+        String::new(),
+        String::new(),
+        String::new(),
+    ];
+
+    // Next three lines are the time, in jumbo text
+    let time = now.format("%-I:%M").to_string();
+    // This unwrap is safe because the length of lines is fixed
+    write_jumbo_text((&mut lines[1..4]).try_into().unwrap(), &time);
+
+    lines
+}
+
+/// Render a string as jumbo text. Jumbo characters are 3 lines tall, so we
+/// return 3 strings.
+fn write_jumbo_text(line_buffer: &mut [String; 3], text: &str) {
+    for c in text.as_bytes() {
+        write_jumbo_character(line_buffer, *c);
+    }
+}
+
+/// Write a single jumbo character to a line buffer. Each jumbo character spans
+/// 3 lines, so this will write `n` bytes to each line, where `n > 1`.
+fn write_jumbo_character(line_buffer: &mut [String; 3], character: u8) {
+    // Convenient consts for building up jumbo characters
+    const HBR: u8 = CustomCharacter::HalfBottomRight.tag();
+    const HBL: u8 = CustomCharacter::HalfBottomLeft.tag();
+    const BOT: u8 = CustomCharacter::Bottom.tag();
+    const FBR: u8 = CustomCharacter::FullBottomRight.tag();
+    const FBL: u8 = CustomCharacter::FullBottomLeft.tag();
+    const FUL: u8 = 0xff; // Solid block (built-in to the LCD)
+    const EMT: u8 = b' '; // Empty
+
+    // We know how many lines we're modifying, but we *don't* know how many
+    // chars per line we're writing, so those have to be strs
+    let to_write: [&[u8]; 3] = match character {
+        b'0' => [&[HBR, BOT, HBL], &[FUL, EMT, FUL], &[FBR, BOT, FBL]],
+        b'1' => [&[BOT, HBL, EMT], &[EMT, FUL, EMT], &[BOT, FUL, BOT]],
+        b'2' => [&[HBR, BOT, HBL], &[HBR, BOT, FBL], &[FBR, BOT, BOT]],
+        b'3' => [&[HBR, BOT, HBL], &[EMT, BOT, FUL], &[BOT, BOT, FBL]],
+        b'4' => [&[BOT, EMT, BOT], &[FBR, BOT, FUL], &[EMT, EMT, FUL]],
+        b'5' => [&[BOT, BOT, BOT], &[FUL, BOT, HBL], &[BOT, BOT, FBL]],
+        b'6' => [&[HBR, BOT, HBL], &[FUL, BOT, HBL], &[FBR, BOT, FBL]],
+        b'7' => [&[BOT, BOT, BOT], &[EMT, HBR, FBL], &[EMT, FUL, EMT]],
+        b'8' => [&[HBR, BOT, HBL], &[FUL, BOT, FUL], &[FBR, BOT, FBL]],
+        b'9' => [&[HBR, BOT, HBL], &[FBR, BOT, FUL], &[EMT, EMT, FUL]],
+        b' ' => [&[EMT, EMT, EMT], &[EMT, EMT, EMT], &[EMT, EMT, EMT]],
+        b':' => [&[FUL], &[EMT], &[FUL]],
+        _ => {
+            error!("Cannot convert character `{character}` to jumbo text");
+            return;
+        }
+    };
+
+    // Write all the new characters to each line
+    for i in 0..3 {
+        let line = &mut line_buffer[i];
+        // Pre-pad each character with a single space, for better readabilty
+        line.push(' ');
+        // Convert from u8 to char for each character
+        line.extend(to_write[i].iter().copied().map(char::from));
     }
 }
