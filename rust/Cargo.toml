@@ -4,10 +4,11 @@ name = "soze"
 version = "0.1.0"
 
 [dependencies]
-anyhow = { version = "1.0.72", features = ["backtrace"] }
+anyhow = {version = "1.0.72", features = ["backtrace"]}
 async-trait = "0.1.72"
 axum = "0.6.19"
 chrono = "0.4.26"
+env_logger = "0.10.0"
 log = "0.4.19"
 serde = {version = "1.0.180", default-features = false, features = ["derive"]}
 serde_json = "1.0.104"

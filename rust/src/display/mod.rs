@@ -6,6 +6,7 @@
 //! communicate with the interactive mock display via Unix Domain Sockets.
 //! Except for the keepalive, which just reads a file input.
 
+use anyhow::Context;
 use async_trait::async_trait;
 use std::{sync::Arc, time::Duration};
 use tokio::{sync::RwLock, time};
@@ -27,17 +28,15 @@ pub trait Hardware: Send + Sized {
 
     async fn new() -> anyhow::Result<Self>;
 
-    fn spawn(state: &Arc<RwLock<Self::State>>) {
+    async fn run(state: &Arc<RwLock<Self::State>>) -> anyhow::Result<()> {
         let state = Arc::clone(state);
-        tokio::spawn(async move {
-            let mut interval = time::interval(Self::INTERVAL);
-            let mut resource =
-                Self::new().await.expect("Error initializing hardware");
-            loop {
-                resource.on_tick(&state).await;
-                interval.tick().await;
-            }
-        });
+        let mut interval = time::interval(Self::INTERVAL);
+        let mut resource =
+            Self::new().await.context("Error initializing hardware")?;
+        loop {
+            resource.on_tick(&state).await?;
+            interval.tick().await;
+        }
     }
 
     /// Update hardware/state on a fixed interval

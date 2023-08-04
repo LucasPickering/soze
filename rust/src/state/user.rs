@@ -30,15 +30,15 @@ impl AllResourceState {
                     "Error deserializing saved user state, using default: \
                     {err}"
                 );
-                AllResourceState::default()
+                Self::default()
             })
         } else {
             info!("{STATE_FILE} missing, using default state");
-            // Write default state to disk so we have it for next time
-            let user_state = Self::default();
-            user_state.save().await?;
-            user_state
+            Self::default()
         };
+        // Write state back to disk, in case we had to fall back to default
+        user_state.save().await?;
+
         info!("Initial user state: {user_state:?}");
         Ok(user_state)
     }

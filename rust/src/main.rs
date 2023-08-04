@@ -15,11 +15,14 @@ use crate::{
         user::AllResourceState,
     },
 };
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use log::error;
+use std::{future::Future, sync::Arc};
+use tokio::{join, sync::RwLock};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     // Initialize API state
     let user_state = arc_lock(AllResourceState::load().await.unwrap());
 
@@ -28,22 +31,35 @@ async fn main() -> anyhow::Result<()> {
     let led_hardware_state = arc_lock(hardware::LedState::default());
     let lcd_hardware_state = arc_lock(hardware::LcdState::default());
 
-    // Start the reducer
-    LedResource::spawn(&user_state, &keepalive_state, &led_hardware_state);
-    LcdResource::spawn(&user_state, &keepalive_state, &lcd_hardware_state);
-
-    // Start each hardware interface
-    KeepaliveHardware::spawn(&keepalive_state);
-    LedHardware::spawn(&led_hardware_state);
-    LcdHardware::spawn(&lcd_hardware_state);
-
-    // Start the API
-    let app = get_router(user_state);
-    axum::Server::bind(&"127.0.0.1:5000".parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    // Start all the concurrent tasks together. If any task fails, we'll log it
+    // without killing everything else
+    join!(
+        // API
+        log_result(
+            "API",
+            axum::Server::bind(&"127.0.0.1:5000".parse().unwrap())
+                .serve(get_router(Arc::clone(&user_state)).into_make_service())
+        ),
+        // Reducer
+        LedResource::run(&user_state, &keepalive_state, &led_hardware_state,),
+        LcdResource::run(&user_state, &keepalive_state, &lcd_hardware_state,),
+        // Hardware
+        log_result("Keepalive", KeepaliveHardware::run(&keepalive_state)),
+        log_result("LED", LedHardware::run(&led_hardware_state)),
+        log_result("LCD", LcdHardware::run(&lcd_hardware_state)),
+    );
     Ok(())
+}
+
+/// Await a future, and if it fails, log the error
+async fn log_result<T, E: Into<anyhow::Error>>(
+    task_name: &str,
+    future: impl Future<Output = Result<T, E>>,
+) {
+    if let Err(err) = future.await {
+        let err: anyhow::Error = err.into();
+        error!("{task_name} task failed: {err:#}\n{}", err.backtrace());
+    }
 }
 
 fn arc_lock<T>(value: T) -> Arc<RwLock<T>> {

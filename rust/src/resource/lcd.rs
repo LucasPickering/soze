@@ -178,6 +178,7 @@ impl Default for LcdText {
 
 /// Serial message for the LCD controller
 /// https://learn.adafruit.com/usb-plus-serial-backpack/command-reference
+#[allow(unused)] // Not all variants are used, but it's nice to know they're there
 #[derive(Clone, Debug)]
 enum Message {
     /// Write an arbitrary number of bytes at the current position

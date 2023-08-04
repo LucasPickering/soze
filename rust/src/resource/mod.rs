@@ -2,6 +2,7 @@ pub mod lcd;
 pub mod led;
 
 use crate::state::{hardware, user};
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::{ops::DerefMut, sync::Arc, time::Duration};
 use tokio::{sync::RwLock, time};
@@ -11,6 +12,7 @@ use tokio::{sync::RwLock, time};
 ///
 /// Each resource will have a separate async task spawned, which will run on a
 /// fixed interval.
+#[async_trait]
 pub trait Resource: Default + Send {
     const INTERVAL: Duration = Duration::from_millis(100);
 
@@ -26,7 +28,7 @@ pub trait Resource: Default + Send {
 
     /// Spawn an async task that will update hardware state on a regular
     /// interval.
-    fn spawn(
+    async fn run(
         all_resource_state: &Arc<RwLock<user::AllResourceState>>,
         keepalive: &Arc<RwLock<hardware::KeepaliveState>>,
         hardware_state: &Arc<RwLock<Self::HardwareState>>,
@@ -34,24 +36,21 @@ pub trait Resource: Default + Send {
         let all_resource_state = Arc::clone(all_resource_state);
         let keepalive = Arc::clone(keepalive);
         let hardware_state = Arc::clone(hardware_state);
-        tokio::spawn(async move {
-            let mut interval = time::interval(Self::INTERVAL);
-            let mut resource = Self::default();
-            // TODO pass down RwLock to minimize critical sections
-            resource.on_start(hardware_state.write().await.deref_mut());
-            loop {
-                let status = keepalive.read().await.to_status();
-                let all_resource_state = all_resource_state.read().await;
-                // Select current user state based on this resource+status
-                let user_state =
-                    Self::get_user_state(&all_resource_state).get(status);
-                resource.on_tick(
-                    user_state,
-                    hardware_state.write().await.deref_mut(),
-                );
-                interval.tick().await;
-            }
-        });
+
+        let mut interval = time::interval(Self::INTERVAL);
+        let mut resource = Self::default();
+        // TODO pass down RwLock to minimize critical sections
+        resource.on_start(hardware_state.write().await.deref_mut());
+        loop {
+            let status = keepalive.read().await.to_status();
+            let all_resource_state = all_resource_state.read().await;
+            // Select current user state based on this resource+status
+            let user_state =
+                Self::get_user_state(&all_resource_state).get(status);
+            resource
+                .on_tick(user_state, hardware_state.write().await.deref_mut());
+            interval.tick().await;
+        }
     }
 
     /// Extract user state for this particular resource, from the global user

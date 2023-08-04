@@ -3,6 +3,8 @@ use anyhow::Context;
 use async_trait::async_trait;
 use tokio::{io::AsyncWriteExt, net::UnixStream, sync::RwLock};
 
+const SOCKET_PATH: &str = "soze-lcd";
+
 pub struct LcdHardware {
     #[cfg(not(hardware))]
     socket: tokio::net::UnixStream,
@@ -16,9 +18,9 @@ impl Hardware for LcdHardware {
 
     async fn new() -> anyhow::Result<Self> {
         Ok(Self {
-            socket: UnixStream::connect("soze-lcd")
-                .await
-                .context("Error opening LED socket")?,
+            socket: UnixStream::connect(SOCKET_PATH).await.with_context(
+                || format!("Error opening LED socket `{SOCKET_PATH}`"),
+            )?,
         })
     }
 
