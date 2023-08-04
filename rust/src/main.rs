@@ -1,9 +1,14 @@
 mod api;
+mod display;
 mod resource;
 mod state;
 
 use crate::{
     api::routes::get_router,
+    display::{
+        keepalive::KeepaliveHardware, lcd::LcdHardware, led::LedHardware,
+        Hardware,
+    },
     resource::{lcd::LcdResource, led::LedResource, Resource},
     state::{
         hardware::{self, KeepaliveState},
@@ -14,7 +19,7 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     // Initialize API state
     let user_state = arc_lock(AllResourceState::load().await.unwrap());
 
@@ -27,12 +32,18 @@ async fn main() {
     LedResource::spawn(&user_state, &keepalive_state, &led_hardware_state);
     LcdResource::spawn(&user_state, &keepalive_state, &lcd_hardware_state);
 
+    // Start each hardware interface
+    KeepaliveHardware::spawn(&keepalive_state);
+    LedHardware::spawn(&led_hardware_state);
+    LcdHardware::spawn(&lcd_hardware_state);
+
     // Start the API
     let app = get_router(user_state);
     axum::Server::bind(&"127.0.0.1:5000".parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
+    Ok(())
 }
 
 fn arc_lock<T>(value: T) -> Arc<RwLock<T>> {

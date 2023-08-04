@@ -4,7 +4,7 @@ use crate::{
 };
 use chrono::Local;
 use log::error;
-use std::{collections::VecDeque, io::Write};
+use std::io::Write;
 
 /// Width of the LCD, in characters
 const LCD_WIDTH: u8 = 20;
@@ -132,7 +132,7 @@ impl LcdResource {
 /// Wrapper for managing LCD state that makes it a bit more ergonomic to send
 /// messages over the queue
 struct Lcd<'a> {
-    message_queue: &'a mut VecDeque<u8>,
+    message_queue: &'a mut Vec<u8>,
 }
 
 impl<'a> Lcd<'a> {

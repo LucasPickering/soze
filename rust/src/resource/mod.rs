@@ -37,6 +37,7 @@ pub trait Resource: Default + Send {
         tokio::spawn(async move {
             let mut interval = time::interval(Self::INTERVAL);
             let mut resource = Self::default();
+            // TODO pass down RwLock to minimize critical sections
             resource.on_start(hardware_state.write().await.deref_mut());
             loop {
                 let status = keepalive.read().await.to_status();

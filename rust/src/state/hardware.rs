@@ -3,7 +3,6 @@
 //! without lock contention.
 
 use crate::state::common::{Color, Status};
-use std::collections::VecDeque;
 
 /// Keepalive flag, which monitors when the parent PC is on. This will control
 /// the current [Status](crate::api::state::Status) of the reducer. Written by
@@ -35,5 +34,5 @@ pub struct LedState {
 /// reducer and hardware (reducer enqueues, hardware dequeues).
 #[derive(Debug, Default)]
 pub struct LcdState {
-    pub message_queue: VecDeque<u8>,
+    pub message_queue: Vec<u8>,
 }
