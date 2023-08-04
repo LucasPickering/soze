@@ -3,7 +3,7 @@ use anyhow::Context;
 use async_trait::async_trait;
 use tokio::{io::AsyncWriteExt, net::UnixStream, sync::RwLock};
 
-const SOCKET_PATH: &str = "soze-led";
+const SOCKET_PATH: &str = "/tmp/soze-led";
 
 pub struct LedHardware {
     #[cfg(not(hardware))]
@@ -14,6 +14,7 @@ pub struct LedHardware {
 #[cfg(not(hardware))]
 #[async_trait]
 impl Hardware for LedHardware {
+    const NAME: &'static str = "LED";
     type State = LedState;
 
     async fn new() -> anyhow::Result<Self> {

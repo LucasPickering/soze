@@ -18,10 +18,6 @@ class Color:
         self._g = _check(green)
         self._b = _check(blue)
 
-    @classmethod
-    def from_bytes(cls, b):
-        return cls(*b[:3])  # Pass the first 3 bytes to the constructor
-
     @property
     def red(self):
         return self._r

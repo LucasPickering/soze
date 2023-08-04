@@ -127,7 +127,9 @@ pub struct LcdState {
     pub color: Color,
 }
 
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum LcdMode {
     #[default]

@@ -9,6 +9,7 @@ pub struct KeepaliveHardware;
 #[cfg(not(hardware))]
 #[async_trait]
 impl Hardware for KeepaliveHardware {
+    const NAME: &'static str = "Keepalive";
     const INTERVAL: Duration = Duration::from_millis(1000); // Slow boi
     type State = KeepaliveState;
 

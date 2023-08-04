@@ -1,0 +1,34 @@
+layout name="soze" {
+    default_tab_template {
+        // the default zellij tab-bar and status bar plugins
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    tab name="ui" cwd="webapp" {
+        pane {
+            command "fish"
+            args "-c" "nvm use && npm run start"
+        }
+    }
+    tab name="service" cwd="rust" {
+        pane {
+            command "cargo"
+            args "watch" "-x" "run"
+        }
+    }
+    tab name="mock" cwd="mock_hardware" {
+        pane {
+            command "poetry"
+            args "run" "python" "-m" "mock_hardware"
+        }
+        pane {
+            command "tail"
+            args "-f" "display.log"
+        }
+    }
+}

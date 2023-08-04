@@ -3,7 +3,7 @@ use crate::{
     state::{common::Color, hardware, user},
 };
 use chrono::Local;
-use log::error;
+use log::{debug, error, trace};
 use std::io::Write;
 
 /// Width of the LCD, in characters
@@ -35,6 +35,7 @@ impl Resource for LcdResource {
 
     fn on_start(&mut self, hardware_state: &mut Self::HardwareState) {
         let mut lcd: Lcd = hardware_state.into();
+        lcd.send(Message::Clear); // Reset text state
         lcd.send(Message::BacklightOn);
         // Generally this init only needs to be done once ever, but it's safer
         // to do it on every startup
@@ -47,6 +48,7 @@ impl Resource for LcdResource {
         for &character in CustomCharacter::ALL {
             lcd.send(Message::SaveCustomCharacter { bank: 0, character });
         }
+        lcd.send(Message::LoadCharacterBank { bank: 0 })
     }
 
     fn on_tick(
@@ -85,45 +87,54 @@ impl LcdResource {
     /// We accept an array of strings here, instead of fixed-length char
     /// buffers, to make it a bit more ergonomic to build up text content.
     fn set_text(&mut self, lcd: &mut Lcd, text: [String; LCD_HEIGHT as usize]) {
-        fn pos(x: u8, y: u8) -> usize {
-            (y * LCD_WIDTH + x) as usize
+        /// Get an index into the text buffer, based on 1-indexed x,y coords
+        fn get_index(x: u8, y: u8) -> usize {
+            ((y - 1) * LCD_WIDTH + x - 1) as usize
         }
 
+        debug!("Setting LCD text to {text:x?}");
+
         // A list of groups that need their text updated as (x, y, length)
-        let mut diff_groups: Vec<(u8, u8, usize)> = Vec::new();
+        let mut diff_groups: Vec<DiffGroup> = Vec::new();
 
         // Figure out what's changed. We're going to make a very bold assumption
         // that the input text is ASCII. If not, shit's fucked.
-        let mut current_diff_group: Option<(u8, u8, usize)> = None;
-        // Top-left to bottom-right, line by line
-        for y in 0..LCD_HEIGHT {
-            let line = text[y as usize].as_bytes();
-            for x in 0..LCD_WIDTH {
+        let mut current_diff_group: Option<DiffGroup> = None;
+        // Top-left to bottom-right, line by line. LCD uses 1-based indexes!!
+        for y in 1..=LCD_HEIGHT {
+            let line = text[y as usize - 1].as_bytes();
+            for x in 1..=LCD_WIDTH {
+                let byte_index = get_index(x, y);
                 // Old text is fixed size so this index is safe
-                let old_byte = self.text.bytes[pos(x, y)];
+                let old_byte = self.text.bytes[byte_index];
                 // Line is variable size. Default to blank
-                let new_byte = line.get(x as usize).copied().unwrap_or(b' ');
-                match (current_diff_group, old_byte == new_byte) {
-                    // Differing part has ended
-                    (Some(diff_group), true) => {
-                        diff_groups.push(diff_group);
-                        current_diff_group = None;
-                    }
-                    // Extend the current group
-                    (Some(mut diff_group), false) => {
-                        diff_group.2 += 1;
-                    }
+                let new_byte =
+                    line.get(x as usize - 1).copied().unwrap_or(b' ');
+
+                // Save the new byte, then check if it's a diff
+                self.text.bytes[byte_index] = new_byte;
+                match (&mut current_diff_group, old_byte == new_byte) {
                     // Nothing to do here
                     (None, true) => {}
                     // Start a new diff group
-                    (None, false) => current_diff_group = Some((x, y, 1)),
+                    (None, false) => {
+                        current_diff_group = Some(DiffGroup::new(x, y))
+                    }
+                    // Extend the current group
+                    (Some(diff_group), false) => {
+                        diff_group.extend();
+                    }
+                    // Differing part has ended
+                    (current_diff_group @ Some(_), true) => {
+                        diff_groups.push(current_diff_group.take().unwrap());
+                    }
                 }
             }
         }
 
         // Update the diffed sections
-        for (x, y, length) in diff_groups {
-            let start = pos(x, y);
+        for DiffGroup { x, y, length } in diff_groups {
+            let start = get_index(x, y);
             lcd.write_at(x, y, &self.text.bytes[start..start + length])
         }
     }
@@ -138,6 +149,7 @@ struct Lcd<'a> {
 impl<'a> Lcd<'a> {
     /// Convert a message to bytes and put it on the queue
     fn send(&mut self, message: Message) {
+        trace!("Sending LCD message: {message:x?}");
         self.message_queue.extend(message.into_bytes())
     }
 
@@ -178,7 +190,6 @@ impl Default for LcdText {
 
 /// Serial message for the LCD controller
 /// https://learn.adafruit.com/usb-plus-serial-backpack/command-reference
-#[allow(unused)] // Not all variants are used, but it's nice to know they're there
 #[derive(Clone, Debug)]
 enum Message {
     /// Write an arbitrary number of bytes at the current position
@@ -342,6 +353,26 @@ impl CustomCharacter {
                 0b11000,
             ],
         }
+    }
+}
+
+/// A group of differing characters. Used to selectively update LCD text. This
+/// intentionally does *not* implement Copy, to prevent accidentally copying
+/// and mutating the wrong value.
+#[derive(Debug)]
+struct DiffGroup {
+    x: u8,
+    y: u8,
+    length: usize,
+}
+
+impl DiffGroup {
+    fn new(x: u8, y: u8) -> Self {
+        Self { x, y, length: 1 }
+    }
+
+    fn extend(&mut self) {
+        self.length += 1;
     }
 }
 

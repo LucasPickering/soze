@@ -1,12 +1,10 @@
-sozes.json
-sozed.json
-
 # Python
 */__pycache__
 *.pyc
 *.egg-info/
 *.log
 *.p
+.venv/
 
 # JS
 node_modules/
@@ -32,3 +30,4 @@ npm-debug.log*
 
 target/
 soze_state.json
+

@@ -15,13 +15,15 @@ use crate::{
         user::AllResourceState,
     },
 };
-use log::error;
+use log::{error, LevelFilter};
 use std::{future::Future, sync::Arc};
 use tokio::{join, sync::RwLock};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init();
+    env_logger::builder()
+        .filter_level(LevelFilter::Trace)
+        .init();
 
     // Initialize API state
     let user_state = arc_lock(AllResourceState::load().await.unwrap());
@@ -44,9 +46,12 @@ async fn main() -> anyhow::Result<()> {
         LedResource::run(&user_state, &keepalive_state, &led_hardware_state,),
         LcdResource::run(&user_state, &keepalive_state, &lcd_hardware_state,),
         // Hardware
-        log_result("Keepalive", KeepaliveHardware::run(&keepalive_state)),
-        log_result("LED", LedHardware::run(&led_hardware_state)),
-        log_result("LCD", LcdHardware::run(&lcd_hardware_state)),
+        log_result(
+            KeepaliveHardware::NAME,
+            KeepaliveHardware::run(&keepalive_state)
+        ),
+        log_result(LedHardware::NAME, LedHardware::run(&led_hardware_state)),
+        log_result(LedHardware::NAME, LcdHardware::run(&lcd_hardware_state)),
     );
     Ok(())
 }
