@@ -193,6 +193,14 @@ mod serde_fade_time {
                     ))
                 }
             }
+
+            fn visit_i64<E: de::Error>(self, v: i64) -> Result<Duration, E> {
+                self.visit_f64(v as f64)
+            }
+
+            fn visit_u64<E: de::Error>(self, v: u64) -> Result<Duration, E> {
+                self.visit_f64(v as f64)
+            }
         }
 
         deserializer.deserialize_f64(FadeTimeVisitor)

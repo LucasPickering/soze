@@ -17,11 +17,12 @@ export interface Statuses<T> {
 export interface ResourceState<T> {
   status: Status;
   data?: Statuses<T>;
-  modifiedData?: Statuses<RecursivePartial<T>>;
+  isModified: boolean;
 }
 
 export const defaultResourceState: ResourceState<any> = {
   status: Status.Normal,
+  isModified: false,
 };
 
 export enum ResourceActionType {

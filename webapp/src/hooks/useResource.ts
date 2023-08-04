@@ -1,4 +1,4 @@
-import { get, isArray, isEmpty, mergeWith, noop } from 'lodash-es';
+import { isArray, mergeWith, noop } from 'lodash-es';
 import { useEffect, useReducer } from 'react';
 import { RecursivePartial } from 'types/core';
 import {
@@ -35,22 +35,21 @@ const reducer = <T>(
         ...state,
         data: action.data,
         // Whenever we set all data, we should wipe out any modifications
-        modifiedData: {},
+        isModified: false,
       };
     case ResourceActionType.PostLoad:
       return {
         ...state,
         data: { ...state.data, [action.status]: action.data },
         // Whenever we set all data, we should wipe out any modifications
-        modifiedData: {},
+        isModified: false,
       };
     case ResourceActionType.ModifyData:
       return {
         ...state,
         // Recursively merge into the existing data
-        modifiedData: mergeObjects(state.modifiedData, {
-          [action.status]: action.data,
-        }),
+        data: mergeObjects(state.data, { [action.status]: action.data }),
+        isModified: true,
       };
   }
 };
@@ -87,7 +86,7 @@ function useResource<T>(resource: Resource): ReturnVal<T> {
   // Fetch data across all statuses for this resource
   useEffect(() => {
     fetchRequest({ url: `/api/${resource}`, method: 'GET' })
-      .then(fetchData => {
+      .then((fetchData) => {
         dispatch({
           type: ResourceActionType.FetchLoad,
           data: fetchData,
@@ -97,13 +96,12 @@ function useResource<T>(resource: Resource): ReturnVal<T> {
   }, [fetchRequest, resource]);
 
   // Memoize these to prevent unnecessary re-renders
-  const { status, data, modifiedData } = state;
-  const modifiedForStatus = modifiedData && modifiedData[status];
+  const { status, data, isModified } = state;
 
   return {
     status,
-    isModified: !isEmpty(modifiedData),
-    localData: get(mergeObjects(data, modifiedData), status),
+    isModified,
+    localData: data?.[status],
     fetchLoading,
     postLoading,
     setStatus: (s: Status) => {
@@ -123,9 +121,9 @@ function useResource<T>(resource: Resource): ReturnVal<T> {
       postRequest({
         url: `/api/${resource}/${status}`,
         method: 'POST',
-        data: modifiedForStatus,
+        data: data?.[status],
       })
-        .then(postData => {
+        .then((postData) => {
           dispatch({
             type: ResourceActionType.PostLoad,
             status,
