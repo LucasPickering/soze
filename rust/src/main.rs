@@ -43,15 +43,29 @@ async fn main() -> anyhow::Result<()> {
                 .serve(get_router(Arc::clone(&user_state)).into_make_service())
         ),
         // Reducer
-        LedResource::run(&user_state, &keepalive_state, &led_hardware_state,),
-        LcdResource::run(&user_state, &keepalive_state, &lcd_hardware_state,),
+        log_result(
+            "LED Reducer",
+            LedResource::run(
+                &user_state,
+                &keepalive_state,
+                &led_hardware_state,
+            )
+        ),
+        log_result(
+            "LCD Reducer",
+            LcdResource::run(
+                &user_state,
+                &keepalive_state,
+                &lcd_hardware_state,
+            )
+        ),
         // Hardware
         log_result(
-            KeepaliveHardware::NAME,
+            "Keepalive Hardware",
             KeepaliveHardware::run(&keepalive_state)
         ),
-        log_result(LedHardware::NAME, LedHardware::run(&led_hardware_state)),
-        log_result(LedHardware::NAME, LcdHardware::run(&lcd_hardware_state)),
+        log_result("LED Hardware", LedHardware::run(&led_hardware_state)),
+        log_result("LCD Hardware", LcdHardware::run(&lcd_hardware_state)),
     );
     Ok(())
 }

@@ -32,7 +32,7 @@ pub trait Resource: Default + Send {
         all_resource_state: &Arc<RwLock<user::AllResourceState>>,
         keepalive: &Arc<RwLock<hardware::KeepaliveState>>,
         hardware_state: &Arc<RwLock<Self::HardwareState>>,
-    ) {
+    ) -> anyhow::Result<()> {
         let all_resource_state = Arc::clone(all_resource_state);
         let keepalive = Arc::clone(keepalive);
         let hardware_state = Arc::clone(hardware_state);
@@ -40,15 +40,17 @@ pub trait Resource: Default + Send {
         let mut interval = time::interval(Self::INTERVAL);
         let mut resource = Self::default();
         // TODO pass down RwLock to minimize critical sections
-        resource.on_start(hardware_state.write().await.deref_mut());
+        resource.on_start(hardware_state.write().await.deref_mut())?;
         loop {
             let status = keepalive.read().await.to_status();
             let all_resource_state = all_resource_state.read().await;
             // Select current user state based on this resource+status
             let user_state =
                 Self::get_user_state(&all_resource_state).get(status);
-            resource
-                .on_tick(user_state, hardware_state.write().await.deref_mut());
+            resource.on_tick(
+                user_state,
+                hardware_state.write().await.deref_mut(),
+            )?;
             interval.tick().await;
         }
     }
@@ -67,7 +69,9 @@ pub trait Resource: Default + Send {
     ) -> &mut user::ResourceState<Self::UserState>;
 
     /// Update hardware state, once on startup
-    fn on_start(&mut self, _: &mut Self::HardwareState) {}
+    fn on_start(&mut self, _: &mut Self::HardwareState) -> anyhow::Result<()> {
+        Ok(())
+    }
 
     /// Update hardware state based on the current user state. We're being lazy
     /// here and grabbing the locks before calling, because it avoids this
@@ -78,5 +82,5 @@ pub trait Resource: Default + Send {
         &mut self,
         user_state: &Self::UserState,
         hardware_state: &mut Self::HardwareState,
-    );
+    ) -> anyhow::Result<()>;
 }

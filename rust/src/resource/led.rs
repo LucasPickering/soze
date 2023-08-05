@@ -44,7 +44,7 @@ impl Resource for LedResource {
         &mut self,
         user_state: &Self::UserState,
         hardware_state: &mut Self::HardwareState,
-    ) {
+    ) -> anyhow::Result<()> {
         // Update LED color
         hardware_state.color = match user_state.mode {
             user::LedMode::Off => Color::BLACK,
@@ -77,5 +77,6 @@ impl Resource for LedResource {
                 }
             }
         };
+        Ok(())
     }
 }

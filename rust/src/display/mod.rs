@@ -32,6 +32,11 @@ pub trait Hardware: Send + Sized {
     /// Run a loop to sync between state and the hardware. If there are any
     /// errors during hardware initialization or syncing, this will repeatedly
     /// reinitialize in a loop, for ease of development.
+    ///
+    /// Since the reducer operators only on internal state, it should generally
+    /// be infallible. Any error returned indicates an internal logic error.
+    /// These errors are recoverable though, because we can simply stop running
+    /// one reducer.
     async fn run(state: &Arc<RwLock<Self::State>>) -> anyhow::Result<()> {
         let state = Arc::clone(state);
 
