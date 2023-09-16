@@ -87,16 +87,10 @@ If you change just a single component and want to avoid rebuilding all of them, 
 
 #### Deploy
 
-##### First Time Setup
-
-Set up the RPi as a Docker machine host, so you can run Docker commands on it remotely. [See here](https://gist.github.com/calebbrewer/c41cab61216d8845b59fcc51f36343a7).
-
-##### Deploy Time
-
-**Switch to the RPi as your machine**. Then, deploy with:
+Start the docker-compose stack on the Pi with:
 
 ```sh
-./scripts/deploy.sh
+./scripts/deploy.sh pi@<host>
 ```
 
 ## Hardware
